@@ -1,19 +1,11 @@
-from enum import Enum
-
-class CSV():
+class SC():
     value = 0
-    desc = "Comma-separated values"
-    extensions = [".csv",".tsv"]
+    desc = "Single Cell"
 
-class H5():
+class BULK():
     value = 1
-    desc = "Hierarchical Data Format"
-    extensions = [".h5",".hdf5"]
+    desc = "Bulk RNA"
 
-class RDS():
+class PHENODATA():
     value = 2
-    desc = "R Data Serialization"
-    extensions = [".rds"]
-
-sc_file_types = [CSV, H5, RDS]
-sc_file_extensions = [ext for ft in sc_file_types for ext in ft.extensions]
+    desc = "Phenotype Data"

@@ -5,14 +5,17 @@ import imgui
 from imgui.integrations.glfw import GlfwRenderer
 
 import io_window
+from util.Logger import LogLevel
+import util.FileType as FileType
 
 class Window():
-    def __init__(self):
+    def __init__(self, app, logger):
         imgui.create_context()
         self.window = Window.impl_glfw_init()
         self.impl = GlfwRenderer(self.window)
-
+        self.logger = logger
         self.childs = {}
+        self.app = app
 
     def gui(self):
         if imgui.begin_main_menu_bar():
@@ -36,10 +39,31 @@ class Window():
                 imgui.end_menu()
 
             imgui.end_main_menu_bar()
+
+        imgui.begin("Console")
+        for level, message, time in self.logger.log:
+            if level.value >= self.logger.log_level.value:
+                if level.value == LogLevel.DEBUG.value:
+                    imgui.push_style_color(imgui.COLOR_TEXT, 0, 0.7, 0.7)
+                elif level.value == LogLevel.INFO.value:
+                    imgui.push_style_color(imgui.COLOR_TEXT, 0.5, 0.5, 0.5)
+                elif level.value == LogLevel.WARNING.value:
+                    imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.7, 0.0)
+                elif level.value == LogLevel.ERROR.value:
+                    imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0)
+
+                imgui.text(f"[{time}] {message}")
+                imgui.pop_style_color()
+
+        imgui.end()
         
         for key in list(self.childs.keys()):
-            if not self.childs[key].draw():
+            opened, val = self.childs[key].draw()
+            if not opened:
                 del self.childs[key]
+                if val is not None:
+                    self.logger.info(f"Loaded file: {val}")
+                    self.app.init_dataset(val, FileType.SC)
     
     def update(self):
         if glfw.window_should_close(self.window):
