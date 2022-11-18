@@ -13,3 +13,4 @@ dependencies:
   - scvi
   - pyglfw
   - pyopengl
+  - leidenalg

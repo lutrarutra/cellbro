@@ -21,7 +21,7 @@ class Io_window():
             imgui.begin(self.title)
             
             imgui.text(self.cwd)
-            imgui.begin_child("Files:", -10, -70, border=True)
+            imgui.begin_child("Files:", -10, -120, border=True)
 
             if imgui.button(".."):
                 self.set_cwd(os.path.dirname(self.cwd))
@@ -53,23 +53,21 @@ class Io_window():
 
             imgui.end_child()
 
-            clicked, self.show_filetypes = imgui.combo("Show file types", self.show_filetypes, ["/".join(FileFormat.sc_file_extensions), "*"])
+            _, self.show_filetypes = imgui.combo("Show file types", self.show_filetypes, ["/".join(FileFormat.sc_file_extensions), "*"])
 
-            changed, text_val = imgui.input_text(
+            _, self.path = imgui.input_text(
                 "File path", self.path, 256
             )
             _, self.show_hidden = imgui.checkbox("Show hidden", self.show_hidden)
             imgui.same_line()
-            imgui.dummy(imgui.get_window_width()-250, 0)
-            imgui.same_line()
 
-            if imgui.button("Open", width=50):
+            if imgui.button("Open"):
                 imgui.end()
                 return False, self.path
 
             imgui.same_line()
 
-            if imgui.button("Close", width=50):
+            if imgui.button("Close"):
                 # self.opened = False
                 imgui.end()
                 return False, None

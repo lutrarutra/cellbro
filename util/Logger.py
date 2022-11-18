@@ -1,4 +1,4 @@
-from time import gmtime, strftime
+from datetime import datetime
 from enum import Enum
 
 class LogLevel(Enum):
@@ -13,7 +13,7 @@ class Logger():
         self.log_level = log_level
 
     def _log(self, level, message):
-        self.log.append((level, message, strftime("%H:%M", gmtime())))
+        self.log.append((level, message, datetime.now().strftime("%H:%M")))
 
     def debug(self, message):
         self._log(LogLevel.DEBUG, message)
