@@ -2,8 +2,6 @@ import multiprocessing
 
 import scanpy as sc
 
-import analysis.plotting as pl
-
 from .projection import Projection
 
 class Trimap(Projection):
@@ -29,5 +27,5 @@ class Trimap(Projection):
         
         self.plot_params["color"] = self.selected_keys
 
-        self.app.processes["trimap_plot"] = multiprocessing.Process(target=pl.trimap_projection, args=(self.dataset, self.plot_params))
+        self.app.processes["trimap_plot"] = multiprocessing.Process(target=sc.external.pl.trimap, args=(self.dataset.adata,), kwargs=self.plot_params)
         self.app.processes["trimap_plot"].start()

@@ -2,6 +2,7 @@ import webbrowser
 
 import imgui
 
+from util import Query
 class Projection():
     def __init__(self, dataset, app):
         self.app = app
@@ -10,9 +11,13 @@ class Projection():
         self.finished = False
         self.leiden = True
         self.current_tab = 0
-        self.keys = sorted(list(dataset.adata.obs.columns)) + sorted(list(dataset.adata.var.index))
+
+        self.key_query = Query.Query(
+            sorted(list(dataset.adata.obs.columns)) + sorted(list(dataset.adata.var.index)),
+            proposal_keys=list(dataset.adata.obs.columns)
+        )
+
         self.selected_keys = []
-        self.proposal_keys = list(dataset.adata.obs.columns)
         self.calc_params = {}
         self.plot_params = {
             "ncols": 1,
@@ -25,16 +30,6 @@ class Projection():
         }
 
         self.query = ""
-
-    def find_keys(self, query):
-        keys = []
-        for key in self.keys:
-            if query.upper() in key.upper():
-                keys.append(key)
-                if len(keys) > 20:
-                    return keys
-
-        return keys
 
     def draw(self):
         if self.finished:
@@ -90,7 +85,7 @@ class Projection():
             )
             imgui.pop_item_width()
             if query_changed:
-                self.proposal_keys = self.find_keys(self.query)
+                self.key_query.query(self.query)
 
             imgui.begin_child("Available features text", (imgui.get_window_width()-30)*0.5, 40, border=False)
             imgui.text("Available Features:")
@@ -100,7 +95,7 @@ class Projection():
             imgui.text("Selected Features:")
             imgui.end_child()
             imgui.begin_child("Available Features", (imgui.get_window_width()-30)*0.5, -50, border=True)
-            for key in self.proposal_keys:
+            for key in self.key_query.proposal_keys:
                 clicked, _ = imgui.selectable(key, key in self.selected_keys)
                 if clicked:
                     if key in self.selected_keys:

@@ -3,8 +3,6 @@ import multiprocessing
 import scanpy as sc
 import imgui
 
-import analysis.plotting as pl
-
 from .projection import Projection
 
 class PCA(Projection):
@@ -46,5 +44,5 @@ class PCA(Projection):
         self.plot_params["color"] = self.selected_keys
         self.plot_params["dimensions"] = list(set(self.dimensions))
 
-        self.app.processes["pca_plot"] = multiprocessing.Process(target=pl.pca_projection, args=(self.dataset, self.plot_params))
+        self.app.processes["pca_plot"] = multiprocessing.Process(target=sc.pl.pca, args=(self.dataset.adata,), kwargs=self.plot_params)
         self.app.processes["pca_plot"].start()

@@ -2,8 +2,6 @@ import multiprocessing
 
 import scanpy as sc
 
-import analysis.plotting as pl
-
 from .projection import Projection
 
 class TSNE(Projection):
@@ -30,5 +28,5 @@ class TSNE(Projection):
         
         self.plot_params["color"] = self.selected_keys
 
-        self.app.processes["tsne_plot"] = multiprocessing.Process(target=pl.tsne_projection, args=(self.dataset, self.plot_params))
+        self.app.processes["tsne_plot"] = multiprocessing.Process(target=sc.pl.tsne, args=(self.dataset.adata,), kwargs=self.plot_params)
         self.app.processes["tsne_plot"].start()

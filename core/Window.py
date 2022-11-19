@@ -3,18 +3,19 @@ import multiprocessing
 import glfw
 import OpenGL.GL as gl
 
+import scanpy as sc
+
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
 
 import io_window
-import analysis.plotting as pl
-from util.Logger import LogLevel
 import util.FileType as FileType
 from analysis import preprocessing as pp
 import analysis.projection.umap as projection_umap
 import analysis.projection.trimap as projection_trimap
 import analysis.projection.tsne as projection_tsne
 import analysis.projection.pca as projection_pca
+from analysis import violin
 
 class Window():
     def __init__(self, app, logger):
@@ -66,10 +67,13 @@ class Window():
 
                 imgui.end_menu()
 
-            # if imgui.begin_menu("Plots", self.app.dataset is not None and self.app.dataset.preprocessed):
-            #     if imgui.menu_item("UMAP", '', False, True)[0]:
-            #         pass
-            #     imgui.end_menu()
+            if imgui.begin_menu("Plots", self.app.dataset is not None and self.app.dataset.preprocessed):
+                if imgui.menu_item("Violin", '', False, True)[0]:
+                    if "violin_form" not in self.childs.keys():
+                        self.childs["violin_form"] = violin.Violin(self.app.dataset, self.app)
+                if imgui.menu_item("Heatmap", '', False, True)[0]:
+                    pass
+                imgui.end_menu()
 
 
             imgui.end_main_menu_bar()
@@ -116,7 +120,7 @@ class Window():
                     self.logger.info(f"Dataset filtered...")
                     self.logger.info(f"Cells: {self.app.dataset.adata.shape[0]} | Genes: {self.app.dataset.adata.shape[1]}")
                     if "qc_mt_plot" not in self.app.processes.keys():
-                        self.app.processes["qc_mt_plot"] = multiprocessing.Process(target=pl.qc_mt_plot, args=(self.app.dataset,))
+                        self.app.processes["qc_mt_plot"] = multiprocessing.Process(target=sc.pl.scatter, args=(self.app.dataset.adata,), kwargs=dict(x="total_counts", y="pct_counts_mt", color="n_genes_by_counts"))
                         self.app.processes["qc_mt_plot"].start()
                         self.childs["qc_mt_form"] = pp.MTQCForm(self.app.dataset)
                         self.childs["preprocessing_progress"].step += 1

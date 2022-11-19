@@ -2,8 +2,6 @@ import multiprocessing
 
 import scanpy as sc
 
-import analysis.plotting as pl
-
 from .projection import Projection
 
 class UMAP(Projection):
@@ -43,5 +41,5 @@ class UMAP(Projection):
         
         self.plot_params["color"] = self.selected_keys
 
-        self.app.processes["umap_plot"] = multiprocessing.Process(target=pl.umap_projection, args=(self.dataset, self.plot_params))
+        self.app.processes["umap_plot"] = multiprocessing.Process(target=sc.pl.umap, args=(self.dataset.adata,), kwargs=self.plot_params)
         self.app.processes["umap_plot"].start()
