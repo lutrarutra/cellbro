@@ -1,3 +1,7 @@
+import os, datetime
+
+import imgui
+
 import scanpy as sc
 import pandas as pd
 
@@ -10,15 +14,16 @@ class Dataset():
         self.file_type = file_type
         self.preprocessed = False
         self.annotated = False
+        self.annotation_files = []
 
         if path.endswith(".csv"):
-            self.file_format = FileFormat.CSV.value
+            self.file_format = FileFormat.CSV
         elif path.endswith(".tsv"):
-            self.file_format = FileFormat.TSV.value
+            self.file_format = FileFormat.TSV
         elif path.endswith(".h5") or path.endswith(".hdf5") or path.endswith(".h5ad"):
-            self.file_format = FileFormat.H5.value
+            self.file_format = FileFormat.H5
         elif path.endswith(".rds"):
-            self.file_format = FileFormat.RDS.value
+            self.file_format = FileFormat.RDS
         else:
             logger.error(f"File format {'.' + path.split('.')[-1]} not supported...")
             return None
@@ -31,7 +36,100 @@ class Dataset():
         self.adata.var['mt'] = self.adata.var_names.str.startswith("MT-") | self.adata.var_names.str.startswith("MT.")
         sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
 
+    def draw(self):
+        layers = list(self.adata.layers.keys())
+        n_features = max(len(layers), max(len(self.adata.obs.columns), len(self.adata.var.columns)))
+
+        imgui.begin("Dataset")[0]
+
+        imgui.text(f"Cells: {self.adata.shape[0]}")
+        imgui.same_line()
+        imgui.dummy(10, 0)
+        imgui.same_line()
+        imgui.text(f"Genes: {self.adata.shape[1]}")
+
+        imgui.dummy(0, 20)
+
+        imgui.text("Dataset Content")
+        imgui.begin_child("dataset content", imgui.get_window_width()-20, 200, border=True)
+        imgui.columns(3, "contentlist")
+        imgui.text("Cell Features")
+        imgui.next_column()
+        imgui.text("Gene Features")
+        imgui.next_column()
+        imgui.text("Layers")
+        imgui.separator()
+        imgui.next_column()
+        imgui.push_style_color(imgui.COLOR_TEXT, 0.7, 0.7, 0.7, 1.0)
+        for i in range(n_features):
+            if i < len(self.adata.obs.columns):
+                imgui.text(f"{self.adata.obs.columns[i]} ({type(self.adata.obs.iloc[0,i]).__name__})")
+            else:
+                imgui.text("")
+            imgui.next_column()
+            if i < len(self.adata.var.columns):
+                imgui.text(f"{self.adata.var.columns[i]} ({type(self.adata.var.iloc[0,i]).__name__})")
+            else:
+                imgui.text("")
+            imgui.next_column()
+            if i < len(self.adata.layers.keys()):
+                imgui.text(layers[i])
+            else:
+                imgui.text("")
+            imgui.separator()
+            imgui.next_column()
+
+        imgui.pop_style_color()
+        imgui.columns(1)
+        imgui.end_child()
+
+        imgui.dummy(0, 20)
+
+        imgui.text("Loaded Files:")
+        imgui.begin_child("loaded files list", imgui.get_window_width()-20, 200, border=True)
+        imgui.columns(4, "filelist")
+
+        imgui.text("Type")
+        imgui.next_column()
+        imgui.text("File")
+        imgui.next_column()
+        imgui.text("Size")
+        imgui.next_column()
+        imgui.text("Last Modified")
+        imgui.next_column()
+
+        imgui.separator()
+        
+        imgui.text(f"SC Data")
+        imgui.next_column()
+        imgui.text(os.path.basename(self.path))
+        imgui.next_column()
+        imgui.text(f"{os.stat(self.path).st_size / (1024 * 1024):.1f} MB")
+        imgui.next_column()
+        imgui.text(datetime.datetime.fromtimestamp(os.path.getmtime(self.path)).strftime("%Y-%m-%d %H:%M:%S"))
+
+        imgui.separator()
+        imgui.push_style_color(imgui.COLOR_TEXT, 0.7, 0.7, 0.7, 1.0)
+        for annotation in self.annotation_files:
+            imgui.next_column()
+            imgui.text(f"Annotation")
+            imgui.next_column()
+            imgui.text(os.path.basename(annotation))
+            imgui.next_column()
+            imgui.text(f"{os.stat(annotation).st_size / (1024 * 1024):.1f} MB")
+            imgui.next_column()
+            imgui.text(datetime.datetime.fromtimestamp(os.path.getmtime(annotation)).strftime("%Y-%m-%d %H:%M:%S"))
+            imgui.separator()
+
+        imgui.pop_style_color()
+        imgui.columns(1)
+        imgui.end_child()
+
+        imgui.end()
+        return True, None
+
     def annotate(self, path):
+        self.annotation_files.append(path)
         sep = "," if path.split(".")[-1] == "csv" else "\t"
         annotation = pd.read_csv(path, sep=sep, index_col=0)
 

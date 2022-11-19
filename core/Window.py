@@ -29,7 +29,6 @@ class Window():
     def gui(self):
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", True):
-
                 clicked_quit, selected_quit = imgui.menu_item(
                     "Quit", 'Cmd+Q', False, True
                 )
@@ -68,12 +67,16 @@ class Window():
                 imgui.end_menu()
 
             # if imgui.begin_menu("Plots", self.app.dataset is not None and self.app.dataset.preprocessed):
-            #     if clicked
+            #     if imgui.menu_item("UMAP", '', False, True)[0]:
+            #         pass
+            #     imgui.end_menu()
 
 
             imgui.end_main_menu_bar()
 
         self.logger.draw()
+        if self.app.dataset:
+            self.app.dataset.draw()
         self.process_childs()
         
     def process_childs(self):

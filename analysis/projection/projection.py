@@ -84,9 +84,11 @@ class Projection():
         
         elif self.current_tab == 2:
             imgui.text("Search:")
+            imgui.push_item_width(imgui.get_window_width()*0.5)
             query_changed, self.query  = imgui.input_text(
-                    "Key (Column/GeneName)", self.query, 256
+                    "Key (Feature/GeneName)", self.query, 256
             )
+            imgui.pop_item_width()
             if query_changed:
                 self.proposal_keys = self.find_keys(self.query)
 
