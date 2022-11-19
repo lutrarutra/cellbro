@@ -10,5 +10,13 @@ def qc_mt_plot(dataset):
 
 
 def umap_projection(dataset, args):
-    print(dataset.adata.shape)
     sc.pl.umap(dataset.adata, **args)
+
+def trimap_projection(dataset, args):
+    sc.external.pl.trimap(dataset.adata, **args)
+
+def tsne_projection(dataset, args):
+    sc.pl.tsne(dataset.adata, **args)
+
+def pca_projection(dataset, args):
+    sc.pl.pca(dataset.adata, **args)

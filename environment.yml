@@ -14,3 +14,4 @@ dependencies:
   - pyglfw
   - pyopengl
   - leidenalg
+  - trimap

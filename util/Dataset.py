@@ -15,7 +15,7 @@ class Dataset():
             self.file_format = FileFormat.CSV.value
         elif path.endswith(".tsv"):
             self.file_format = FileFormat.TSV.value
-        elif path.endswith(".h5") or path.endswith(".hdf5"):
+        elif path.endswith(".h5") or path.endswith(".hdf5") or path.endswith(".h5ad"):
             self.file_format = FileFormat.H5.value
         elif path.endswith(".rds"):
             self.file_format = FileFormat.RDS.value
@@ -28,7 +28,7 @@ class Dataset():
         # TODO: check duplicate barcodes
         self.adata.var_names_make_unique()
         self.adata.obs_names_make_unique()
-        self.adata.var['mt'] = self.adata.var_names.str.startswith("MT.")
+        self.adata.var['mt'] = self.adata.var_names.str.startswith("MT-") | self.adata.var_names.str.startswith("MT.")
         sc.pp.calculate_qc_metrics(self.adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
 
     def annotate(self, path):
@@ -45,6 +45,16 @@ class Dataset():
             self.adata.obs[col] = None
             self.adata.obs.loc[annotation.index, col] = annotation[col]
             self.logger.info(f"Added column {col} to adata.obs")
+
+    def post_process_init(self):
+        self.adata.layers["ncounts"] = self.adata.X.copy()
+        sc.pp.log1p(self.adata)
+        # self.adata.layers["centered"] = self.adata.layers["ncounts"] - self.adata.layers["ncounts"].mean(axis=0)
+        # self.adata.layers["logcentered"] = self.adata.X - self.adata.X.mean(axis=0)
+        sc.tl.pca(self.adata)
+        sc.pp.neighbors(self.adata, n_neighbors=15, random_state=0)
+        self.preprocessed = True
+
 
         
         

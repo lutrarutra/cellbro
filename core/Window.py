@@ -11,7 +11,10 @@ import analysis.plotting as pl
 from util.Logger import LogLevel
 import util.FileType as FileType
 from analysis import preprocessing as pp
-import analysis.clustering as clustering
+import analysis.projection.umap as projection_umap
+import analysis.projection.trimap as projection_trimap
+import analysis.projection.tsne as projection_tsne
+import analysis.projection.pca as projection_pca
 
 class Window():
     def __init__(self, app, logger):
@@ -44,48 +47,33 @@ class Window():
 
                 imgui.end_menu()
 
-            if imgui.begin_menu("Clustering", self.app.dataset is not None and self.app.dataset.preprocessed):
+            if imgui.begin_menu("Projection", self.app.dataset is not None and self.app.dataset.preprocessed):
 
-                clicked_umap, selected_umap = imgui.menu_item(
-                    "UMAP", '', False, True
-                )
-                if clicked_umap:
+                if imgui.menu_item("UMAP", '', False, True)[0]:
                     if "umap_form" not in self.childs.keys():
-                        self.childs["umap_form"] = clustering.UMAP(self.app.dataset, self.app)
+                        self.childs["umap_form"] = projection_umap.UMAP(self.app.dataset, self.app)
 
-                clicked_trimap, selected_trimap = imgui.menu_item(
-                    "Trimap", '', False, True
-                )
+                if imgui.menu_item("Trimap", '', False, True)[0]:
+                    if "trimap_form" not in self.childs.keys():
+                        self.childs["trimap_form"] = projection_trimap.Trimap(self.app.dataset, self.app)
 
-                clicked_tsne, selected_tsne = imgui.menu_item(
-                    "t-SNE", '', False, True
-                )
+                if imgui.menu_item("t-SNE", '', False, True)[0]:
+                    if "tsne_form" not in self.childs.keys():
+                        self.childs["tsne_form"] = projection_tsne.TSNE(self.app.dataset, self.app)
 
-                clicked_pca, selected_pca = imgui.menu_item(
-                    "PCA", '', False, True
-                )
+                if imgui.menu_item("PCA", '', False, True)[0]:
+                    if "pca_form" not in self.childs.keys():
+                        self.childs["pca_form"] = projection_pca.PCA(self.app.dataset, self.app)
 
                 imgui.end_menu()
+
+            # if imgui.begin_menu("Plots", self.app.dataset is not None and self.app.dataset.preprocessed):
+            #     if clicked
 
 
             imgui.end_main_menu_bar()
 
-        imgui.begin("Log")
-        for level, message, time in self.logger.log:
-            if level.value >= self.logger.log_level.value:
-                if level.value == LogLevel.DEBUG.value:
-                    imgui.push_style_color(imgui.COLOR_TEXT, 0, 0.7, 0.7)
-                elif level.value == LogLevel.INFO.value:
-                    imgui.push_style_color(imgui.COLOR_TEXT, 0.5, 0.5, 0.5)
-                elif level.value == LogLevel.WARNING.value:
-                    imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.7, 0.0)
-                elif level.value == LogLevel.ERROR.value:
-                    imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0)
-
-                imgui.text(f"[{time}] {message}")
-                imgui.pop_style_color()
-
-        imgui.end()
+        self.logger.draw()
         self.process_childs()
         
     def process_childs(self):
@@ -103,8 +91,16 @@ class Window():
                     if val:
                         self.childs["annotate_file_browser"] = io_window.Io_window()
                     else:
-                        self.childs["filter_form"] = pp.FilterForm(self.dataset)
+                        self.childs["ask_preprocessing"] = pp.AskPreprocessForm()
+
+                
+                if key == "ask_preprocessing":
+                    if val:
+                        self.childs["filter_form"] = pp.FilterForm(self.app.dataset)
                         self.childs["preprocessing_progress"].step += 1
+                    else:
+                        self.childs["preprocessing_progress"].finished = True
+                        self.app.dataset.post_process_init()
 
                 if key == "annotate_file_browser" and val is not None:
                     self.logger.info(f"Loaded file: {val}")
@@ -133,9 +129,26 @@ class Window():
                     self.logger.info("Created layers: X (log1p), 'counts', 'ncounts', 'centered', 'logcentered', neighbors and 'X_pca'")
                     self.logger.info("Normalization finished...")
                     self.childs["preprocessing_progress"].finished = True
-                    self.app.dataset.preprocessed = True
+                    self.app.dataset.post_process_init()
 
                 if key == "umap_form":
+                    if val is None:
+                        continue
+                    val.apply()
+                
+                if key == "trimap_form":
+                    if val is None:
+                        continue
+                    val.apply()
+
+                if key == "tsne_form":
+                    if val is None:
+                        continue
+                    val.apply()
+                
+                if key == "pca_form":
+                    if val is None:
+                        continue
                     val.apply()
                 
 
@@ -192,3 +205,6 @@ class Window():
             exit(1)
 
         return window
+
+    def get_window_size(self):
+        return glfw.get_framebuffer_size(self.window)

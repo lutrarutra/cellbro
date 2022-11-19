@@ -11,7 +11,7 @@ class TSV():
 class H5():
     value = 2
     desc = "Hierarchical Data Format"
-    extensions = [".h5",".hdf5"]
+    extensions = [".h5",".hdf5", ".h5ad"]
 
 class RDS():
     value = 3

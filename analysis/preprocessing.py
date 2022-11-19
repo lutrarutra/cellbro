@@ -3,7 +3,6 @@ import scanpy as sc
 import imgui
 
 import util.gui
-
 class PreprocessProgress():
     def __init__(self):
         self.finished = False
@@ -25,6 +24,29 @@ class PreprocessProgress():
             imgui.text(f"{i+1}. {step}")
             imgui.pop_style_color()
             
+        imgui.end()
+        return True, None
+
+class AskPreprocessForm():
+    def __init__(self):
+        self.finished = False
+
+    def draw(self):
+        if self.finished:
+            return False, None
+        
+        imgui.begin("Question")
+        imgui.text("Do you want to preprocess the dataset?")
+        if imgui.button("Yes"):
+            self.finished = True
+            imgui.end()
+            return False, True
+        imgui.same_line()
+        if imgui.button("No"):
+            self.finished = True
+            imgui.end()
+            return False, False
+
         imgui.end()
         return True, None
 
@@ -92,6 +114,11 @@ class FilterForm():
             self.finished = True
             imgui.end()
             return False, None
+        imgui.same_line()
+        if imgui.button("Skip"):
+            self.finished = True
+            imgui.end()
+            return False, None
 
         imgui.end()
         return True, None
@@ -149,13 +176,6 @@ class NormalizeForm():
         if imgui.button("Apply"):
             self.dataset.adata.layers["counts"] = self.dataset.adata.X.copy()
             sc.pp.normalize_total(self.dataset.adata, target_sum=None if self.target_sum_mean else self.target_sum)
-            self.dataset.adata.layers["ncounts"] = self.dataset.adata.X.copy()
-            sc.pp.log1p(self.dataset.adata)
-            self.dataset.adata.layers["centered"] = self.dataset.adata.layers["ncounts"] - self.dataset.adata.layers["ncounts"].mean(axis=0)
-            self.dataset.adata.layers["logcentered"] = self.dataset.adata.X - self.dataset.adata.X.mean(axis=0)
-
-            sc.tl.pca(self.dataset.adata)
-            sc.pp.neighbors(self.dataset.adata, n_neighbors=15, random_state=0)
 
             self.finished = True
             imgui.end()
