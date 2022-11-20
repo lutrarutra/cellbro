@@ -1,5 +1,3 @@
-import webbrowser, multiprocessing
-
 import imgui
 
 import scanpy as sc
@@ -30,16 +28,14 @@ class Heatmap(Figure.Figure):
         self.i_groupby = 0
 
         self.selected_categoricals = []
-        self.proposal_categoricals = [
+        self.available_categoricals = [
             x for x in self.app.dataset.adata.obs.columns \
                 if type(self.app.dataset.adata.obs.dtypes[x]) == pd.CategoricalDtype \
                     or type(self.app.dataset.adata.obs.dtypes[x]) == str
         ]
-        self.var_names_query = Query.Query(sorted(list(self.app.dataset.adata.var.index)))
-
 
     def draw(self):
-        _, self.i_groupby = imgui.combo("Groupby", self.i_groupby, self.proposal_categoricals)
+        _, self.i_groupby = imgui.combo("Groupby", self.i_groupby, self.available_categoricals)
 
         imgui.begin_child("Available categoricals text", (imgui.get_window_width()-30)*0.5, 40, border=False)
         imgui.text("Available Categorical Features:")
@@ -49,7 +45,7 @@ class Heatmap(Figure.Figure):
         imgui.text("Selected Categorical Features:")
         imgui.end_child()
         imgui.begin_child("Available categoricals Features", (imgui.get_window_width()-30)*0.5, 300, border=True)
-        for key in self.proposal_categoricals:
+        for key in self.available_categoricals:
             clicked, _ = imgui.selectable(key, key in self.selected_categoricals)
             if clicked:
                 if key in self.selected_categoricals:
@@ -92,6 +88,6 @@ class Heatmap(Figure.Figure):
 
     def apply(self):
         self.plot_params["categorical_features"] = self.selected_categoricals
-        self.plot_params["groupby"] = self.proposal_categoricals[self.i_groupby]
+        self.plot_params["groupby"] = self.available_categoricals[self.i_groupby]
         self.plot_params["adata"] = self.app.dataset.adata
         self.plot(self.plot_params)

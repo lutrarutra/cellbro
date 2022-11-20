@@ -19,6 +19,7 @@ import analysis.projection.TSNE as projection_tsne
 import analysis.projection.PCA as projection_pca
 from analysis import Violin
 from analysis import Heatmap
+from analysis import Volcano
 
 import io_window
 
@@ -162,6 +163,8 @@ class App():
                     self.dashboard.main = Violin.Violin(self)
                 if imgui.menu_item("Heatmap", '', False, True)[0]:
                     self.dashboard.main = Heatmap.Heatmap(self)
+                if imgui.menu_item("Volcano", "", False, True)[0]:
+                    self.dashboard.main = Volcano.Volcano(self)
                 imgui.end_menu()
 
             imgui.end_main_menu_bar()
