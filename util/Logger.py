@@ -20,11 +20,7 @@ class Logger():
         ])
 
     def draw(self):
-
-        imgui.begin("Log")
-
         if imgui.is_window_collapsed():
-            imgui.end()
             return
         
         for level, message, time in self.log:
@@ -41,7 +37,6 @@ class Logger():
                 imgui.text(f"[{time}] {message}")
                 imgui.pop_style_color()
 
-        imgui.end()
 
     def _log(self, level, message):
         imgui.set_scroll_y(imgui.get_scroll_max_y())

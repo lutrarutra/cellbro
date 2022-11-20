@@ -3,17 +3,18 @@ import scanpy as sc
 import imgui
 
 import util.gui
+from util import Form
 class PreprocessProgress():
     def __init__(self):
         self.finished = False
         self.step = 0
         self.steps = ["Annotation", "Filtering", "Mitochondrial QC", "Normalization"]
 
-    def draw(self):
+    def draw(self, flags=0):
         if self.finished:
-            return False, None
+            return False
         
-        imgui.begin("Preprocessing Pipeline")
+        imgui.begin("Pipeline", flags=flags)
         for i, step in enumerate(self.steps):
             if i > self.step:
                 imgui.push_style_color(imgui.COLOR_TEXT, 1.0, 0.0, 0.0)
@@ -25,67 +26,69 @@ class PreprocessProgress():
             imgui.pop_style_color()
             
         imgui.end()
-        return True, None
+        return True
 
-class AskPreprocessForm():
-    def __init__(self):
-        self.finished = False
+class AskPreprocess(Form.Form):
+    def __init__(self, event_handler, event_key="ask_preprocess"):
+        super().__init__(event_handler, event_key)
 
-    def draw(self):
+    def draw(self, flags=imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE):
         if self.finished:
-            return False, None
+            return False
         
-        imgui.begin("Question")
+        imgui.begin("Question", flags=flags)
         imgui.text("Do you want to preprocess the dataset?")
         if imgui.button("Yes"):
+            self.event_handler.complete_event(self.event_key, dict(answer=True))
             self.finished = True
             imgui.end()
-            return False, True
+            return False
         imgui.same_line()
         if imgui.button("No"):
+            self.event_handler.complete_event(self.event_key, dict(answer=False))
             self.finished = True
             imgui.end()
-            return False, False
+            return False
 
         imgui.end()
-        return True, None
+        return True
 
-class AnnotateForm():
-    def __init__(self):
-        self.finished = False
+class AskAnnotate(Form.Form):
+    def __init__(self, event_handler, event_key="ask_annotate"):
+        super().__init__(event_handler, event_key)
 
-    def draw(self):
+    def draw(self, flags=imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE):
         if self.finished:
-            return False, None
+            return False
         
-        imgui.begin("Annotate")
+        imgui.begin("Annotate", flags=flags)
         imgui.text("Do you have phenodata? (.csv/.tsv)")
         imgui.same_line()
         util.gui.tooltip("Comma/tab separated file with header as first row and cellbarcodes as first column.")
         if imgui.button("Yes"):
+            self.event_handler.complete_event(self.event_key, dict(answer=True))
             imgui.end()
-            return False, True
+            return False
         imgui.same_line()
         if imgui.button("No"):
+            self.event_handler.complete_event(self.event_key, dict(answer=False))
             imgui.end()
-            return False, False
+            return False
         imgui.end()
-        return True, None
+        return True
 
-class FilterForm():
-    def __init__(self, dataset):
+class FilterForm(Form.Form):
+    def __init__(self, dataset, event_handler, event_key="filter_form"):
+        super().__init__(event_handler, event_key)
         self.dataset = dataset
-        self.finished = False
         self.min_genes = 200
         self.min_counts = 0
         self.min_cells = 3
 
     def draw(self):
         if self.finished:
-            return False, None
-        
-        imgui.begin("Preprocessing: Filter Genes and Cells")
-        # sc.pp.filter_cells(...)
+            return False
+                # sc.pp.filter_cells(...)
         imgui.text(f"Filter Cells: {self.dataset.adata.shape[0]}")
         min_genes_changed, self.min_genes = imgui.input_int("Min genes", self.min_genes)
         util.gui.tooltip("Minimum number of genes expressed required for a cell to pass filtering.")
@@ -112,29 +115,26 @@ class FilterForm():
                 sc.pp.filter_cells(self.dataset.adata, min_counts=self.min_counts)
             sc.pp.filter_genes(self.dataset.adata, min_cells=self.min_cells)
             self.finished = True
-            imgui.end()
-            return False, None
+            self.event_handler.complete_event(self.event_key)
+            return False
         imgui.same_line()
         if imgui.button("Skip"):
             self.finished = True
-            imgui.end()
-            return False, None
+            self.event_handler.complete_event(self.event_key)
+            return False
 
-        imgui.end()
-        return True, None
+        return True
 
 
-class MTQCForm():
-    def __init__(self, dataset):
+class MTQCForm(Form.Form):
+    def __init__(self, dataset, event_handler, event_key="mtqc_form"):
+        super().__init__(event_handler, event_key)
         self.dataset = dataset
-        self.finished = False
         self.pct_counts_mt = 5
 
     def draw(self):
         if self.finished:
-            return False, None
-        
-        imgui.begin("Preprocessing: Remove cells with high mitochondrial content")
+            return False
 
         _, self.pct_counts_mt = imgui.input_float("Percentage", self.pct_counts_mt)
         util.gui.tooltip("Max percentage of mitochondrial gene counts.")
@@ -142,24 +142,22 @@ class MTQCForm():
         if imgui.button("Apply"):
             self.dataset.adata = self.dataset.adata[self.dataset.adata.obs.pct_counts_mt < self.pct_counts_mt, :]
             self.finished = True
-            imgui.end()
-            return False, None
+            self.event_handler.complete_event(self.event_key)
+            return False
 
-        imgui.end()
-        return True, None
+        return True
 
-class NormalizeForm():
-    def __init__(self, dataset):
+class NormalizeForm(Form.Form):
+    def __init__(self, dataset, event_handler, event_key="normalize_form"):
+        super().__init__(event_handler, event_key)
         self.dataset = dataset
-        self.finished = False
         self.target_sum = -1
         self.target_sum_mean = True
 
     def draw(self):
         if self.finished:
-            return False, None
+            return False
         
-        imgui.begin("Preprocessing: Normalize")
         check_box_clicked, self.target_sum_mean = imgui.checkbox("Mean normalization", self.target_sum_mean)
         if check_box_clicked:
             self.target_sum = -1
@@ -178,9 +176,8 @@ class NormalizeForm():
             sc.pp.normalize_total(self.dataset.adata, target_sum=None if self.target_sum_mean else self.target_sum)
 
             self.finished = True
-            imgui.end()
-            return False, None
+            self.event_handler.complete_event(self.event_key)
+            return False
 
-        imgui.end()
-        return True, None
+        return True
 

@@ -7,10 +7,10 @@ import pandas as pd
 
 from util import Query
 
+
 class Violin():
-    def __init__(self, dataset, app):
+    def __init__(self, app):
         self.app = app
-        self.dataset = dataset
         self.params = dict(
             keys=[],
             groupby=None,
@@ -24,22 +24,20 @@ class Violin():
         self.inner_selected = 1
 
         self.key_query = Query.Query(
-            sorted(list(dataset.adata.obs.columns)) + sorted(list(dataset.adata.var.index)),
-            proposal_keys=list(dataset.adata.obs.columns)
+            sorted(list(self.app.dataset.adata.obs.columns)) + sorted(list(self.app.dataset.adata.var.index)),
+            proposal_keys=list(self.app.dataset.adata.obs.columns)
         )
         self.selected_keys = []
 
         self.proposal_groupby = ["None"] + [
-            x for x in self.dataset.adata.obs.columns \
-                if type(self.dataset.adata.obs.dtypes[x]) == pd.CategoricalDtype \
-                    or type(self.dataset.adata.obs.dtypes[x]) == str
+            x for x in self.app.dataset.adata.obs.columns \
+                if type(self.app.dataset.adata.obs.dtypes[x]) == pd.CategoricalDtype \
+                    or type(self.app.dataset.adata.obs.dtypes[x]) == str
         ]
         self.selected_groupby = "None"
         self.query = ""
 
     def draw(self):
-        imgui.begin("Violin Plot Setup")
-
         _, self.params["stripplot"] = imgui.checkbox("Stripplot", self.params["stripplot"])
         imgui.push_item_width(imgui.get_window_width()*0.3)
         if self.params["stripplot"]:
@@ -95,24 +93,21 @@ class Violin():
 
         imgui.set_cursor_pos((imgui.get_cursor_pos()[0], imgui.get_window_height() - 40))
         if imgui.button("Plot"):
-            imgui.end()
             self.apply()
-            return False, True
+            return False
         imgui.same_line()
         if imgui.button("Cancel"):
-            imgui.end()
-            return False, False
+            return False
         imgui.same_line()
         if imgui.button("Documentation"):
             webbrowser.open("https://scanpy.readthedocs.io/en/stable/api/scanpy.pl.violin.html")
 
-        imgui.end()
-        return True, None
+        return True
 
     def apply(self):
         self.params["inner"] = self.inner_proposal[self.inner_selected] if not "None" else None
         self.params["keys"] = self.selected_keys
         self.params["groupby"] = self.selected_groupby if self.selected_groupby != "None" else None
 
-        self.app.processes["violin_plot"] = multiprocessing.Process(target=sc.pl.violin, args=(self.dataset.adata,), kwargs=self.params)
+        self.app.processes["violin_plot"] = multiprocessing.Process(target=sc.pl.violin, args=(self.app.dataset.adata,), kwargs=self.params)
         self.app.processes["violin_plot"].start()

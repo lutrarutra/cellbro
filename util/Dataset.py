@@ -40,8 +40,6 @@ class Dataset():
         layers = list(self.adata.layers.keys())
         n_features = max(len(layers), max(len(self.adata.obs.columns), len(self.adata.var.columns)))
 
-        imgui.begin("Dataset")[0]
-
         imgui.text(f"Cells: {self.adata.shape[0]}")
         imgui.same_line()
         imgui.dummy(10, 0)
@@ -124,9 +122,6 @@ class Dataset():
         imgui.pop_style_color()
         imgui.columns(1)
         imgui.end_child()
-
-        imgui.end()
-        return True, None
 
     def annotate(self, path):
         self.annotation_files.append(path)

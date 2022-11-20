@@ -3,10 +3,9 @@ import multiprocessing
 import scanpy as sc
 
 from .projection import Projection
-
 class UMAP(Projection):
-    def __init__(self, dataset, app):
-        super().__init__(dataset, app)
+    def __init__(self, app):
+        super().__init__(app)
         self.type = "UMAP"
         self.calc_params = {
             "min_dist" : 0.5,
@@ -22,7 +21,7 @@ class UMAP(Projection):
 
     def apply(self):
         sc.tl.umap(
-            self.dataset.adata,
+            self.app.dataset.adata,
             min_dist=self.calc_params["min_dist"],
             spread=self.calc_params["spread"],
             n_components=self.calc_params["n_components"],
@@ -34,12 +33,12 @@ class UMAP(Projection):
         if self.leiden:
             self.selected_keys.append("leiden")
             sc.tl.leiden(
-                self.dataset.adata,
+                self.app.dataset.adata,
                 resolution=self.leiden_params["resolution"],
                 random_state=self.leiden_params["random_state"],
             )
         
         self.plot_params["color"] = self.selected_keys
 
-        self.app.processes["umap_plot"] = multiprocessing.Process(target=sc.pl.umap, args=(self.dataset.adata,), kwargs=self.plot_params)
+        self.app.processes["umap_plot"] = multiprocessing.Process(target=sc.pl.umap, args=(self.app.dataset.adata,), kwargs=self.plot_params)
         self.app.processes["umap_plot"].start()

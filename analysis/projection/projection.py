@@ -4,17 +4,16 @@ import imgui
 
 from util import Query
 class Projection():
-    def __init__(self, dataset, app):
+    def __init__(self, app):
         self.app = app
         self.type = "Projection"
-        self.dataset = dataset
         self.finished = False
         self.leiden = True
         self.current_tab = 0
 
         self.key_query = Query.Query(
-            sorted(list(dataset.adata.obs.columns)) + sorted(list(dataset.adata.var.index)),
-            proposal_keys=list(dataset.adata.obs.columns)
+            sorted(list(self.app.dataset.adata.obs.columns)) + sorted(list(self.app.dataset.adata.var.index)),
+            proposal_keys=list(self.app.dataset.adata.obs.columns)
         )
 
         self.selected_keys = []
@@ -33,9 +32,7 @@ class Projection():
 
     def draw(self):
         if self.finished:
-            return False, None
-        
-        imgui.begin(f"{self.type} Setup")
+            return False
 
         imgui.columns(4, "projection")
         if imgui.selectable(self.type, self.current_tab == 0)[0]:
@@ -130,13 +127,12 @@ class Projection():
             imgui.set_cursor_pos((imgui.get_cursor_pos()[0], imgui.get_window_height() - 40))
             if imgui.button("Plot"):
                 self.finished = True
-                imgui.end()
-                return False, self
+                self.apply()
+                return False
 
         imgui.same_line()
         if imgui.button("Cancel"):
-            imgui.end()
-            return False, None
+            return False
 
         if self.current_tab == 0:
             imgui.same_line()
@@ -151,5 +147,4 @@ class Projection():
             if imgui.button("Documentation"):
                 webbrowser.open(self.pl_documentation)
 
-        imgui.end()
-        return True, None
+        return True

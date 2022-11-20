@@ -4,10 +4,9 @@ import scanpy as sc
 import imgui
 
 from .projection import Projection
-
 class PCA(Projection):
-    def __init__(self, dataset, app):
-        super().__init__(dataset, app)
+    def __init__(self, app):
+        super().__init__(app)
         self.type = "PCA"
         self.calc_params = dict()
         self.dimensions = [(0,1)]
@@ -38,11 +37,11 @@ class PCA(Projection):
         if self.leiden:
             self.selected_keys.append("leiden")
             sc.tl.leiden(
-                self.dataset.adata, **self.leiden_params
+                self.app.dataset.adata, **self.leiden_params
             )
         
         self.plot_params["color"] = self.selected_keys
         self.plot_params["dimensions"] = list(set(self.dimensions))
 
-        self.app.processes["pca_plot"] = multiprocessing.Process(target=sc.pl.pca, args=(self.dataset.adata,), kwargs=self.plot_params)
+        self.app.processes["pca_plot"] = multiprocessing.Process(target=sc.pl.pca, args=(self.app.dataset.adata,), kwargs=self.plot_params)
         self.app.processes["pca_plot"].start()
