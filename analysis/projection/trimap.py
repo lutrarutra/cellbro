@@ -24,13 +24,8 @@ class Trimap(Projection, Figure.Figure):
 
         if self.leiden:
             self.selected_keys.append("leiden")
-            sc.tl.leiden(
-                self.app.dataset.adata, **self.leiden_params
-            )
+            self._leiden.apply()
         
         self.plot_params["color"] = self.selected_keys
         self.plot_params["adata"] = self.app.dataset.adata
         self.plot(self.plot_params)
-        
-        # self.app.figures[figure_id] = multiprocessing.Process(target=sc.external.pl.trimap, args=(self.app.dataset.adata,), kwargs=self.plot_params)
-        # self.app.figures[figure_id].start()

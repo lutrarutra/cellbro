@@ -3,6 +3,8 @@ import webbrowser
 import imgui
 
 from util import Query
+from util import Task
+from analysis import Leiden
 class Projection():
     def __init__(self, app):
         self.app = app
@@ -10,6 +12,7 @@ class Projection():
         self.finished = False
         self.leiden = True
         self.current_tab = 0
+        self._leiden = Leiden.Leiden(self.app)
 
         self.key_query = Query.Query(
             sorted(list(self.app.dataset.adata.obs.columns)) + sorted(list(self.app.dataset.adata.var.index)),
@@ -21,11 +24,6 @@ class Projection():
         self.plot_params = {
             "ncols": 1,
             "frameon": False,
-        }
-
-        self.leiden_params = {
-            "resolution": 1.0,
-            "random_state": 0,
         }
 
         self.query = ""
@@ -64,13 +62,7 @@ class Projection():
             imgui.same_line()
             _, self.leiden = imgui.checkbox("Enabled", self.leiden)
             if self.leiden:
-                for key, value in self.leiden_params.items():
-                    if isinstance(value, int):
-                        _, self.leiden_params[key] = imgui.input_int(key, value)
-                    elif isinstance(value, float):
-                        _, self.leiden_params[key] = imgui.input_float(key, value)
-            
-            imgui.set_cursor_pos((imgui.get_cursor_pos()[0], imgui.get_window_height() - 40))
+                self._leiden.draw()
             if imgui.button("Next"):
                 self.current_tab += 1
         
@@ -127,7 +119,8 @@ class Projection():
             imgui.set_cursor_pos((imgui.get_cursor_pos()[0], imgui.get_window_height() - 40))
             if imgui.button("Plot"):
                 self.finished = True
-                self.apply()
+                self.app.task_handler.add_task(f"{self.id}_apply", Task.Task(target=self.apply))
+                self.app.task_handler.tasks[f"{self.id}_apply"].start()
                 return False
 
         imgui.same_line()

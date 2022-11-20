@@ -38,13 +38,9 @@ class PCA(Projection, Figure.Figure):
     def apply(self):
         if self.leiden:
             self.selected_keys.append("leiden")
-            sc.tl.leiden(
-                self.app.dataset.adata, **self.leiden_params
-            )
+            self._leiden.apply()
         
         self.plot_params["color"] = self.selected_keys
         self.plot_params["dimensions"] = list(set(self.dimensions))
         self.plot_params["adata"] = self.app.dataset.adata
         self.plot(self.plot_params)
-        # self.app.figures["pca_plot"] = multiprocessing.Process(target=sc.pl.pca, args=(self.app.dataset.adata,), kwargs=self.plot_params)
-        # self.app.figures["pca_plot"].start()

@@ -6,10 +6,12 @@ import scanpy as sc
 import pandas as pd
 
 from util import Query
+from analysis import Figure
 
 
-class Violin():
+class Violin(Figure.Figure):
     def __init__(self, app):
+        super().__init__(app, "violin", sc.pl.violin)
         self.app = app
         self.params = dict(
             keys=[],
@@ -24,7 +26,11 @@ class Violin():
         self.inner_selected = 1
 
         self.key_query = Query.Query(
-            sorted(list(self.app.dataset.adata.obs.columns)) + sorted(list(self.app.dataset.adata.var.index)),
+            [
+            x for x in self.app.dataset.adata.obs.columns \
+                if type(self.app.dataset.adata.obs.dtypes[x]) != pd.CategoricalDtype \
+                    and type(self.app.dataset.adata.obs.dtypes[x]) != str
+            ] + sorted(list(self.app.dataset.adata.var.index)),
             proposal_keys=list(self.app.dataset.adata.obs.columns)
         )
         self.selected_keys = []
@@ -112,6 +118,3 @@ class Violin():
 
         self.params["adata"] = self.app.dataset.adata
         self.plot(self.params)
-
-        # self.app.figures["violin_plot"] = multiprocessing.Process(target=sc.pl.violin, args=(self.app.dataset.adata,), kwargs=self.params)
-        # self.app.figures["violin_plot"].start()

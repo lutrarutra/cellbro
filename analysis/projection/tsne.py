@@ -23,12 +23,9 @@ class TSNE(Projection, Figure.Figure):
 
         if self.leiden:
             self.selected_keys.append("leiden")
-            sc.tl.leiden(
-                self.app.dataset.adata, **self.leiden_params
-            )
-        
+            self._leiden.apply()
+
         self.plot_params["color"] = self.selected_keys
         self.plot_params["adata"] = self.app.dataset.adata
+
         self.plot(self.plot_params)
-        # self.app.figures["tsne_plot"] = multiprocessing.Process(target=sc.pl.tsne, args=(self.app.dataset.adata,), kwargs=self.plot_params)
-        # self.app.figures["tsne_plot"].start()
