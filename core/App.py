@@ -1,4 +1,4 @@
-import multiprocessing, threading
+import multiprocessing, threading, time
 
 import imgui
 
@@ -32,9 +32,13 @@ class App():
         self.task_handler = Task.TaskHandler()
         self.htop = htop.HTOP()
         self.figures = {}
+        self.last_frame = time.time()
+        self.dt = 0.0
 
     def loop(self):
         while True:
+            self.dt = time.time() - self.last_frame
+            self.last_frame = time.time()
             if not self.window.prepare_frame():
                 self.running = False
                 return
@@ -106,8 +110,9 @@ class App():
     def gui(self):
         flags = 0
         if self.task_handler.is_blocking():
-            self.dashboard.blocking_popup.draw()
+            self.dashboard.blocking_popup.draw(dt=self.dt)
             flags |= imgui.WINDOW_NO_INPUTS
+            
 
         elif self.dashboard.popup is not None:
             if not self.dashboard.popup.draw():
@@ -164,7 +169,7 @@ class App():
             self.dashboard.pipeline.draw(flags=flags)
 
         # self.logger.draw(flags=flags)
-        self.dashboard.draw_footer(flags=0)
+        self.dashboard.draw_footer(flags=0, dt=self.dt)
 
         imgui.begin("Main", flags=flags | imgui.WINDOW_NO_COLLAPSE | imgui.WINDOW_NO_TITLE_BAR)
         if self.dashboard.main:

@@ -16,10 +16,13 @@ class HTOP():
         self.memory_available_mb = 0.0
         self.memory_util_history = [0.0] * history
 
+        self.fps_history = [0.0]*10
+        self.fps = 0.0
+
         self.last_update = time.time()
         self.frequency = frequency
 
-    def update(self):
+    def update(self, dt):
         if time.time() - self.last_update > 1.0 / self.frequency:
             self.last_update = time.time()
             
@@ -32,10 +35,15 @@ class HTOP():
             self.memory_available_mb = (mem.total - mem.available) / (1024 * 1024)
             self.memory_util_history.append(self.memory_util)
             self.memory_util_history.pop(0)
+            self.fps = int(sum(self.fps_history)/len(self.fps_history))
+        
+        self.fps_history.append(1.0/dt)
+        self.fps_history.pop(0)
 
 
-    def draw(self):
-        self.update()
+    def draw(self, dt):
+        self.update(dt)
+        imgui.text(f"FPS: {self.fps}")
         imgui.text(f"CPU: {self.cpu_util}%")
         imgui.same_line()
         imgui.set_cursor_pos((imgui.get_window_width()*0.5+10, imgui.get_cursor_pos()[1]))
