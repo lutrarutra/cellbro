@@ -2,7 +2,7 @@ import multiprocessing
 
 import scanpy as sc
 
-from .projection import Projection
+from .Projection import Projection
 from analysis import Figure
 class UMAP(Projection, Figure.Figure):
     def __init__(self, app):

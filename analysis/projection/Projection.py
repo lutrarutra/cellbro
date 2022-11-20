@@ -106,12 +106,12 @@ class Projection():
 
         elif self.current_tab == 3:
             for key, value in self.plot_params.items():
-                if isinstance(value, int):
+                if isinstance(value, bool):
+                    _, self.plot_params[key] = imgui.checkbox(key, value)
+                elif isinstance(value, int):
                     _, self.plot_params[key] = imgui.input_int(key, value)
                 elif isinstance(value, float):
                     _, self.plot_params[key] = imgui.input_float(key, value)
-                elif isinstance(value, bool):
-                    _, self.plot_params[key] = imgui.checkbox(key, value)
 
             if self.type == "PCA":
                 self.ask_dimensions()

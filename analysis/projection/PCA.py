@@ -3,7 +3,7 @@ import multiprocessing
 import scanpy as sc
 import imgui
 
-from .projection import Projection
+from .Projection import Projection
 from analysis import Figure
 class PCA(Projection, Figure.Figure):
     def __init__(self, app):

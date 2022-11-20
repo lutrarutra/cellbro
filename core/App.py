@@ -13,11 +13,12 @@ from interface import Dashboard
 from util import Event
 from util import Task
 
-import analysis.projection.umap as projection_umap
-import analysis.projection.trimap as projection_trimap
-import analysis.projection.tsne as projection_tsne
-import analysis.projection.pca as projection_pca
+import analysis.projection.UMAP as projection_umap
+import analysis.projection.Trimap as projection_trimap
+import analysis.projection.TSNE as projection_tsne
+import analysis.projection.PCA as projection_pca
 from analysis import Violin
+from analysis import Heatmap
 
 import io_window
 
@@ -70,9 +71,9 @@ class App():
                     self.dashboard.pipeline.step += 1
 
             elif event_key == "load_annotation":
-                
-                self.task_handler.add_task("load_annotation", Task.Task(target=self.dataset.load_annotation, args=(event.args["path"],)))
-                self.task_handler.tasks["load_annotation"].start()
+                if event.args["path"] is not None:
+                    self.task_handler.add_task("load_annotation", Task.Task(target=self.dataset.load_annotation, args=(event.args["path"],)))
+                    self.task_handler.tasks["load_annotation"].start()
 
                 self.event_handler.add_event("ask_preprocess")
                 self.dashboard.popup = pp.AskPreprocess(self.event_handler)
@@ -160,7 +161,7 @@ class App():
                 if imgui.menu_item("Violin", '', False, True)[0]:
                     self.dashboard.main = Violin.Violin(self)
                 if imgui.menu_item("Heatmap", '', False, True)[0]:
-                    pass
+                    self.dashboard.main = Heatmap.Heatmap(self)
                 imgui.end_menu()
 
             imgui.end_main_menu_bar()
@@ -168,12 +169,12 @@ class App():
         if self.dataset is not None:
             self.dashboard.pipeline.draw(flags=flags)
 
-        # self.logger.draw(flags=flags)
         self.dashboard.draw_footer(flags=0, dt=self.dt)
 
         imgui.begin("Main", flags=flags | imgui.WINDOW_NO_COLLAPSE | imgui.WINDOW_NO_TITLE_BAR)
         if self.dashboard.main:
-            self.dashboard.main.draw()
+            if not self.dashboard.main.draw():
+                self.dashboard.main = None
         imgui.end()
 
         

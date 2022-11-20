@@ -3,7 +3,8 @@ import scanpy as sc
 import imgui
 
 import util.gui
-from util import Form
+from interface import Form
+from interface import AskForm
 class PreprocessProgress():
     def __init__(self):
         self.finished = False
@@ -28,54 +29,22 @@ class PreprocessProgress():
         imgui.end()
         return True
 
-class AskPreprocess(Form.Form):
+class AskPreprocess(AskForm.AskForm):
     def __init__(self, event_handler, event_key="ask_preprocess"):
-        super().__init__(event_handler, event_key)
+        super().__init__(
+            event_handler=event_handler, event_key=event_key,
+            question="Do you want to preprocess the dataset?",
+            question_tip=None, options={"Yes":True, "No":False}
+        )
 
-    def draw(self, flags=imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE):
-        if self.finished:
-            return False
-        
-        imgui.begin("Question", flags=flags)
-        imgui.text("Do you want to preprocess the dataset?")
-        if imgui.button("Yes"):
-            self.event_handler.complete_event(self.event_key, dict(answer=True))
-            self.finished = True
-            imgui.end()
-            return False
-        imgui.same_line()
-        if imgui.button("No"):
-            self.event_handler.complete_event(self.event_key, dict(answer=False))
-            self.finished = True
-            imgui.end()
-            return False
-
-        imgui.end()
-        return True
-
-class AskAnnotate(Form.Form):
+class AskAnnotate(AskForm.AskForm):
     def __init__(self, event_handler, event_key="ask_annotate"):
-        super().__init__(event_handler, event_key)
-
-    def draw(self, flags=imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE):
-        if self.finished:
-            return False
-        
-        imgui.begin("Annotate", flags=flags)
-        imgui.text("Do you have phenodata? (.csv/.tsv)")
-        imgui.same_line()
-        util.gui.tooltip("Comma/tab separated file with header as first row and cellbarcodes as first column.")
-        if imgui.button("Yes"):
-            self.event_handler.complete_event(self.event_key, dict(answer=True))
-            imgui.end()
-            return False
-        imgui.same_line()
-        if imgui.button("No"):
-            self.event_handler.complete_event(self.event_key, dict(answer=False))
-            imgui.end()
-            return False
-        imgui.end()
-        return True
+        super().__init__(
+            event_handler=event_handler, event_key=event_key,
+            question="Do you have phenodata? (.csv/.tsv)",
+            question_tip="Comma/tab separated file with header as first row and cellbarcodes as first column.",
+            options={"Yes":True, "No":False}
+        )
 
 class FilterForm(Form.Form):
     def __init__(self, dataset, event_handler, event_key="filter_form"):
@@ -108,7 +77,9 @@ class FilterForm(Form.Form):
         _, self.min_cells = imgui.input_int("Min. cells", self.min_cells)
         util.gui.tooltip("Minimum number of cells expressed required for a gene to pass filtering.")
         
-        if imgui.button("Apply"):
+        _,h = imgui.get_window_size()
+        imgui.set_cursor_position((20, h-60))
+        if imgui.button("Apply", 100, 40):
             if self.min_genes > 0:
                 sc.pp.filter_cells(self.dataset.adata, min_genes=self.min_genes)
             elif self.min_counts > 0:
@@ -117,8 +88,9 @@ class FilterForm(Form.Form):
             self.finished = True
             self.event_handler.complete_event(self.event_key)
             return False
-        imgui.same_line()
-        if imgui.button("Skip"):
+
+        imgui.set_cursor_position((140, h-60))
+        if imgui.button("Skip", 100, 40):
             self.finished = True
             self.event_handler.complete_event(self.event_key)
             return False
@@ -139,7 +111,9 @@ class MTQCForm(Form.Form):
         _, self.pct_counts_mt = imgui.input_float("Percentage", self.pct_counts_mt)
         util.gui.tooltip("Max percentage of mitochondrial gene counts.")
 
-        if imgui.button("Apply"):
+        _,h = imgui.get_window_size()
+        imgui.set_cursor_position((20, h-60))
+        if imgui.button("Apply", 100, 40):
             self.dataset.adata = self.dataset.adata[self.dataset.adata.obs.pct_counts_mt < self.pct_counts_mt, :]
             self.finished = True
             self.event_handler.complete_event(self.event_key)
@@ -171,7 +145,9 @@ class NormalizeForm(Form.Form):
 
         util.gui.tooltip("Total counts per cell.")
 
-        if imgui.button("Apply"):
+        _,h = imgui.get_window_size()
+        imgui.set_cursor_position((20, h-60))
+        if imgui.button("Apply", 100, 40):
             self.dataset.adata.layers["counts"] = self.dataset.adata.X.copy()
             sc.pp.normalize_total(self.dataset.adata, target_sum=None if self.target_sum_mean else self.target_sum)
 

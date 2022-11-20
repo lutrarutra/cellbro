@@ -24,17 +24,15 @@ class Violin(Figure.Figure):
 
         self.inner_proposal = ["None", "box", "quartile", "point", "stick"]
         self.inner_selected = 1
-
-        self.key_query = Query.Query(
-            [
+        proposal_keys=sorted([
             x for x in self.app.dataset.adata.obs.columns \
-                if type(self.app.dataset.adata.obs.dtypes[x]) != pd.CategoricalDtype \
-                    and type(self.app.dataset.adata.obs.dtypes[x]) != str
-            ] + sorted(list(self.app.dataset.adata.var.index)),
-            proposal_keys=list(self.app.dataset.adata.obs.columns)
+                if type(self.app.dataset.adata.obs.dtypes[x]) != pd.CategoricalDtype and type(self.app.dataset.adata.obs.dtypes[x]) != str
+        ])
+        self.key_query = Query.Query(
+            proposal_keys + sorted(list(self.app.dataset.adata.var.index)),
+            proposal_keys=proposal_keys
         )
         self.selected_keys = []
-
         self.proposal_groupby = ["None"] + [
             x for x in self.app.dataset.adata.obs.columns \
                 if type(self.app.dataset.adata.obs.dtypes[x]) == pd.CategoricalDtype \
@@ -99,9 +97,16 @@ class Violin(Figure.Figure):
         imgui.end_child()
 
         imgui.set_cursor_pos((imgui.get_cursor_pos()[0], imgui.get_window_height() - 40))
+        if len(self.selected_keys) == 0:
+            imgui.push_style_color(imgui.COLOR_TEXT, 0.5, 0.5, 0.5)
+        else:
+            imgui.push_style_color(imgui.COLOR_TEXT, 1, 1, 1)
         if imgui.button("Plot"):
-            self.apply()
-            return False
+            if len(self.selected_keys) > 0:
+                self.apply()
+                imgui.pop_style_color()
+                return True
+        imgui.pop_style_color()
         imgui.same_line()
         if imgui.button("Cancel"):
             return False

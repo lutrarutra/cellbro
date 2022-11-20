@@ -67,16 +67,23 @@ class Io_window():
         )
         _, self.show_hidden = imgui.checkbox("Show hidden", self.show_hidden)
         imgui.same_line()
-
+        if self.path == "":
+            imgui.push_style_color(imgui.COLOR_TEXT, 0.5, 0.5, 0.5)
+        else:
+            imgui.push_style_color(imgui.COLOR_TEXT, 1, 1, 1)
         if imgui.button("Open"):
-            imgui.end()
-            self.event_handler.complete_event(self.event_key, args=dict(path=self.path))
-            return False
+            if self.path:
+                imgui.pop_style_color()
+                imgui.end()
+                self.event_handler.complete_event(self.event_key, args=dict(path=self.path))
+                return False
+        imgui.pop_style_color()
 
         imgui.same_line()
 
         if imgui.button("Close"):
             imgui.end()
+            self.event_handler.complete_event(self.event_key, args=dict(path=None))
             return False
 
         imgui.end()

@@ -51,7 +51,6 @@ class Dataset():
         imgui.dummy(0, 20)
 
         imgui.text("Dataset Content")
-        imgui.begin_child("dataset content", imgui.get_window_width()-20, 200, border=True)
         imgui.columns(3, "contentlist")
         imgui.text("Cell Features")
         imgui.next_column()
@@ -81,12 +80,10 @@ class Dataset():
 
         imgui.pop_style_color()
         imgui.columns(1)
-        imgui.end_child()
 
         imgui.dummy(0, 20)
 
         imgui.text("Loaded Files:")
-        imgui.begin_child("loaded files list", imgui.get_window_width()-20, 200, border=True)
         imgui.columns(4, "filelist")
 
         imgui.text("Type")
@@ -123,7 +120,6 @@ class Dataset():
 
         imgui.pop_style_color()
         imgui.columns(1)
-        imgui.end_child()
 
     def annotate(self, path):
         self.annotation_files.append(path)
@@ -144,8 +140,8 @@ class Dataset():
     def post_process_init(self):
         self.adata.layers["ncounts"] = self.adata.X.copy()
         sc.pp.log1p(self.adata)
-        # self.adata.layers["centered"] = self.adata.layers["ncounts"] - self.adata.layers["ncounts"].mean(axis=0)
-        # self.adata.layers["logcentered"] = self.adata.X - self.adata.X.mean(axis=0)
+        self.adata.layers["centered"] = self.adata.layers["ncounts"] - self.adata.layers["ncounts"].mean(axis=0)
+        self.adata.layers["logcentered"] = self.adata.X - self.adata.X.mean(axis=0)
         sc.tl.pca(self.adata)
         sc.pp.neighbors(self.adata, n_neighbors=15, random_state=0)
         self.preprocessed = True

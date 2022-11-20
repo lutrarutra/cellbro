@@ -34,7 +34,9 @@ class LoadingPopup():
         imgui.set_next_window_size(self.w, self.h)
         imgui.begin("", flags=flags)
         self.spinner.draw(dt)
-        imgui.set_cursor_pos((imgui.get_window_width() * 0.5 - 60, imgui.get_window_height() * 0.5 + 20))
+        w,h = imgui.get_window_size()
+        text_w, text_h = imgui.calc_text_size("Loading...")
+        imgui.set_cursor_pos((w*0.5 - text_w*0.5, h*0.5 - text_h*0.5+20))
         imgui.text("Loading...")
         imgui.end()
 

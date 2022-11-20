@@ -4,7 +4,7 @@ import string
 
 import scanpy as sc
 
-from .projection import Projection
+from .Projection import Projection
 from analysis import Figure
 class Trimap(Projection, Figure.Figure):
     def __init__(self, app):
