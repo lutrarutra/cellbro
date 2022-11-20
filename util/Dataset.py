@@ -29,7 +29,9 @@ class Dataset():
             return None
 
         self.logger = logger
-        self.adata = IO.load_file(path, self.file_format, self.file_type, self.logger)
+
+    def load_file(self):
+        self.adata = IO.load_file(self.path, self.file_format, self.file_type, self.logger)
         # TODO: check duplicate barcodes
         self.adata.var_names_make_unique()
         self.adata.obs_names_make_unique()

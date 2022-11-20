@@ -4,9 +4,11 @@ import scanpy as sc
 import imgui
 
 from .projection import Projection
-class PCA(Projection):
+from analysis import Figure
+class PCA(Projection, Figure.Figure):
     def __init__(self, app):
-        super().__init__(app)
+        Projection.__init__(self, app)
+        Figure.Figure.__init__(self, app, "pca", sc.pl.pca)
         self.type = "PCA"
         self.calc_params = dict()
         self.dimensions = [(0,1)]
@@ -42,6 +44,7 @@ class PCA(Projection):
         
         self.plot_params["color"] = self.selected_keys
         self.plot_params["dimensions"] = list(set(self.dimensions))
-
-        self.app.processes["pca_plot"] = multiprocessing.Process(target=sc.pl.pca, args=(self.app.dataset.adata,), kwargs=self.plot_params)
-        self.app.processes["pca_plot"].start()
+        self.plot_params["adata"] = self.app.dataset.adata
+        self.plot(self.plot_params)
+        # self.app.figures["pca_plot"] = multiprocessing.Process(target=sc.pl.pca, args=(self.app.dataset.adata,), kwargs=self.plot_params)
+        # self.app.figures["pca_plot"].start()

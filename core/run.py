@@ -8,9 +8,8 @@ def main(args):
     app = App.App()
     app.loop()
 
-    for process_key in list(app.processes.keys()):
-        app.processes[process_key].join()
-
+    for figure_key in list(app.figures.keys()):
+        app.figures[figure_key].join()
 
 if __name__ ==  "__main__":
     parser = argparse.ArgumentParser()

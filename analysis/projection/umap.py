@@ -3,9 +3,11 @@ import multiprocessing
 import scanpy as sc
 
 from .projection import Projection
-class UMAP(Projection):
+from analysis import Figure
+class UMAP(Projection, Figure.Figure):
     def __init__(self, app):
-        super().__init__(app)
+        Projection.__init__(self, app)
+        Figure.Figure.__init__(self, app, "umap", sc.pl.umap)
         self.type = "UMAP"
         self.calc_params = {
             "min_dist" : 0.5,
@@ -39,6 +41,8 @@ class UMAP(Projection):
             )
         
         self.plot_params["color"] = self.selected_keys
+        self.plot_params["adata"] = self.app.dataset.adata
 
-        self.app.processes["umap_plot"] = multiprocessing.Process(target=sc.pl.umap, args=(self.app.dataset.adata,), kwargs=self.plot_params)
-        self.app.processes["umap_plot"].start()
+        self.plot(self.plot_params)
+        # self.app.figures["umap_plot"] = multiprocessing.Process(target=sc.pl.umap, args=(self.app.dataset.adata,), kwargs=self.plot_params)
+        # self.app.figures["umap_plot"].start()

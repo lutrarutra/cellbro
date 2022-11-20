@@ -3,9 +3,11 @@ import multiprocessing
 import scanpy as sc
 
 from .projection import Projection
-class TSNE(Projection):
+from analysis import Figure
+class TSNE(Projection, Figure.Figure):
     def __init__(self, app):
-        super().__init__(app)
+        Projection.__init__(self, app)
+        Figure.Figure.__init__(self, app, "tsne", sc.pl.tsne)
         self.type = "t-SNE"
         self.calc_params = dict(
             perplexity=30, early_exaggeration=12
@@ -26,6 +28,7 @@ class TSNE(Projection):
             )
         
         self.plot_params["color"] = self.selected_keys
-
-        self.app.processes["tsne_plot"] = multiprocessing.Process(target=sc.pl.tsne, args=(self.app.dataset.adata,), kwargs=self.plot_params)
-        self.app.processes["tsne_plot"].start()
+        self.plot_params["adata"] = self.app.dataset.adata
+        self.plot(self.plot_params)
+        # self.app.figures["tsne_plot"] = multiprocessing.Process(target=sc.pl.tsne, args=(self.app.dataset.adata,), kwargs=self.plot_params)
+        # self.app.figures["tsne_plot"].start()

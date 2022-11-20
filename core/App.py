@@ -1,21 +1,23 @@
-import multiprocessing
+import multiprocessing, threading
 
 import imgui
 
 import scanpy as sc
 
+import util.htop as htop
 import util.FileType as FileType
 import Window, util.Logger as Logger
 import util.Dataset as Dataset
 from analysis import preprocessing as pp
 from interface import Dashboard
 from util import Event
+from util import Task
 
 import analysis.projection.umap as projection_umap
 import analysis.projection.trimap as projection_trimap
 import analysis.projection.tsne as projection_tsne
 import analysis.projection.pca as projection_pca
-from analysis import violin
+from analysis import Violin
 
 import io_window
 
@@ -27,7 +29,9 @@ class App():
         self.dataset = None
         self.dashboard = Dashboard.Dashboard(self)
         self.event_handler = Event.EventHandler(self)
-        self.processes = {}
+        self.task_handler = Task.TaskHandler()
+        self.htop = htop.HTOP()
+        self.figures = {}
 
     def loop(self):
         while True:
@@ -38,12 +42,16 @@ class App():
             self.gui()
             self.window.render_frame()
             self.process_events()
+            self.task_handler.process_tasks()
 
     def process_events(self):
         for event_key in self.event_handler.completed_events:
             event = self.event_handler.events[event_key]
             if event_key == "load_file":
                 self.dataset = Dataset.Dataset(path=event.args["path"], file_type=FileType.SC, logger=self.logger)
+                self.task_handler.add_task("load_file", Task.Task(target=self.dataset.load_file))
+                self.task_handler.tasks["load_file"].start()
+
                 self.dashboard.pipeline = pp.PreprocessProgress()
                 self.event_handler.add_event("ask_annotate")
                 self.dashboard.popup = pp.AskAnnotate(self.event_handler)
@@ -58,7 +66,10 @@ class App():
                     self.dashboard.pipeline.step += 1
 
             elif event_key == "load_annotation":
-                self.dataset.load_annotation(path=event.args["path"])
+                
+                self.task_handler.add_task("load_annotation", Task.Task(target=self.dataset.load_annotation, args=(event.args["path"],)))
+                self.task_handler.tasks["load_annotation"].start()
+
                 self.event_handler.add_event("ask_preprocess")
                 self.dashboard.popup = pp.AskPreprocess(self.event_handler)
                 self.dashboard.pipeline.step += 1
@@ -72,8 +83,11 @@ class App():
                 self.event_handler.add_event("mtqc_form")
                 self.dashboard.main = pp.MTQCForm(self.dataset, self.event_handler)
                 self.dashboard.pipeline.step += 1
-                self.processes["qc_mt_plot"] = multiprocessing.Process(target=sc.pl.scatter, args=(self.dataset.adata,), kwargs=dict(x="total_counts", y="pct_counts_mt", color="n_genes_by_counts"))
-                self.processes["qc_mt_plot"].start()
+
+                self.figures["qc_mt_plot"] = multiprocessing.Process(
+                    target=sc.pl.scatter, kwargs=dict(adata=self.dataset.adata, x="total_counts", y="pct_counts_mt", color="n_genes_by_counts")
+                )
+                self.figures["qc_mt_plot"].start()
             
             elif event_key == "mtqc_form":
                 self.event_handler.add_event("normalize_form")
@@ -81,7 +95,8 @@ class App():
                 self.dashboard.pipeline.step += 1
 
             elif event_key == "normalize_form":
-                self.dataset.post_process_init()
+                self.task_handler.add_task("post_process_init", Task.Task(target=self.dataset.post_process_init))
+                self.task_handler.tasks["post_process_init"].start()
                 self.dashboard.pipeline.step += 1
 
             self.event_handler.remove_event(event_key)
@@ -90,11 +105,16 @@ class App():
 
     def gui(self):
         flags = 0
-        if self.dashboard.popup is not None:
+        if self.task_handler.is_blocking():
+            self.dashboard.blocking_popup.draw()
+            flags |= imgui.WINDOW_NO_INPUTS
+
+        elif self.dashboard.popup is not None:
             if not self.dashboard.popup.draw():
                 self.dashboard.popup = None
             else:
                 flags |= imgui.WINDOW_NO_INPUTS
+        
             
         if imgui.begin_main_menu_bar():
             if imgui.begin_menu("File", self.dashboard.popup==None):
@@ -133,7 +153,7 @@ class App():
 
             if imgui.begin_menu("Plots", self.dataset is not None and self.dataset.preprocessed and self.dashboard.popup==None):
                 if imgui.menu_item("Violin", '', False, True)[0]:
-                    self.dashboard.main = violin.Violin(self)
+                    self.dashboard.main = Violin.Violin(self)
                 if imgui.menu_item("Heatmap", '', False, True)[0]:
                     pass
                 imgui.end_menu()
@@ -144,7 +164,7 @@ class App():
             self.dashboard.pipeline.draw(flags=flags)
 
         # self.logger.draw(flags=flags)
-        self.dashboard.draw_footer(flags=flags)
+        self.dashboard.draw_footer(flags=0)
 
         imgui.begin("Main", flags=flags | imgui.WINDOW_NO_COLLAPSE | imgui.WINDOW_NO_TITLE_BAR)
         if self.dashboard.main:

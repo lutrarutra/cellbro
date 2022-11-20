@@ -23,7 +23,7 @@ class Window():
         return True
     
     def render_frame(self):
-        gl.glClearColor(0.0,0.0,0.0,1.0)
+        gl.glClearColor(0.0,0.0,0.0,0.0)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
         imgui.render()
@@ -45,7 +45,8 @@ class Window():
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
         glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
         glfw.window_hint(glfw.RESIZABLE, 1)
-        glfw.window_hint(glfw.TRANSPARENT_FRAMEBUFFER, 1)
+        glfw.window_hint(glfw.TRANSPARENT_FRAMEBUFFER, 0)
+        # glfw.window_hint(glfw.DECORATED, 0)
 
         glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, gl.GL_TRUE)
 
@@ -62,5 +63,6 @@ class Window():
 
         return window
 
+    # w, h
     def get_window_size(self):
         return glfw.get_framebuffer_size(self.window)

@@ -1,11 +1,15 @@
 import multiprocessing
+import random
+import string
 
 import scanpy as sc
 
 from .projection import Projection
-class Trimap(Projection):
+from analysis import Figure
+class Trimap(Projection, Figure.Figure):
     def __init__(self, app):
-        super().__init__(app)
+        Projection.__init__(self, app)
+        Figure.Figure.__init__(self, app, "trimap", sc.external.pl.trimap)
         self.type = "Trimap"
         self.calc_params = dict(
             n_components=2, n_inliers=10, n_outliers=5, n_random=5
@@ -25,6 +29,8 @@ class Trimap(Projection):
             )
         
         self.plot_params["color"] = self.selected_keys
-
-        self.app.processes["trimap_plot"] = multiprocessing.Process(target=sc.external.pl.trimap, args=(self.app.dataset.adata,), kwargs=self.plot_params)
-        self.app.processes["trimap_plot"].start()
+        self.plot_params["adata"] = self.app.dataset.adata
+        self.plot(self.plot_params)
+        
+        # self.app.figures[figure_id] = multiprocessing.Process(target=sc.external.pl.trimap, args=(self.app.dataset.adata,), kwargs=self.plot_params)
+        # self.app.figures[figure_id].start()

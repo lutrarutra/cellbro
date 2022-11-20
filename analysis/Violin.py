@@ -43,7 +43,8 @@ class Violin():
         if self.params["stripplot"]:
             imgui.same_line()
             _, self.params["jitter"] = imgui.input_float("Jitter", self.params["jitter"])
-            # TODO: inner not working or removed?
+        
+        # TODO: inner not working or removed?
         # clicked, self.inner_selected = imgui.combo("Inner Plot", self.inner_selected, self.inner_proposal)
         _, self.params["rotation"] = imgui.input_int("Label Rotation", self.params["rotation"], step=45)
         imgui.pop_item_width()
@@ -109,5 +110,8 @@ class Violin():
         self.params["keys"] = self.selected_keys
         self.params["groupby"] = self.selected_groupby if self.selected_groupby != "None" else None
 
-        self.app.processes["violin_plot"] = multiprocessing.Process(target=sc.pl.violin, args=(self.app.dataset.adata,), kwargs=self.params)
-        self.app.processes["violin_plot"].start()
+        self.params["adata"] = self.app.dataset.adata
+        self.plot(self.params)
+
+        # self.app.figures["violin_plot"] = multiprocessing.Process(target=sc.pl.violin, args=(self.app.dataset.adata,), kwargs=self.params)
+        # self.app.figures["violin_plot"].start()
