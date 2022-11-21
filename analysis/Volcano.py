@@ -6,16 +6,17 @@ import scanpy as sc
 import pandas as pd
 
 from util import Query
-from analysis import Figure
+from plotting import Figure
+from plotting import LivePlot
 from analysis import RankGenes
 
 from plotting import plotting as pl
 from util import Task
 
 
-class Volcano(Figure.Figure):
+class Volcano(LivePlot.LivePlot):
     def __init__(self, app):
-        super().__init__(app, "heatmap", pl.volcano_plot)
+        super().__init__(app, "volcano", pl.volcano_plot)
         self.app = app
         self.rank_genes = RankGenes.RankGenes(app)
         self.plot_params = dict(

@@ -6,8 +6,7 @@ import scanpy as sc
 import pandas as pd
 
 from util import Query
-from analysis import Figure
-
+from plotting import Figure
 
 class Violin(Figure.Figure):
     def __init__(self, app):

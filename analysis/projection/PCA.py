@@ -4,7 +4,7 @@ import scanpy as sc
 import imgui
 
 from .Projection import Projection
-from analysis import Figure
+from plotting import Figure
 class PCA(Projection, Figure.Figure):
     def __init__(self, app):
         Projection.__init__(self, app)

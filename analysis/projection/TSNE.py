@@ -3,7 +3,7 @@ import multiprocessing
 import scanpy as sc
 
 from .Projection import Projection
-from analysis import Figure
+from plotting import Figure
 class TSNE(Projection, Figure.Figure):
     def __init__(self, app):
         Projection.__init__(self, app)

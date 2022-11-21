@@ -3,8 +3,7 @@ import imgui
 import scanpy as sc
 import pandas as pd
 
-from util import Query
-from analysis import Figure
+from plotting import Figure
 
 from plotting import plotting as pl
 

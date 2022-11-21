@@ -21,7 +21,7 @@ def volcano_plot(adata, hue=None, significance_threshold=0.05, vmin=None, vmax=N
         mapping[genes[1]]["pvals_adj"] = pvals[1]
         mapping[genes[1]]["logFC"] = logFC[1]
         
-    df = pd.DataFrame(mapping).T
+    df = pd.DataFrame(mapping, dtype=float).T
     df["-log_pvals_adj"] = -np.log10(df["pvals_adj"])
     df["significant"] = df["pvals_adj"] < significance_threshold
     df["mu_expression"] = np.asarray(adata[:,df.index].layers["counts"].mean(axis=0))[0]
@@ -41,44 +41,33 @@ def volcano_plot(adata, hue=None, significance_threshold=0.05, vmin=None, vmax=N
             vcenter = (vmax + vmin) / 2.0
 
         normalize = matplotlib.colors.TwoSlopeNorm(vcenter=vcenter, vmin=vmin, vmax=vmax)
+    else:
+        normalize = None
     
     rcParams["axes.grid"] = False
     f, ax = plt.subplots(figsize=(8,8))
-    sns.scatterplot(
-        data=df, x="logFC", y="-log_pvals_adj", c=hue, edgecolor=(0,0,0,1),
-        ax=ax, linewidth=1, cmap="magma", norm=normalize
-    )
+    if hue is not None:
+        scatter = plt.scatter(
+            data=df, x="logFC", y="-log_pvals_adj", c=hue, edgecolor=(0,0,0,1), linewidth=1, cmap="magma", norm=normalize
+        )
+    else:
+        scatter = plt.scatter(
+            data=df, x="logFC", y="-log_pvals_adj", c=hue, edgecolor=(0,0,0,1), linewidth=1, cmap="magma", norm=normalize
+        )
+
 
     if hue is not None:
         scalarmappaple = matplotlib.cm.ScalarMappable(norm=normalize, cmap="magma")
         scalarmappaple.set_array(hue)
         f.colorbar(scalarmappaple, fraction=0.05, pad=0.01, shrink=0.5)
 
-    show_genes = np.concatenate([
-        df[df["logFC"] > 0].sort_values("-log_pvals_adj", ascending=False).index[:5],
-        df[df["logFC"] < 0].sort_values("-log_pvals_adj", ascending=False).index[:5]
-    ])
-
-    xscale = np.abs(np.array(ax.get_xlim())).sum()
-    yscale = np.abs(np.array(ax.get_ylim())).sum()
-
-    for gene, row in df.iterrows():
-        if gene in show_genes:
-            # ax.text(row["logFC"]+0.2, row["-log_pvals_adj"]+0.2, gene, fontsize=8)
-            x = row["logFC"]
-            y = row["-log_pvals_adj"]
-            if row["logFC"] > 0:
-                xytext = (x + 5/xscale, y+1000/yscale)
-            else:
-                xytext = (x - 50/xscale, y+1000/yscale)
-
-            ax.annotate(gene, xy=(x,y), fontsize=8, xytext=xytext, va="center", arrowprops=dict(arrowstyle="-"))
-            # ax.annotate(gene, xy=(x,y), fontsize=8, xytext=(x+0.2,y+0.2), va="center", arrowprops=dict(arrowstyle="-"))
-        
-    # ax.set_xlim([-10,10])
+    
     ax.axhline(-np.log10(0.05), linestyle="--", color="royalblue", linewidth=1)
     ax.set_ylabel("- log adjusted p-value")
-    plt.show()
+    ax.set_xlabel("log2FC")
+    
+    # fig, ax, LivePlot.plt, LivePlot.annotation
+    return f, ax, scatter, df
 
 def _dendrogram(model, **kwargs):
     # create the counts of samples under each node
