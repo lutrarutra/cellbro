@@ -1,4 +1,4 @@
-import multiprocessing, webbrowser
+import multiprocessing, webbrowser, threading
 
 import pandas as pd
 import scanpy as sc
@@ -11,16 +11,17 @@ from matplotlib import rcParams
 
 from plotting import Figure
 
+import time
 
 class Label():
-    def __init__(self, ax, persistent=False, xytext=None):
-        xytext = (20,20) if xytext is None else xytext
+    def __init__(self, ax, dx=20):
         self.annotation = ax.annotate(
-            "", xy=(0,0), xytext=xytext, textcoords="offset points",
+            "", xy=(0,0), xytext=(20,20), textcoords="offset points",
             bbox=dict(boxstyle="round", fc="w"),
             arrowprops=dict(arrowstyle="->")
         )
-        self.persistent = persistent
+        self.annotation.get_bbox_patch().set_facecolor("whitesmoke")
+        self.annotation.get_bbox_patch().set_alpha(0.8)
 
     def set_visible(self, visible):
         self.annotation.set_visible(visible)
@@ -34,24 +35,76 @@ class LivePlot(Figure.Figure):
         super().__init__(app, type, self.plot)
         self.fig = None
         self.ax = None
-        self.plt = None
+        self.path_collection = None
         self.annotation = None
         self.labels = {}
         self.plot_fnc = plot_fnc
+        self.selected_label_key = None
+        # Not working properly when using "repeat keys"-accessbility setting in OS
+        self.key_down = False
 
-    def update(self, ind, label):
-        pos = self.plt.get_offsets()[ind["ind"][0]]
-        label.xy = pos
+    def _update(self, ind, label):
+        pos = self.path_collection.get_offsets()[ind["ind"][0]]
+        label.annotation.xy = pos
         text = "\n".join([
             f"{self.annotation.index[n]}: (logFC: {self.annotation['logFC'][n]:.1f}, pval: {self.annotation['-log_pvals_adj'][n]:.1f})" for n in ind["ind"]
         ])
-        label.set_text(text)
-        label.get_bbox_patch().set_alpha(0.4)
+        label.annotation.set_text(text)
 
-    def on_click(self, event):
-        if event.button == matplotlib.backend_bases.MouseButton.LEFT:
+    def _add_label(self, ind, key):
+        self.labels[key] = Label(
+            self.ax
+        )
+        self.labels[key].set_visible(True)
+        self._update(ind, self.labels[key])
+        self.fig.canvas.draw_idle()
+
+    def _remove_label(self, key, draw=True):
+        self.labels[key].set_visible(False)
+        del self.labels[key]
+        if draw:
+            self.fig.canvas.draw_idle()
+
+    def _move_label(self, key, dx, dy):
+        x, y = self.labels[key].annotation.get_position()
+        self.labels[key].annotation.set_position((x-dx, y-dy))
+        self.fig.canvas.draw_idle()
+
+    def on_key_pressed(self, event):
+        if self.selected_label_key is None:
+            return
+
+        if self.key_down:
+            return
+
+        if event.inaxes == self.ax:
+            _, ind = self.path_collection.contains(event)
+        else:
+            return        
+
+        if event.key == "left":
+            self._move_label(self.selected_label_key, 5, 0)
+        elif event.key == "right":
+            self._move_label(self.selected_label_key, -5, 0)
+        elif event.key == "up":
+            self._move_label(self.selected_label_key, 0, -5)
+        elif event.key == "down":
+            self._move_label(self.selected_label_key, 0, 5)
+        else:
+            return
+            
+        self.key_down = True
+        
+
+    def on_key_released(self, event):
+        if event.key in ["left", "right", "up", "down"]:
+            self.key_down = False
+
+
+    def on_mouse_pressed(self, event):
+        if (event.button == matplotlib.backend_bases.MouseButton.LEFT):
             if event.inaxes == self.ax:
-                cont, ind = self.plt.contains(event)
+                cont, ind = self.path_collection.contains(event)
             else:
                 return
 
@@ -60,51 +113,24 @@ class LivePlot(Figure.Figure):
 
             key = ind["ind"].tobytes()
             if key not in self.labels.keys():
-                xytext = (20,20) if self.annotation['logFC'][ind['ind'][0]] > 0 else (-120,20)
-                self.labels[key] = Label(self.ax, persistent=True, xytext=xytext)
-                self.fig.canvas.draw_idle()
-                return
-
-            self.labels[key].persistent = not self.labels[key].persistent
-
-            self.fig.canvas.draw_idle()
-
-        elif event.button == matplotlib.backend_bases.MouseButton.RIGHT:
-            if event.inaxes == self.ax:
-                cont, ind = self.plt.contains(event)
+                self._add_label(ind, key)
+                self.selected_label_key = key
             else:
-                return
+                self._remove_label(key)
+                self.selected_label_key = None
 
-            if not cont:
-                return
+        elif (event.button == matplotlib.backend_bases.MouseButton.RIGHT):
+            if event.inaxes == self.ax:
+                cont, ind = self.path_collection.contains(event)
+                if cont:
+                    webbrowser.open(f"https://www.genecards.org/cgi-bin/carddisp.pl?gene={self.annotation.index[ind['ind'][0]]}")
 
-            webbrowser.open(f"https://www.genecards.org/cgi-bin/carddisp.pl?gene={self.annotation.index[ind['ind'][0]]}")
-
-    def on_hover(self, event):
-        if event.inaxes == self.ax:
-            cont, ind = self.plt.contains(event)
-        else:
-            return
-
-        key = ind["ind"].tobytes()
-        if cont:
-            if not key in self.labels.keys():
-                xytext = (20,20) if self.annotation['logFC'][ind['ind'][0]] > 0 else (-120,20)
-                self.labels[key] = Label(self.ax, persistent=False, xytext=xytext)
-                self.update(ind, self.labels[key].annotation)
-                self.labels[key].set_visible(True)
-        else:
-            for key in list(self.labels.keys()):
-                if not self.labels[key].persistent:
-                    self.labels[key].remove()
-                    del self.labels[key]
-
-        self.fig.canvas.draw_idle()
 
     def _plot(self, params):
-        self.fig, self.ax, self.plt, self.annotation = self.plot_fnc(**params)
-        self.fig.canvas.mpl_connect("motion_notify_event", self.on_hover)
-        self.fig.canvas.mpl_connect("button_press_event", self.on_click)
+        self.fig, self.ax, self.path_collection, self.annotation = self.plot_fnc(**params)
+        self.fig.canvas.mpl_connect("button_press_event", self.on_mouse_pressed)
+        self.fig.canvas.mpl_connect("key_press_event", self.on_key_pressed)
+        self.fig.canvas.mpl_connect("key_release_event", self.on_key_released)
         plt.show()
 
     def plot(self, params):

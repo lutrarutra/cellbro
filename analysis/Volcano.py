@@ -22,9 +22,9 @@ class Volcano(LivePlot.LivePlot):
         self.plot_params = dict(
             hue=None,
             significance_threshold=0.05,
-            vmin=0.0,
-            vmax=0.0,
+            vmin=-1.0,
             vcenter=0.0,
+            vmax=1.0,
         )
 
         self.auto_vmin = True
@@ -46,6 +46,11 @@ class Volcano(LivePlot.LivePlot):
         if self.auto_vmax:
             self.plot_params["vmax"] = None
         self.plot(self.plot_params)
+        # For new plot
+        self.plot_params["vmin"] = -1.0
+        self.plot_params["vcenter"] = 0.0
+        self.plot_params["vmax"] = 1.0
+
 
     def draw(self):
         imgui.columns(2, "tabs")
@@ -70,20 +75,21 @@ class Volcano(LivePlot.LivePlot):
                 self.current_tab = 1
         elif self.current_tab == 1:
             _, self.i_hue = imgui.combo("Hue", self.i_hue, self.available_hue)
-            _, self.plot_params["significance_threshold"] = imgui.input_float("Significance Threshold", self.plot_params["significance_threshold"])
+            # n_zeros = str(self.plot_params["significance_threshold"]).count("0")
+            n_zeros = 4
+            _, self.plot_params["significance_threshold"] = imgui.input_float("Significance Threshold", self.plot_params["significance_threshold"], format=f"%.{n_zeros}f")
             
-
-            _, self.auto_vmin = imgui.checkbox("Auto", self.auto_vmin)
+            _, self.auto_vmin = imgui.checkbox("Auto vmin", self.auto_vmin)
             if not self.auto_vmin:
                 imgui.same_line()
                 _, self.plot_params["vmin"] = imgui.input_float("vmin", self.plot_params["vmin"])
 
-            _, self.auto_vcenter = imgui.checkbox("Auto", self.auto_vcenter)
+            _, self.auto_vcenter = imgui.checkbox("Auto vcenter", self.auto_vcenter)
             if not self.auto_vcenter:
                 imgui.same_line()
                 _, self.plot_params["vcenter"] = imgui.input_float("vcenter", self.plot_params["vcenter"])
 
-            _, self.auto_vmax = imgui.checkbox("Auto", self.auto_vmax)
+            _, self.auto_vmax = imgui.checkbox("Auto vmax", self.auto_vmax)
             if not self.auto_vmax:
                 imgui.same_line()   
                 _, self.plot_params["vmax"] = imgui.input_float("vmax", self.plot_params["vmax"])

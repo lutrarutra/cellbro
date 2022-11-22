@@ -43,7 +43,7 @@ class RankGenes():
         self.params["method"] = self.available_methods[self.i_method]
         self.params["corr_method"] = self.available_corr_methods[self.i_corr_method]
         self.params["reference"] = self.available_reference[self.i_reference]
-
+        print(self.app.dataset.adata.uns.keys())
         if start_thread:
             self.app.task_handler.add_task(
                 "rank_genes_groups",

@@ -11,6 +11,14 @@ class Window():
         self.window = Window.impl_glfw_init()
         self.impl = GlfwRenderer(self.window)
 
+    #     glfw.set_key_callback(self.window, self.on_key_pressed)
+
+    # def on_key_pressed(self, window, key, scancode, action, mods):
+    #     if action == glfw.PRESS:
+    #         self.keys_down.append(key)
+    #     elif action == glfw.RELEASE:
+    #         self.keys_down.remove(key)
+
     def prepare_frame(self):
         if glfw.window_should_close(self.window):
             self.impl.shutdown()

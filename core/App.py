@@ -84,6 +84,11 @@ class App():
                 if event.args["answer"]:
                     self.event_handler.add_event("filter_form")
                     self.dashboard.main = pp.FilterForm(self.dataset, self.event_handler)
+                else:
+                    self.task_handler.add_task("post_process_init", Task.Task(target=self.dataset.post_process_init))
+                    self.task_handler.tasks["post_process_init"].start()
+                    # self.dataset.preprocessed = True
+                    self.dashboard.pipeline.step = 4
 
             elif event_key == "filter_form":
                 self.event_handler.add_event("mtqc_form")

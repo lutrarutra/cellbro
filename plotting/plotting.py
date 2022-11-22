@@ -7,6 +7,7 @@ import seaborn as sns
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib import rcParams
+import matplotlib.lines as mline
 
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from scipy.cluster.hierarchy import dendrogram
@@ -27,9 +28,10 @@ def volcano_plot(adata, hue=None, significance_threshold=0.05, vmin=None, vmax=N
     df["mu_expression"] = np.asarray(adata[:,df.index].layers["counts"].mean(axis=0))[0]
     df["log_mu_expression"] = np.asarray(adata[:,df.index].layers["counts"].log1p().mean(0))[0]
 
+    hue_label = hue
     if hue is not None:
         if hue in adata.var.columns:
-            df[hue] = adata.var[hue]
+            hue = adata.var[hue]
         else:
             hue = df[hue]
 
@@ -46,28 +48,37 @@ def volcano_plot(adata, hue=None, significance_threshold=0.05, vmin=None, vmax=N
     
     rcParams["axes.grid"] = False
     f, ax = plt.subplots(figsize=(8,8))
-    if hue is not None:
-        scatter = plt.scatter(
-            data=df, x="logFC", y="-log_pvals_adj", c=hue, edgecolor=(0,0,0,1), linewidth=1, cmap="magma", norm=normalize
-        )
-    else:
-        scatter = plt.scatter(
-            data=df, x="logFC", y="-log_pvals_adj", c=hue, edgecolor=(0,0,0,1), linewidth=1, cmap="magma", norm=normalize
-        )
 
+    true_marker = mline.Line2D(
+        [], [], markerfacecolor=sns.color_palette("rocket")[-1], marker='o', linestyle='None',
+        markersize=7, label='True', markeredgewidth=1, markeredgecolor="black"
+    )
+
+    false_marker = mline.Line2D(
+        [], [], markerfacecolor=sns.color_palette("rocket")[-1], marker='X', linestyle='None',
+        markersize=7, label='False', markeredgewidth=1, markeredgecolor="black"
+    )
+
+    sns.scatterplot(
+        data=df, x="logFC", y="-log_pvals_adj", c=hue, ax=ax, style="significant", markers={True:"o", False:"X"},
+        edgecolor=(0,0,0,1), linewidth=1, cmap="magma", norm=normalize
+    )
 
     if hue is not None:
         scalarmappaple = matplotlib.cm.ScalarMappable(norm=normalize, cmap="magma")
         scalarmappaple.set_array(hue)
-        f.colorbar(scalarmappaple, fraction=0.05, pad=0.01, shrink=0.5)
-
+        ax_clrbar = f.colorbar(scalarmappaple, fraction=0.05, pad=0.01, shrink=0.5)
+        ax_clrbar.ax.set_ylabel(hue_label.replace("_", " ").capitalize())
     
-    ax.axhline(-np.log10(0.05), linestyle="--", color="royalblue", linewidth=1)
+    ax.axhline(-np.log10(significance_threshold), linestyle="--", color="royalblue", linewidth=1)
     ax.set_ylabel("- log adjusted p-value")
     ax.set_xlabel("log2FC")
+
+    legend = ax.legend(title=f"Significant (P-value adj. < {significance_threshold:.4f})", handles=[true_marker, false_marker], loc=1, prop={'size': 8})
+    # plt.setp(legend.get_title(),fontsize='x-small')
     
     # fig, ax, LivePlot.plt, LivePlot.annotation
-    return f, ax, scatter, df
+    return f, ax, ax.get_children()[0], df
 
 def _dendrogram(model, **kwargs):
     # create the counts of samples under each node
