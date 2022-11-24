@@ -21,5 +21,4 @@ class Dataset():
         print("Calculating Metrics")
         sc.tl.pca(self.adata)
         sc.pp.neighbors(self.adata, random_state=0)
-        sc.tl.umap(self.adata, min_dist=0.3)
         print("Dataset Ready!")
