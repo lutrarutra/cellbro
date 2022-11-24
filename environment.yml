@@ -4,15 +4,12 @@ channels:
   - bioconda
 dependencies:
   - python=3.8
-  - pip
   - flask
   - tqdm
-  - matplotlib
-  - seaborn
   - scanpy
   - scvi
-  - pyglfw
-  - pyopengl
   - leidenalg
   - trimap
   - psutil
+  - plotly
+  - dash
