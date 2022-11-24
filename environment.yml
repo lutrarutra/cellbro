@@ -13,3 +13,4 @@ dependencies:
   - psutil
   - plotly
   - dash
+  - dash-bootstrap-components

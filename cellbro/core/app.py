@@ -1,16 +1,18 @@
 import tkinter as tk
 from tkinter import filedialog
 
+import dash
 from dash import Dash, html, dcc, Input, Output, State
 import plotly.express as px
 import plotly.graph_objects as go
+import dash_bootstrap_components as dbc
 
 from cellbro.util.Dataset import Dataset
 from cellbro.plotting.Projection import Projection, UMAP, TSNE, PCA, Trimap
 
 import scanpy as sc
 
-app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
 
 # root = tk.Tk()
@@ -23,9 +25,9 @@ app.layout = html.Div([Projection.create_layout(dataset)])
 @app.callback(
     output=Projection.get_callback_outputs(),
     inputs=Projection.get_callback_inputs(),
+    state=Projection.get_callback_states()
 )
-def update_projection(projection_color, projection_type, **kwargs):
-    
+def update_projection(submit, projection_color, projection_type, **kwargs):
     if projection_type == "UMAP":
         projection_params = dict(
             [(key.replace("umap_", ""), kwargs[key]) for key in kwargs.keys() if key.startswith("umap_")]

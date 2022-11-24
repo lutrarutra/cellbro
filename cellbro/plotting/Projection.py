@@ -2,6 +2,7 @@
 import plotly.graph_objects as go
 import plotly.express as px
 from dash import html, dcc, Input, Output, State
+import dash_bootstrap_components as dbc
 
 import scanpy as sc
 
@@ -36,6 +37,7 @@ class Projection():
     def __init__(self, key, dataset, color):
         self.key = key
         self.dataset = dataset
+        self.color_label = color
         if color in self.dataset.adata.obs_keys():
             self.color = self.dataset.adata.obs[color]
         else:
@@ -55,54 +57,60 @@ class Projection():
     # Inputs to Projection
     @staticmethod
     def get_callback_inputs():
-        inputs = {
+        return {
+            "submit": Input(component_id="projection-submit", component_property="n_clicks"),
             "projection_color": Input(component_id="projection-color", component_property="value"),
             "projection_type": Input(component_id="projection-type", component_property="value")
         }
+
+
+    def get_callback_states():
+        states = {}
         for key in umap_params.keys():
-            inputs[f"umap_{key}"] = Input(component_id=f"projection-umap-{key}", component_property="value")
+            states[f"umap_{key}"] = State(component_id=f"projection-umap-{key}", component_property="value")
 
         for key in tsne_params.keys():
-            inputs[f"tsne_{key}"] = Input(component_id=f"projection-tsne-{key}", component_property="value")
+            states[f"tsne_{key}"] = State(component_id=f"projection-tsne-{key}", component_property="value")
         
         for key in trimap_params.keys():
-            inputs[f"trimap_{key}"] = Input(component_id=f"projection-trimap-{key}", component_property="value")
+            states[f"trimap_{key}"] = State(component_id=f"projection-trimap-{key}", component_property="value")
         
         for key in pca_params.keys():
-            inputs[f"pca_{key}"] = Input(component_id=f"projection-pca-{key}", component_property="value")
+            states[f"pca_{key}"] = State(component_id=f"projection-pca-{key}", component_property="value")
 
-        return inputs
+        return states
         
 
     @staticmethod
     def create_layout(dataset):
         layout = html.Div([
-            html.Div(
-                children=[
-                    html.Div(children=[
+            html.Div(children=[
+                html.H3("Projection Settings"),
+                html.Div(children=[ 
                     # Projection type celect
-                        html.Div(children=[
-                            html.Label("Projection Type"),
-                            dcc.Dropdown(["UMAP", "Trimap", "t-SNE", "PCA"], value="UMAP", id="projection-type", clearable=False),
-                        ], style={"padding": "10px", "flex": "1"}),
+                    html.Div(children=[
+                        html.Label("Projection Type"),
+                        dcc.Dropdown(["UMAP", "Trimap", "t-SNE", "PCA"], value="UMAP", id="projection-type", clearable=False),
+                    ], style={"flex": "1"}),
 
-                        # Projection Hue celect
-                        html.Div(children=[
-                            html.Label("Color"),
-                            dcc.Dropdown(dataset.adata.obs_keys() + dataset.adata.var_names.tolist(), value=dataset.adata.obs_keys()[0], id="projection-color", clearable=False),
-                        ], style={"padding": "10px", "flex": "1"}),
-                    ], style={"padding": "10px", "flex": "1", "display": "flex", "flex-direction": "row"}),
-                    html.Div(id="projection-parameters", children=[dcc.Loading(
-                            id="loading-projection", type="circle",
-                            children=[Projection.params_layout()],
-                    )]),
-                ], style={"padding": "10px", "flex": "1"}
-            ),
+                    # Projection Hue celect
+                    html.Div(children=[
+                        html.Label("Color"),
+                        dcc.Dropdown(dataset.adata.obs_keys() + dataset.adata.var_names.tolist(), value=dataset.adata.obs_keys()[0], id="projection-color", clearable=False),
+                    ], style={"flex": "1"}),
+                ], style={"flex": "1", "display": "flex", "gap":"20px"}),
+                html.Div(id="projection-parameters", children=[dcc.Loading(
+                        id="loading-projection", type="circle",
+                        children=[Projection.params_layout()],
+                )]),
+                dbc.Button("Plot", color="primary", className="mr-1", id="projection-submit"),
+            ], id="parameters-container"),
+
             html.Div(children=[
                 dcc.Loading(
                     id="loading-projection", type="circle",
-                    children=[html.Div(dcc.Graph(id="projection-plot", style={"width": "50vw", "height": "50vw"}))],
-            )], style={"padding": "10px", "flex": "2"}),
+                    children=[html.Div(dcc.Graph(id="projection-plot"))],
+            )], style={"flex": "2"}, id="projection-plot-container"),
 
         ], style={"display": "flex", "flex-direction": "row", "margin": "0px"})
         return layout
@@ -139,6 +147,9 @@ class Projection():
             color_discrete_sequence=sc.pl.palettes.default_20,
             labels={"x": f"{self.type} 1", "y": f"{self.type} 2"}
         )
+        projection_layout["legend"] = dict(
+            title=self.color_label.capitalize()
+        )
         projection_figure.update_layout(projection_layout)
         projection_figure.update_xaxes(
             scaleanchor="y", scaleratio=1,
@@ -150,10 +161,6 @@ class Projection():
             adata.uns[f"{self.type}_params"] = {}
 
         rerun = (adata.uns[f"{self.type}_params"] != self.params.unravel())
-        if rerun:
-            print(type(adata.uns[f"{self.type}_params"]), type(self.params))
-            print(self.params.unravel())
-            print(adata.uns[f"{self.type}_params"]) 
         adata.uns[f"{self.type}_params"] = self.params.unravel()
 
         return rerun

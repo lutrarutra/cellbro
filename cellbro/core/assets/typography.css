@@ -3,3 +3,45 @@ body {
     padding: 0;
     background-color: #020409;
 }
+
+label {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+h3 {
+    font-family: 'Roboto', sans-serif;
+    font-size: 18px;
+    color: #ffffff;
+}
+
+input {
+    border-radius: 5px;
+    text-align: right;
+    box-shadow: none;
+}
+
+#projection-plot {
+    width: 50vw;
+    height: 50vw;
+}
+
+#projection-parameters {
+    padding-top: 20px;
+}
+
+#projection-plot-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    width: 100%;
+    height: 100%;
+}
+
+#parameters-container {
+    padding: 20px;
+    width: 25vw;
+    margin: 0;
+    background-color: #0E1117;
+}
