@@ -6,7 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 from cellbro.util.Dataset import Dataset
-from cellbro.plotting.Projection import UMAP, TSNE, PCA, Trimap
+from cellbro.plotting.Projection import Projection, UMAP, TSNE, PCA, Trimap
 
 import scanpy as sc
 
@@ -19,43 +19,38 @@ app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
 dataset = Dataset("data/vas.h5ad")
 
 app.layout = html.Div([
-    html.Div(children=[
-            html.Div(children=[
-                html.Label("Projection Type"),
-                dcc.Dropdown(["UMAP", "Trimap", "t-SNE", "PCA"], value="UMAP", id="projection-type"),
-            ], style={"padding": "10px", "flex": "1"}),
-            html.Div(children=[
-                html.Label("Color"),
-                dcc.Dropdown(dataset.adata.obs_keys(), value=dataset.adata.obs_keys()[0], id="projection-color"),
-            ], style={"padding": "10px", "flex": "1"})
-    ], style={"padding": "10px", "flex": "1", "display": "flex", "flex-direction": "row"}),
-
-    html.Div(children=[
-        dcc.Loading(
-            id="loading-projection", type="circle",
-            children=[html.Div(dcc.Graph(id="projection-plot"))],
-        ),
-    ], style={"padding": "10px", "flex": "3"}),
-    html.Div(id="color-output")
-], style={"display": "flex", "flex-direction": "row"})
+    Projection.create_layout(dataset)
+])
 
 @app.callback(
-    Output(component_id="projection-plot", component_property="figure"),
-    Input(component_id="projection-color", component_property="value"),
-    Input(component_id="projection-type", component_property="value"),
+    output=Projection.get_callback_outputs(),
+    inputs=Projection.get_callback_inputs(),
 )
-def update_projection(color, projection_type):
+def update_projection(projection_color, projection_type, **kwargs):
+    
     if projection_type == "UMAP":
-        return UMAP(dataset, color).plot()
+        projection_params = dict(
+            [(key.replace("umap_", ""), kwargs[key]) for key in kwargs.keys() if key.startswith("umap_")]
+        )
+        return UMAP(dataset, projection_color, projection_params).plot(), {"display": "block"}, {"display": "none"}, {"display": "none"}, {"display": "none"}
 
     elif projection_type == "t-SNE":
-        return TSNE(dataset, color).plot()
+        projection_params = dict(
+            [(key.replace("tsne_", ""), kwargs[key]) for key in kwargs.keys() if key.startswith("tsne_")]
+        )
+        return TSNE(dataset, projection_color, projection_params).plot(), {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "none"}
     
-    elif projection_type == "PCA":
-        return PCA(dataset, color).plot()
-
     elif projection_type == "Trimap":
-        return Trimap(dataset, color).plot()
+        projection_params = dict(
+            [(key.replace("trimap_", ""), kwargs[key]) for key in kwargs.keys() if key.startswith("trimap_")]
+        )
+        return Trimap(dataset, projection_color, projection_params).plot(), {"display": "none"}, {"display": "none"}, {"display": "block"}, {"display": "none"}
+
+    elif projection_type == "PCA":
+        projection_params = dict(
+            [(key.replace("pca_", ""), kwargs[key]) for key in kwargs.keys() if key.startswith("pca_")]
+        )
+        return PCA(dataset, projection_color, projection_params).plot(), {"display": "none"}, {"display": "none"}, {"display": "none"}, {"display": "block"}
 
     assert False, "Invalid projection type"
 
@@ -65,7 +60,6 @@ projection_layout = go.Layout(
     xaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=False),
     yaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=False),
 )
-
 
 if __name__ == '__main__':
     app.run_server(debug=True, host="127.0.0.1")
