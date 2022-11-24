@@ -36,7 +36,10 @@ class Projection():
     def __init__(self, key, dataset, color):
         self.key = key
         self.dataset = dataset
-        self.color = color
+        if color in self.dataset.adata.obs_keys():
+            self.color = self.dataset.adata.obs[color]
+        else:
+            self.color = self.dataset.adata.X[:,self.dataset.adata.var.index.get_loc(color)].toarray().T[0]
 
     # Outputs from _plot()
     @staticmethod
@@ -86,7 +89,7 @@ class Projection():
                         # Projection Hue celect
                         html.Div(children=[
                             html.Label("Color"),
-                            dcc.Dropdown(dataset.adata.obs_keys(), value=dataset.adata.obs_keys()[0], id="projection-color", clearable=False),
+                            dcc.Dropdown(dataset.adata.obs_keys() + dataset.adata.var_names.tolist(), value=dataset.adata.obs_keys()[0], id="projection-color", clearable=False),
                         ], style={"padding": "10px", "flex": "1"}),
                     ], style={"padding": "10px", "flex": "1", "display": "flex", "flex-direction": "row"}),
                     html.Div(id="projection-parameters", children=[dcc.Loading(
@@ -98,10 +101,10 @@ class Projection():
             html.Div(children=[
                 dcc.Loading(
                     id="loading-projection", type="circle",
-                    children=[html.Div(dcc.Graph(id="projection-plot"))],
-            )], style={"padding": "10px", "flex": "3"}),
+                    children=[html.Div(dcc.Graph(id="projection-plot", style={"width": "50vw", "height": "50vw"}))],
+            )], style={"padding": "10px", "flex": "2"}),
 
-        ], style={"display": "flex", "flex-direction": "row"})
+        ], style={"display": "flex", "flex-direction": "row", "margin": "0px"})
         return layout
 
     @staticmethod
@@ -132,7 +135,8 @@ class Projection():
     def plot(self):
         projection_figure = px.scatter(
             x=self.dataset.adata.obsm[self.key][:,0], y=self.dataset.adata.obsm[self.key][:,1],
-            color=self.dataset.adata.obs[self.color], color_discrete_sequence=sc.pl.palettes.default_20,
+            color=self.color,
+            color_discrete_sequence=sc.pl.palettes.default_20,
             labels={"x": f"{self.type} 1", "y": f"{self.type} 2"}
         )
         projection_figure.update_layout(projection_layout)

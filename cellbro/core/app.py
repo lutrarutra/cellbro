@@ -18,9 +18,7 @@ app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
 # path = filedialog.askopenfilename()
 dataset = Dataset("data/vas.h5ad")
 
-app.layout = html.Div([
-    Projection.create_layout(dataset)
-])
+app.layout = html.Div([Projection.create_layout(dataset)])
 
 @app.callback(
     output=Projection.get_callback_outputs(),
