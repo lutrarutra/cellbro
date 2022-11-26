@@ -38,7 +38,7 @@ class ParamsDict():
 class Param():
     def __init__(
         self, key, name, default, type,
-        description, nullable=False,
+        description, nullable=False, allowed_values=None,
         _min=None, _max=None, step=None,
         ):
         self.key = key
@@ -46,6 +46,7 @@ class Param():
         self.default = default
         self.value = default
         self.type = type
+        self.allowed_values = allowed_values
         if self.type == str:
             self.input_type = "text"
         elif self.type == int:

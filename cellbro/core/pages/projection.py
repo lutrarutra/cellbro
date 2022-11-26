@@ -52,12 +52,14 @@ def create_page(dash_app, dataset):
 
         assert False, "Invalid projection type"
 
-    # # Heatmap
-    # @dash_app.callback(
-    #     inputs=Heatmap.get_callback_inputs(),
-    # )
-    # def _htm(submit):
-    #     return Heatmap(dataset, {}).plot()
+    # Heatmap
+    @dash_app.callback(
+        output=Heatmap.get_callback_outputs(),
+        inputs=Heatmap.get_callback_inputs(),
+        state=Heatmap.get_callback_states()
+    )
+    def _(submit, **kwargs):
+        return Heatmap(dataset, kwargs).plot()
 
     dash.register_page("pages.projection", path="/projection", order=2, layout=layout)
 

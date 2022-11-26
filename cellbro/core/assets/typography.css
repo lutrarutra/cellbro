@@ -3,6 +3,8 @@ body {
     padding: 0;
     background-color: #020409;
     height: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 /* width */
@@ -39,7 +41,6 @@ body {
     background-color: aquamarine;
 }
 
-
 label {
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
@@ -59,7 +60,6 @@ h3 {
     width: 100vw;
     background-color: #020409;
 }
-
 
 #navbar div {
     height: 100%;
@@ -97,11 +97,9 @@ h3 {
 }
 
 #bottom {
+    display: flex;
     width: 100vw;
     height: calc(100vh - 50vh - 50px);
-    flex-grow: 1;
-    flex-shrink: 1;
-    flex-basis: auto;
     background-color: aliceblue;
 }
 
@@ -144,31 +142,94 @@ h3 {
 
 #projection-header {
     padding: 20px;
+    padding-left: 10px;
     display: flex;
     align-items: center;
     justify-content:left;
     height: 80px;
 }
 
-#projection-parameters {
-    padding-left: 20px;
-    padding-right: 20px;
-    overflow-y: scroll;
-    max-height: calc(50vh - 160px);
+#heatmap-header {
+    padding: 20px;
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content:left;
+    height: 80px;
 }
 
-#projection-footer {
-    padding: 20px;
-    height: 80px;
+#bottom-sidebar {
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 20vw;
+    margin: 0;
+    background-color: #0E1117;
+}
+
+#heatmap-footer {
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+    height: 60px;
     width: 100%;
 }
 
+#bottom-figure {
+
+    width: 80vw;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    height: calc(50vh - 50px);
+}
+
+#heatmap-plot {
+    width: 80vw;
+    border-style: solid;
+    border-color: cyan;
+}
+
+#heatmap-plot .plot {
+    overflow-x: scroll;
+    border-style: solid;
+}
+
+#projection-parameters {
+    padding-left: 10px;
+    padding-right: 10px;
+    overflow-y: scroll;
+    height: calc(50vh - 140px);
+}
+
+#projection-footer {
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    width: 100%;
+}
+
+#heatmap-parameters {
+    padding-left: 10px;
+    padding-right: 10px;
+    overflow-y: scroll;
+    height: calc(50vh - 190px);
+}
+
 .param-row {
-    padding-top: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    height: 70px;
+}
+
+.param-select {
+    width: 150px;
+    height: 100%;
+    position:relative;
+    overflow-y: visible;
 }
 
 .param-label {

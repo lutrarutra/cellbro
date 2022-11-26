@@ -16,9 +16,15 @@ class Dataset():
         print("Normalizing Counts")
         self.adata.layers["counts"] = self.adata.X.copy()
         sc.pp.normalize_total(self.adata, target_sum=1e4)
+        self.adata.layers["ncounts"] = self.adata.X.copy()
         sc.pp.log1p(self.adata)
+
+        self.adata.layers["centered"] = self.adata.layers["counts"] - self.adata.layers["counts"].mean(axis=0)
+        self.adata.layers["logcentered"] = self.adata.X - self.adata.X.mean(axis=0)
 
         print("Calculating Metrics")
         sc.tl.pca(self.adata)
         sc.pp.neighbors(self.adata, random_state=0)
+
+
         print("Dataset Ready!")
