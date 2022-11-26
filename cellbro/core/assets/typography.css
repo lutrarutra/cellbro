@@ -2,7 +2,43 @@ body {
     margin: 0;
     padding: 0;
     background-color: #020409;
+    height: 100%;
 }
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+#page{
+    display: flex;
+    flex-flow: column;
+    height: 100vh;
+}
+
+#content {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+    background-color: aquamarine;
+}
+
 
 label {
     font-family: 'Roboto', sans-serif;
@@ -16,32 +52,132 @@ h3 {
     color: #ffffff;
 }
 
-input {
-    border-radius: 5px;
-    text-align: right;
-    box-shadow: none;
+#navbar {
+    display: flex;
+    justify-content: center;
+    height: 50px;
+    width: 100vw;
+    background-color: #020409;
+}
+
+
+#navbar div {
+    height: 100%;
+    width: 80vw;
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+#navbar .active {
+    background-color: #14181f;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+#navbar a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    color: #ffffff;
+}
+
+#navbar div div a:hover {
+    background-color: #1e222a;
+}
+
+#top {
+    display: flex;
+    width: 100vw;
+    height: 50vh;
+}
+
+#bottom {
+    width: 100vw;
+    height: calc(100vh - 50vh - 50px);
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: auto;
+    background-color: aliceblue;
+}
+
+#main {
+    width: 40vw;
+    height: 50vh;
+}
+
+#main-select {
+    display: flex;
+    height: 80px;
+    padding-top: 10px;
+    gap: 20px;
+    background-color: #0E1117;
+}
+
+#main-figure {
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: calc(50vh - 80px);
 }
 
 #projection-plot {
-    width: 50vw;
-    height: 50vw;
+    --height: calc(50vh - 80px);
+    --side: min(40vw, var(--height));
+    width: var(--side);
+    height: var(--side);
 }
 
-#projection-parameters {
-    padding-top: 20px;
-}
-
-#projection-plot-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: left;
-    width: 100%;
-    height: 100%;
-}
-
-#parameters-container {
-    padding: 20px;
-    width: 25vw;
+#left-sidebar {
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 20vw;
     margin: 0;
     background-color: #0E1117;
 }
+
+#projection-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content:left;
+    height: 80px;
+}
+
+#projection-parameters {
+    padding-left: 20px;
+    padding-right: 20px;
+    overflow-y: scroll;
+    max-height: calc(50vh - 160px);
+}
+
+#projection-footer {
+    padding: 20px;
+    height: 80px;
+    width: 100%;
+}
+
+.param-row {
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.param-label {
+    width: 50%;
+}
+
+.param-input {
+    width: 50%;
+    border-radius: 5px;
+    text-align: right;
+}
+

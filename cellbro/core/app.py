@@ -2,64 +2,65 @@ import tkinter as tk
 from tkinter import filedialog
 
 import dash
-from dash import Dash, html, dcc, Input, Output, State
+from dash import Dash, html, dcc, Input, Output, State, ALL
 import plotly.express as px
 import plotly.graph_objects as go
 import dash_bootstrap_components as dbc
 
 from cellbro.util.Dataset import Dataset
-from cellbro.plotting.Projection import Projection, UMAP, TSNE, PCA, Trimap
+
+from cellbro.core.pages.projection import create_page as create_projection_page
+from cellbro.core.pages.qc import create_page as create_qc_page
+# from cellbro.core.pages.home import create_page as create_home_page
 
 import scanpy as sc
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
-
-# root = tk.Tk()
-# root.withdraw()
-# path = filedialog.askopenfilename()
-dataset = Dataset("data/vas.h5ad")
-
-app.layout = html.Div([Projection.create_layout(dataset)])
-
-@app.callback(
-    output=Projection.get_callback_outputs(),
-    inputs=Projection.get_callback_inputs(),
-    state=Projection.get_callback_states()
-)
-def update_projection(submit, projection_color, projection_type, **kwargs):
-    if projection_type == "UMAP":
-        projection_params = dict(
-            [(key.replace("umap_", ""), kwargs[key]) for key in kwargs.keys() if key.startswith("umap_")]
+class App():
+    def __init__(self):
+        self.dash_app = Dash(
+            __name__, use_pages=True,
+            external_stylesheets=[dbc.themes.BOOTSTRAP],
         )
-        return UMAP(dataset, projection_color, projection_params).plot(), {"display": "block"}, {"display": "none"}, {"display": "none"}, {"display": "none"}
+        self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
+        self.dataset = Dataset("data/vas.h5ad")
 
-    elif projection_type == "t-SNE":
-        projection_params = dict(
-            [(key.replace("tsne_", ""), kwargs[key]) for key in kwargs.keys() if key.startswith("tsne_")]
+        create_projection_page(self.dash_app, self.dataset)
+        create_qc_page(self.dash_app, self.dataset)
+
+        self.dash_app.layout = html.Div([
+            dcc.Location(id="url"),
+            html.Div([
+                html.Div([
+                    html.Div([
+                        html.Div(
+                            dcc.Link(
+                                f"{page['name'].capitalize()}", href=page["relative_path"],
+                                id=f"{page['name']}_nav_link", className="nav-link"
+                            ),
+                        ) for page in dash.page_registry.values()]
+                    )
+                ], id="navbar"),
+                dash.page_container,
+            ], id="page")
+        ])
+
+        @self.dash_app.callback(
+            [
+                Output(component_id=f"{page['name']}_nav_link", component_property="className")
+                for page in dash.page_registry.values()
+            ],
+            Input("url", "pathname")
         )
-        return TSNE(dataset, projection_color, projection_params).plot(), {"display": "none"}, {"display": "block"}, {"display": "none"}, {"display": "none"}
-    
-    elif projection_type == "Trimap":
-        projection_params = dict(
-            [(key.replace("trimap_", ""), kwargs[key]) for key in kwargs.keys() if key.startswith("trimap_")]
-        )
-        return Trimap(dataset, projection_color, projection_params).plot(), {"display": "none"}, {"display": "none"}, {"display": "block"}, {"display": "none"}
+        def _(pathname):
+            return [
+                "nav-link active" if pathname == page["relative_path"] else "nav-link"
+                for page in dash.page_registry.values()
+            ]
+            
 
-    elif projection_type == "PCA":
-        projection_params = dict(
-            [(key.replace("pca_", ""), kwargs[key]) for key in kwargs.keys() if key.startswith("pca_")]
-        )
-        return PCA(dataset, projection_color, projection_params).plot(), {"display": "none"}, {"display": "none"}, {"display": "none"}, {"display": "block"}
+    def run(self):
+        self.dash_app.run_server(debug=True, host="127.0.0.1")
 
-    assert False, "Invalid projection type"
-
-projection_layout = go.Layout(
-    paper_bgcolor='white',
-    plot_bgcolor='white',
-    xaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=False),
-    yaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=False),
-)
-
-if __name__ == '__main__':
-    app.run_server(debug=True, host="127.0.0.1")
+if __name__ == "__main__":
+    app = App()
+    app.run()

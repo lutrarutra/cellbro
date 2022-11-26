@@ -13,6 +13,7 @@ projection_layout = go.Layout(
     plot_bgcolor='white',
     xaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=False),
     yaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=False),
+    margin=dict(t=10, b=10, l=10, r=10),
 )
 
 umap_params = ParamsDict([
@@ -63,7 +64,7 @@ class Projection():
             "projection_type": Input(component_id="projection-type", component_property="value")
         }
 
-
+    @staticmethod
     def get_callback_states():
         states = {}
         for key in umap_params.keys():
@@ -83,51 +84,56 @@ class Projection():
 
     @staticmethod
     def create_layout(dataset):
-        layout = html.Div([
-            html.Div(children=[
+        left_sidebar = html.Div(children=[
+            html.Div([
                 html.H3("Projection Settings"),
-                html.Div(children=[ 
-                    # Projection type celect
-                    html.Div(children=[
-                        html.Label("Projection Type"),
-                        dcc.Dropdown(["UMAP", "Trimap", "t-SNE", "PCA"], value="UMAP", id="projection-type", clearable=False),
-                    ], style={"flex": "1"}),
+            ], id="projection-header"),
+            dcc.Loading(type="circle", children=[
+                html.Div(children=[
+                    Projection.params_layout(),
+                ], id="projection-parameters"),
+                html.Div([
+                    dbc.Button("Plot", color="primary", className="mr-1", id="projection-submit"),
+                ], id="projection-footer")
+            ],),
+        ], id="left-sidebar")
 
-                    # Projection Hue celect
-                    html.Div(children=[
-                        html.Label("Color"),
-                        dcc.Dropdown(dataset.adata.obs_keys() + dataset.adata.var_names.tolist(), value=dataset.adata.obs_keys()[0], id="projection-color", clearable=False),
-                    ], style={"flex": "1"}),
-                ], style={"flex": "1", "display": "flex", "gap":"20px"}),
-                html.Div(id="projection-parameters", children=[dcc.Loading(
-                        id="loading-projection", type="circle",
-                        children=[Projection.params_layout()],
-                )]),
-                dbc.Button("Plot", color="primary", className="mr-1", id="projection-submit"),
-            ], id="parameters-container"),
+        main = html.Div(children=[
+            html.Div(children=[ 
+                # Projection type celect
+                html.Div(children=[
+                    html.Label("Projection Type"),
+                    dcc.Dropdown(["UMAP", "Trimap", "t-SNE", "PCA"], value="UMAP", id="projection-type", clearable=False),
+                ], style={"flex": "1"}),
 
-            html.Div(children=[
+                # Projection Hue celect
+                html.Div(children=[
+                    html.Label("Color"),
+                    dcc.Dropdown(dataset.adata.obs_keys() + dataset.adata.var_names.tolist(), value=dataset.adata.obs_keys()[0], id="projection-color", clearable=False),
+                ], style={"flex": "1"}),
+            ], id="main-select"),
+            html.Div([
                 dcc.Loading(
                     id="loading-projection", type="circle",
                     children=[html.Div(dcc.Graph(id="projection-plot"))],
-            )], style={"flex": "2"}, id="projection-plot-container"),
+                )
+            ], id="main-figure")
+            ], id="main")
 
-        ], style={"display": "flex", "flex-direction": "row", "margin": "0px"})
-        return layout
+        return left_sidebar, main
 
     @staticmethod
     def _param_layout(projection_type, params):
         layout = html.Div(children=[
             html.Div(children=[
                 html.Label(
-                    param.name,
-                    style={"flex": "1"}
+                    param.name, className="param-label",
                 ),
                 dcc.Input(
                     id=f"projection-{projection_type}-{key}", type=param.input_type, value=param.value,
-                    step=param.step if param.step != None else 0.1, style={"flex": "1"}
+                    step=param.step if param.step != None else 0.1, className="param-input",
                 ),
-            ], style={"display":"flex", "padding": "10px", "flex": "1"}) for key, param in params.items()
+            ], className="param-row") for key, param in params.items()
         ], style={"display": "none"}, id=f"projection-{projection_type.lower()}")
         return layout
 
