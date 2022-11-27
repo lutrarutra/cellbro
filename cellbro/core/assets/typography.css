@@ -99,10 +99,12 @@ h3 {
 }
 
 .bottom {
+
     display: flex;
     width: 100vw;
-    --height: calc(100vh - 50px - 60vh);
-    height: calc(100vh - var(--height));
+    --height: calc(60vh - 80px);
+    --side: min(40vw, var(--height));
+    height: calc(100vh - var(--side) - 80px - 50px);
     /* --side: min(40vw, var(--height)); */
 }
 
@@ -111,7 +113,6 @@ h3 {
     flex-direction: column;
     align-items: center;
     width: 40vw;
-
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
     width: var(--side);
@@ -157,21 +158,25 @@ h3 {
 }
 
 .bottom-figure {
-    overflow-y: scroll;
-    --height: calc(100vh - 50px - 60vh);
-    height: calc(100vh - var(--height));
-    width: 80vw;
     background-color: white;
+    --height: calc(60vh - 80px);
+    --side: min(40vw, var(--height));
+    height: calc(100vh - var(--side) - 80px - 50px);
+    width: calc(80vw);
     display: flex;
     justify-content: left;
 }
 
+#heatmap-figure {
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
 .bottom-plot {
-    --height: calc(100vh - 50px - 60vh);
-    height: calc(100vh - var(--height));
-    width: var(--side);
+    --height: calc(60vh - 80px);
+    --side: min(40vw, var(--height));
+    height: calc(100vh - var(--side) - 80px - 50px - 10px);
     width: calc(80vw - 10px);
-    background-color: #0E1117;
 }
 
 .secondary-figure {
@@ -179,7 +184,6 @@ h3 {
     display: flex;
     align-items: center;
     justify-content: center;
-
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
     height: var(--side);
@@ -233,14 +237,6 @@ h3 {
     align-items: center;
     height: 60px;
     width: 100%;
-}
-
-.bottom-figure::-webkit-scrollbar-track {
-    background: #020409;
-}
-
-::-webkit-scrollbar-corner {
-    background: #020409;
 }
 
 .top-parameters {
