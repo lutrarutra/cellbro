@@ -54,7 +54,7 @@ class QC():
     @staticmethod
     def get_callback_outputs():
         return [
-            Output(component_id="bottom-plot", component_property="figure"),
+            Output(component_id="qc-violin-plot", component_property="figure"),
         ]
         
     # Inputs to Projection
@@ -74,13 +74,13 @@ class QC():
                     dbc.Button("Plot", color="primary", className="mr-1", id="qc-submit"),
                 ], id="bottom-sidebar-footer")
             ],)
-        ], id="bottom-sidebar")
+        ], id="qc-violin-sidebar", className="bottom-sidebar")
 
         figure = html.Div(children=[
             dcc.Loading(
-                id="loading-bottom", type="circle",
-                children=[html.Div(dcc.Graph(id="bottom-plot"))],
+                id="loading-qc-violin", className="loading-bottom", type="circle",
+                children=[html.Div(dcc.Graph(id="qc-violin-plot", className="bottom-plot"))],
             )
-        ], id="bottom-figure")
+        ], id="qc-violin-figure", className="bottom-figure")
 
         return sidebar, figure

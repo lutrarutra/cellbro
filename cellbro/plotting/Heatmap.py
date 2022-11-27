@@ -117,10 +117,10 @@ class Heatmap():
             dcc.Loading(type="circle", children=[
                 html.Div(children=[
                     Heatmap.params_layout(),
-                ], id="heatmap-parameters"),
+                ], className="bottom-parameters"),
                 html.Div([
                     dbc.Button("Plot", color="primary", className="mr-1", id="heatmap-submit"),
-                ], id="heatmap-footer", className="bottom-sidebar-footer"),
+                ], id="heatmap-footer", className="bottom-footer"),
             ],),
         ], id="heatmap-sidebar", className="bottom-sidebar")
 

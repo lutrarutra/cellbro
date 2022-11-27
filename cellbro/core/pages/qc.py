@@ -10,10 +10,10 @@ def create_page(dash_app, dataset):
     bottom_left_sidebar, bottom_figure = QC.create_layout(dataset)
 
     layout = [
-        html.Div(id="top", children=[
+        html.Div(id="top", className="top", children=[
             
             ]),
-        html.Div(id="bottom", children=[
+        html.Div(id="bottom", className="bottom", children=[
             bottom_left_sidebar, bottom_figure
         ])
     ]

@@ -150,7 +150,7 @@ h3 {
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
     width: var(--side);
-    height: var(--side);
+    height: 40vh;
     width: calc(80vw - 10px);
     background-color: #0E1117;
 }
@@ -204,7 +204,7 @@ h3 {
     background-color: #0E1117;
 }
 
-.bottom-sidebar-footer {
+.bottom-footer {
     padding-left: 10px;
     display: flex;
     align-items: center;
@@ -214,6 +214,7 @@ h3 {
 
 .bottom-figure {
     overflow-y: scroll;
+    height: calc(40vh - 50px);
     width: 80vw;
     background-color: white;
     display: flex;

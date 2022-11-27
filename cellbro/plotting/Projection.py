@@ -87,16 +87,16 @@ class Projection():
         left_sidebar = html.Div(children=[
             html.Div([
                 html.H3("Projection Settings"),
-            ], id="projection-header"),
+            ], className="top-header"),
             dcc.Loading(type="circle", children=[
                 html.Div(children=[
                     Projection.params_layout(),
-                ], id="projection-parameters"),
+                ], className="top-parameters"),
                 html.Div([
                     dbc.Button("Plot", color="primary", className="mr-1", id="projection-submit"),
-                ], id="top-footer")
+                ], className="top-footer")
             ],),
-        ], id="left-sidebar", className="top-sidebar")
+        ], className="top-sidebar")
 
         main = html.Div(children=[
             html.Div(children=[ 
