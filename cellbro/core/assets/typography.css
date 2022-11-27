@@ -28,7 +28,7 @@ body {
     background: #555;
 }
 
-#page{
+#page {
     display: flex;
     flex-flow: column;
     height: 100vh;
@@ -64,8 +64,8 @@ h3 {
 #navbar div {
     height: 100%;
     width: 80vw;
-    align-items: center;
     display: flex;
+    align-items: center;
     flex-direction: row;
     justify-content: space-around;
 }
@@ -93,28 +93,36 @@ h3 {
 .top {
     display: flex;
     width: 100vw;
-    height: 60vh;
+    --height: calc(60vh - 80px);
+    --side: min(40vw, var(--height));
+    height: calc(var(--side) + 80px);
 }
 
 .bottom {
     display: flex;
     width: 100vw;
-    height: calc(100vh - 60vh - 50px);
-    background-color: aliceblue;
+    --height: calc(100vh - 50px - 60vh);
+    height: calc(100vh - var(--height));
+    /* --side: min(40vw, var(--height)); */
 }
 
 .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 40vw;
-    height: 60vh;
+
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
     width: var(--side);
+    height: calc(80px + var(--side));
 }
 
 .main-select {
     padding-left: 20px;
     padding-right: 20px;
     display: flex;
+    width: 100%;
     height: 80px;
     padding-top: 10px;
     gap: 20px;
@@ -134,9 +142,11 @@ h3 {
 .main-figure {
     background-color: white;
     display: flex;
-    align-items: left;
+    align-items: center;
     justify-content: center;
-    height: calc(60vh - 80px);
+    --height: calc(60vh - 80px);
+    --side: min(40vw, var(--height));
+    height: var(--side);
 }
 
 .main-plot {
@@ -146,11 +156,20 @@ h3 {
     height: var(--side);
 }
 
+.bottom-figure {
+    overflow-y: scroll;
+    --height: calc(100vh - 50px - 60vh);
+    height: calc(100vh - var(--height));
+    width: 80vw;
+    background-color: white;
+    display: flex;
+    justify-content: left;
+}
+
 .bottom-plot {
-    --height: calc(60vh - 80px);
-    --side: min(40vw, var(--height));
+    --height: calc(100vh - 50px - 60vh);
+    height: calc(100vh - var(--height));
     width: var(--side);
-    height: 40vh;
     width: calc(80vw - 10px);
     background-color: #0E1117;
 }
@@ -160,14 +179,18 @@ h3 {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: calc(60vh - 80px);
+
+    --height: calc(60vh - 80px);
+    --side: min(40vw, var(--height));
+    height: var(--side);
+    width: 100%;
 }
 
 .secondary-plot {
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
+    height: var(--side);
     width: calc(100vw - 20vw - var(--side));
-    height: var(--height);
 }
 
 .top-sidebar {
@@ -210,16 +233,6 @@ h3 {
     align-items: center;
     height: 60px;
     width: 100%;
-}
-
-.bottom-figure {
-    overflow-y: scroll;
-    height: calc(40vh - 50px);
-    width: 80vw;
-    background-color: white;
-    display: flex;
-    justify-content: left;
-    height: calc(50vh - 50px);
 }
 
 .bottom-figure::-webkit-scrollbar-track {
