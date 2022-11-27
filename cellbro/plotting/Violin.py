@@ -24,7 +24,9 @@ class Violin():
     def plot(self, feature, groupby):
         fig = go.Figure()
 
-        if feature not in self.dataset.adata.obs_keys():
+        is_gene = feature not in self.dataset.adata.obs_keys()
+
+        if is_gene:
             x = self.dataset.adata[:, feature].X.toarray().T.squeeze()
         else:
             x = self.dataset.adata.obs[feature].values.squeeze()
@@ -49,7 +51,7 @@ class Violin():
                 ))
             violin_layout["legend"] = dict(title=groupby.capitalize())
             violin_layout["xaxis"]["showticklabels"] = True
-            violin_layout["xaxis_title"] = groupby.capitalize()
+            violin_layout["xaxis_title"] = groupby.replace("_", " ").title()
             
         else:
             df = pd.DataFrame(
@@ -67,8 +69,7 @@ class Violin():
             violin_layout["xaxis"]["showticklabels"] = False
             violin_layout["xaxis_title"] = ""
 
-
-        violin_layout["yaxis_title"] = feature
+        violin_layout["yaxis_title"] = feature if is_gene else feature.replace("_", " ").title()
         fig.update_layout(violin_layout)
 
         return [fig]
