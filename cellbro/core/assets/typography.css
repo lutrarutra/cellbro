@@ -93,22 +93,37 @@ h3 {
 #top {
     display: flex;
     width: 100vw;
-    height: 50vh;
+    height: 60vh;
 }
 
 #bottom {
     display: flex;
     width: 100vw;
-    height: calc(100vh - 50vh - 50px);
+    height: calc(100vh - 60vh - 50px);
     background-color: aliceblue;
 }
 
 #main {
     width: 40vw;
-    height: 50vh;
+    height: 60vh;
+    --height: calc(60vh - 80px);
+    --side: min(40vw, var(--height));
+    width: var(--side);
 }
 
 #main-select {
+    padding-left: 20px;
+    padding-right: 20px;
+    display: flex;
+    height: 80px;
+    padding-top: 10px;
+    gap: 20px;
+    background-color: #0E1117;
+}
+
+#violin-select {
+    padding-left: 20px;
+    padding-right: 20px;
     display: flex;
     height: 80px;
     padding-top: 10px;
@@ -119,17 +134,31 @@ h3 {
 #main-figure {
     background-color: white;
     display: flex;
-    align-items: center;
+    align-items: left;
     justify-content: center;
-    width: 100%;
-    height: calc(50vh - 80px);
+    height: calc(60vh - 80px);
 }
 
 #projection-plot {
-    --height: calc(50vh - 80px);
+    --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
     width: var(--side);
     height: var(--side);
+}
+
+#violin-figure {
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: calc(60vh - 80px);
+}
+
+#violin-plot {
+    --height: calc(60vh - 80px);
+    --side: min(40vw, var(--height));
+    width: calc(100vw - 20vw - var(--side));
+    height: var(--height);
 }
 
 #left-sidebar {
@@ -175,24 +204,29 @@ h3 {
 }
 
 #bottom-figure {
-
+    overflow-y: scroll;
     width: 80vw;
     background-color: white;
     display: flex;
-    align-items: center;
     justify-content: left;
     height: calc(50vh - 50px);
 }
 
 #heatmap-plot {
-    width: 80vw;
-    border-style: solid;
-    border-color: cyan;
+    width: calc(80vw - 10px);
+    background-color: #0E1117;
 }
 
-#heatmap-plot .plot {
-    overflow-x: scroll;
-    border-style: solid;
+#heatmap-plot-colorbar {
+    display: flex;
+}
+
+#bottom-figure::-webkit-scrollbar-track {
+    background: #020409;
+}
+
+::-webkit-scrollbar-corner {
+    background: #020409;
 }
 
 #projection-parameters {

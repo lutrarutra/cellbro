@@ -7,7 +7,7 @@ dependencies:
   - flask
   - tqdm
   - scanpy
-  - scvi
+  - scvi-tools
   - leidenalg
   - trimap
   - psutil

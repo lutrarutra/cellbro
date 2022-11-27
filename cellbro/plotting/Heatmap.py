@@ -33,7 +33,7 @@ class Heatmap():
     def __init__(self, dataset, params):
         self.dataset = dataset
         self.params = params
-        self.selected_genes = dataset.adata.var_names[:20]
+        self.selected_genes = dataset.adata.var_names[:50]
 
     def plot(self):
         if self.params["layer"] == "log1p":
@@ -46,8 +46,18 @@ class Heatmap():
             color_continuous_midpoint=0 if "centered" in self.params["layer"] else None,
         )
         fig.update_layout(heatmap_layout)
+        # mn, mx = z.min(), z.max()
+        # colorbar = px.scatter(
+        #     x=[0,0], y=[0,0], color=[mn, mx],
+        #     color_continuous_scale=self.params["colormap"],
+        #     color_continuous_midpoint=0 if "centered" in self.params["layer"] else None
+        # )
+        # colorbar.update_layout(heatmap_layout)
+        # fig.update_coloraxes(showscale=False)
+
+        # fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, yaxis=dict(rangemode="fixed"), thickness=0.01), type="linear"))
         style = {
-            "width": f"{z.shape[0]+100}px",
+            # "width": f"{int(z.shape[0]/2)+100}px",
             "height": f"{z.shape[1] * 20 + 50}px",
         }
         return fig, style
@@ -118,7 +128,7 @@ class Heatmap():
             html.Div([
                 dcc.Loading(
                     id="loading-heatmap", type="circle",
-                    children=[html.Div(dcc.Graph(id="heatmap-plot"))],
+                    children=[html.Div([dcc.Graph(id="heatmap-plot")], id="heatmap-plot-colorbar")],
                 )
             ], id="bottom-figure")
         ])

@@ -5,14 +5,16 @@ import plotly.graph_objects as go
 
 from cellbro.plotting.Projection import Projection, UMAP, TSNE, PCA, Trimap
 from cellbro.plotting.Heatmap import Heatmap
+from cellbro.plotting.Violin import Violin
 
 def create_page(dash_app, dataset):
     left_sidebar, main_figure = Projection.create_layout(dataset)
     bottom_left_sidebar, bottom_figure = Heatmap.create_layout(dataset)
+    violin_layout = Violin.create_layout(dataset)
 
     layout = [
         html.Div(id="top", children=[
-            left_sidebar, main_figure
+            left_sidebar, main_figure, violin_layout
             ]),
         html.Div(id="bottom", children=[
             bottom_left_sidebar, bottom_figure
@@ -60,6 +62,14 @@ def create_page(dash_app, dataset):
     )
     def _(submit, **kwargs):
         return Heatmap(dataset, kwargs).plot()
+
+    # Violin
+    @dash_app.callback(
+        output=Violin.get_callback_outputs(),
+        inputs=Violin.get_callback_inputs()
+    )
+    def _(feature, groupby):
+        return Violin(dataset).plot(groupby=groupby, feature=feature)
 
     dash.register_page("pages.projection", path="/projection", order=2, layout=layout)
 

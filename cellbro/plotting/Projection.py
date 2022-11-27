@@ -118,7 +118,7 @@ class Projection():
                     children=[html.Div(dcc.Graph(id="projection-plot"))],
                 )
             ], id="main-figure")
-            ], id="main")
+        ], id="main")
 
         return left_sidebar, main
 
