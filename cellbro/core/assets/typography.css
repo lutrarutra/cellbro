@@ -90,20 +90,20 @@ h3 {
     background-color: #1e222a;
 }
 
-#top {
+.top {
     display: flex;
     width: 100vw;
     height: 60vh;
 }
 
-#bottom {
+.bottom {
     display: flex;
     width: 100vw;
     height: calc(100vh - 60vh - 50px);
     background-color: aliceblue;
 }
 
-#main {
+.main {
     width: 40vw;
     height: 60vh;
     --height: calc(60vh - 80px);
@@ -111,7 +111,7 @@ h3 {
     width: var(--side);
 }
 
-#main-select {
+.main-select {
     padding-left: 20px;
     padding-right: 20px;
     display: flex;
@@ -121,7 +121,7 @@ h3 {
     background-color: #0E1117;
 }
 
-#violin-select {
+.secondary-select {
     padding-left: 20px;
     padding-right: 20px;
     display: flex;
@@ -131,7 +131,7 @@ h3 {
     background-color: #0E1117;
 }
 
-#main-figure {
+.main-figure {
     background-color: white;
     display: flex;
     align-items: left;
@@ -139,14 +139,23 @@ h3 {
     height: calc(60vh - 80px);
 }
 
-#projection-plot {
+.main-plot {
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
     width: var(--side);
     height: var(--side);
 }
 
-#violin-figure {
+.bottom-plot {
+    --height: calc(60vh - 80px);
+    --side: min(40vw, var(--height));
+    width: var(--side);
+    height: var(--side);
+    width: calc(80vw - 10px);
+    background-color: #0E1117;
+}
+
+.secondary-figure {
     background-color: white;
     display: flex;
     align-items: center;
@@ -154,14 +163,14 @@ h3 {
     height: calc(60vh - 80px);
 }
 
-#violin-plot {
+.secondary-plot {
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
     width: calc(100vw - 20vw - var(--side));
     height: var(--height);
 }
 
-#left-sidebar {
+.top-sidebar {
     padding-left: 10px;
     padding-right: 10px;
     width: 20vw;
@@ -169,7 +178,7 @@ h3 {
     background-color: #0E1117;
 }
 
-#projection-header {
+.top-header {
     padding: 20px;
     padding-left: 10px;
     display: flex;
@@ -178,7 +187,7 @@ h3 {
     height: 80px;
 }
 
-#heatmap-header {
+.bottom-header {
     padding: 20px;
     padding-left: 10px;
     display: flex;
@@ -187,7 +196,7 @@ h3 {
     height: 80px;
 }
 
-#bottom-sidebar {
+.bottom-sidebar {
     padding-left: 10px;
     padding-right: 10px;
     width: 20vw;
@@ -195,7 +204,7 @@ h3 {
     background-color: #0E1117;
 }
 
-#heatmap-footer {
+.bottom-sidebar-footer {
     padding-left: 10px;
     display: flex;
     align-items: center;
@@ -203,7 +212,7 @@ h3 {
     width: 100%;
 }
 
-#bottom-figure {
+.bottom-figure {
     overflow-y: scroll;
     width: 80vw;
     background-color: white;
@@ -212,16 +221,7 @@ h3 {
     height: calc(50vh - 50px);
 }
 
-#heatmap-plot {
-    width: calc(80vw - 10px);
-    background-color: #0E1117;
-}
-
-#heatmap-plot-colorbar {
-    display: flex;
-}
-
-#bottom-figure::-webkit-scrollbar-track {
+.bottom-figure::-webkit-scrollbar-track {
     background: #020409;
 }
 
@@ -229,14 +229,14 @@ h3 {
     background: #020409;
 }
 
-#projection-parameters {
+.top-parameters {
     padding-left: 10px;
     padding-right: 10px;
     overflow-y: scroll;
     height: calc(50vh - 140px);
 }
 
-#projection-footer {
+.top-footer {
     padding-left: 10px;
     display: flex;
     align-items: center;
@@ -244,7 +244,7 @@ h3 {
     width: 100%;
 }
 
-#heatmap-parameters {
+.bottom-parameters {
     padding-left: 10px;
     padding-right: 10px;
     overflow-y: scroll;

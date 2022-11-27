@@ -9,8 +9,9 @@ import dash_bootstrap_components as dbc
 
 from cellbro.util.Dataset import Dataset
 
-from cellbro.core.pages.projection import create_page as create_projection_page
+from cellbro.core.pages.cells import create_page as create_cells_page
 from cellbro.core.pages.qc import create_page as create_qc_page
+from cellbro.core.pages.genes import create_page as create_genes_page
 # from cellbro.core.pages.home import create_page as create_home_page
 
 import scanpy as sc
@@ -24,8 +25,9 @@ class App():
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
         self.dataset = Dataset("data/vas.h5ad")
 
-        create_projection_page(self.dash_app, self.dataset)
+        create_cells_page(self.dash_app, self.dataset)
         create_qc_page(self.dash_app, self.dataset)
+        create_genes_page(self.dash_app, self.dataset)
 
         self.dash_app.layout = html.Div([
             dcc.Location(id="url"),
@@ -34,8 +36,8 @@ class App():
                     html.Div([
                         html.Div(
                             dcc.Link(
-                                f"{page['name'].capitalize()}", href=page["relative_path"],
-                                id=f"{page['name']}_nav_link", className="nav-link"
+                                page['title'],
+                                href=page["relative_path"], id=f"{page['name']}_nav_link", className="nav-link"
                             ),
                         ) for page in dash.page_registry.values()]
                     )

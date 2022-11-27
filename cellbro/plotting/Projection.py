@@ -94,9 +94,9 @@ class Projection():
                 ], id="projection-parameters"),
                 html.Div([
                     dbc.Button("Plot", color="primary", className="mr-1", id="projection-submit"),
-                ], id="projection-footer")
+                ], id="top-footer")
             ],),
-        ], id="left-sidebar")
+        ], id="left-sidebar", className="top-sidebar")
 
         main = html.Div(children=[
             html.Div(children=[ 
@@ -111,14 +111,14 @@ class Projection():
                     html.Label("Color"),
                     dcc.Dropdown(dataset.adata.obs_keys() + dataset.adata.var_names.tolist(), value=dataset.adata.obs_keys()[0], id="projection-color", clearable=False),
                 ], style={"flex": "1"}),
-            ], id="main-select"),
+            ], id="projection-select", className="main-select"),
             html.Div([
                 dcc.Loading(
                     id="loading-projection", type="circle",
-                    children=[html.Div(dcc.Graph(id="projection-plot"))],
+                    children=[html.Div(dcc.Graph(id="projection-plot", className="main-plot"))],
                 )
-            ], id="main-figure")
-        ], id="main")
+            ], id="projection-figure", className="main-figure")
+        ], className="main")
 
         return left_sidebar, main
 

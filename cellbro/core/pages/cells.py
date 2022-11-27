@@ -13,10 +13,10 @@ def create_page(dash_app, dataset):
     violin_layout = Violin.create_layout(dataset)
 
     layout = [
-        html.Div(id="top", children=[
+        html.Div(id="top", className="top", children=[
             left_sidebar, main_figure, violin_layout
             ]),
-        html.Div(id="bottom", children=[
+        html.Div(id="bottom", className="bottom", children=[
             bottom_left_sidebar, bottom_figure
         ])
     ]
@@ -71,7 +71,7 @@ def create_page(dash_app, dataset):
     def _(feature, groupby):
         return Violin(dataset).plot(groupby=groupby, feature=feature)
 
-    dash.register_page("pages.projection", path="/projection", order=2, layout=layout)
+    dash.register_page("pages.cells", path="/cells", order=2, layout=layout)
 
 
 

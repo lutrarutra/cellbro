@@ -109,13 +109,13 @@ class Violin():
                     html.Label("Group By"),
                     dcc.Dropdown(groupbys, value=None, id="violin-groupby", clearable=True),
                 ], style={"flex": "1"}),
-            ], id="violin-select"),
+            ], id="violin-select", className="secondary-select"),
             html.Div([
                 dcc.Loading(
                     id="violin-projection", type="circle",
-                    children=[html.Div(dcc.Graph(id="violin-plot"))],
+                    children=[html.Div(dcc.Graph(id="violin-plot", className="secondary-plot"))],
                 )
-            ], id="violin-figure")
-        ], id="violin")
+            ], id="violin-figure", className="secondary-figure")
+        ], className="secondary")
 
         return figure
