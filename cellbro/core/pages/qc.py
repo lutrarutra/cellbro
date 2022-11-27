@@ -7,11 +7,11 @@ import plotly.graph_objects as go
 from cellbro.plotting.QC import QC
 
 def create_page(dash_app, dataset):
-    top_sidebar, main_figure, bottom_sidebar, bottom_figure = QC.create_layout(dataset)
+    top_sidebar, main_figure, secondary_figure, bottom_sidebar, bottom_figure = QC.create_layout(dataset)
 
     layout = [
         html.Div(id="top", className="top", children=[
-            top_sidebar, main_figure,
+            top_sidebar, main_figure, secondary_figure
             ]),
         html.Div(id="bottom", className="bottom", children=[
             bottom_sidebar, bottom_figure

@@ -33,11 +33,26 @@ class QC():
         # Makes sure that filtering is not done on initial load
         if submit is None:
             return list(self.params.values())
-        print("Filtering...")
+
         self.dataset.adata = self.dataset.adata[self.dataset.adata.obs.pct_counts_mt < self.params["pct_counts_mt"], :].copy()
         sc.pp.filter_cells(self.dataset.adata, min_genes=self.params["min_genes"])
         sc.pp.filter_genes(self.dataset.adata, min_cells=self.params["min_cells"])
+
         return list(self.params.values())
+
+    def dispersion_plot(self):
+        fig = px.scatter(
+            self.dataset.adata.var,
+            x="mu",
+            y="cv2",
+            log_x=True,
+            log_y=True,
+            color_continuous_scale=px.colors.sequential.Viridis,
+        )
+        fig.update_traces(marker=dict(size=5, line=dict(width=1, color='DarkSlateGrey')))
+        fig.update_layout(figure_layout)
+        fig.update_layout(xaxis_title="Log Mean Expression", yaxis_title="CV^2")
+        return fig
 
     def violin_plot(self):
         violins = ["n_genes_by_counts", "total_counts", "pct_counts_mt"]
@@ -68,7 +83,7 @@ class QC():
     def mt_plot(self):
         color = (self.dataset.adata.obs["pct_counts_mt"] > self.params["pct_counts_mt"]).values
         
-        cmap = ["#d3d3d3", sc.pl.palettes.default_20[0]] if color[0] else [sc.pl.palettes.default_20[0], "#d3d3d3"]
+        cmap = ["#d3d3d3", "#636EFA"] if color[0] else ["#636EFA", "#d3d3d3"]
 
         fig = px.scatter(
             self.dataset.adata.obs,
@@ -77,6 +92,7 @@ class QC():
             color=color,
             color_discrete_sequence=cmap,
         )
+        fig.update_traces(marker=dict(size=5, line=dict(width=1, color='DarkSlateGrey')))
         fig.update_layout(figure_layout)
         fig.update_layout(xaxis_title="Total Counts", yaxis_title="MT%", legend_title_text=f"MT > {self.params['pct_counts_mt']:.1f}%")
         fig.add_hline(y=self.params["pct_counts_mt"], line_width=1, line_dash="dash", line_color=sc.pl.palettes.default_20[3])
@@ -85,8 +101,9 @@ class QC():
     def plot(self):
         main_figure = self.mt_plot()
         bottom_figure = self.violin_plot()
+        secondary_figure = self.dispersion_plot()
 
-        return [main_figure, bottom_figure]
+        return [main_figure, secondary_figure, bottom_figure]
 
     @staticmethod
     def get_filtering_callbacks():
@@ -106,6 +123,7 @@ class QC():
     def get_callback_outputs():
         return [
             Output(component_id="mt-plot", component_property="figure"),
+            Output(component_id="dispersion-plot", component_property="figure"),
             Output(component_id="qc-violin-plot", component_property="figure"),
         ]
         
@@ -151,6 +169,15 @@ class QC():
             ], id="mt-figure", className="main-figure")
         ], className="main")
 
+        secondary_figure = html.Div(children=[
+            html.Div([
+                dcc.Loading(
+                    id="loading-dispersion", type="circle",
+                    children=[html.Div(dcc.Graph(id="dispersion-plot", className="secondary-plot"))],
+                )
+            ], id="dispersion-figure", className="secondary-figure")
+        ], className="secondary")
+
         bottom_figure = html.Div(children=[
             dcc.Loading(
                 id="loading-qc-violin", className="loading-bottom", type="circle",
@@ -158,7 +185,7 @@ class QC():
             )
         ], id="qc-violin-figure", className="bottom-figure")
 
-        return top_sidebar, main_figure, bottom_sidebar, bottom_figure
+        return top_sidebar, main_figure, secondary_figure, bottom_sidebar, bottom_figure
 
     @staticmethod
     def params_layout():

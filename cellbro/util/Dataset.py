@@ -22,6 +22,10 @@ class Dataset():
         self.adata.layers["centered"] = self.adata.layers["counts"] - self.adata.layers["counts"].mean(axis=0)
         self.adata.layers["logcentered"] = self.adata.X - self.adata.X.mean(axis=0)
 
+        ncounts = self.adata.layers["ncounts"].toarray()
+        self.adata.var["cv2"] = (ncounts.std(0)/ncounts.mean(0))**2
+        self.adata.var["mu"] = ncounts.mean(0)
+
         print("Calculating Metrics")
         sc.tl.pca(self.adata)
         sc.pp.neighbors(self.adata, random_state=0)

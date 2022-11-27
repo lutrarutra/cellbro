@@ -90,22 +90,29 @@ h3 {
     background-color: #1e222a;
 }
 
+#_pages_content {
+    display: flex;
+    flex-flow: column;
+    align-items: stretch;
+    height: calc(100vh - 50px);
+}
+
 .top {
     display: flex;
     width: 100vw;
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
-    height: calc(var(--side) + 80px);
+    max-height: calc(var(--side) + 80px);
 }
 
 .bottom {
-
     display: flex;
     width: 100vw;
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
-    height: calc(100vh - var(--side) - 80px - 50px);
+    min-height: calc(100vh - var(--side) - 80px - 50px);
     /* --side: min(40vw, var(--height)); */
+    flex-grow: 1;
 }
 
 .main {
@@ -116,7 +123,7 @@ h3 {
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
     width: var(--side);
-    height: calc(80px + var(--side));
+    max-height: calc(80px + var(--side));
 }
 
 .main-select {
@@ -161,13 +168,16 @@ h3 {
     background-color: white;
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
-    height: calc(100vh - var(--side) - 80px - 50px);
-    width: calc(80vw);
+    /* min-height: calc(100vh - var(--side) - 80px - 50px); */
+    height: 100%;
+    width: 80vw;
     display: flex;
     justify-content: left;
+    align-items: flex-end;
 }
 
 #heatmap-figure {
+    align-items: flex-start;
     overflow-y: scroll;
     overflow-x: hidden;
 }
@@ -175,7 +185,8 @@ h3 {
 .bottom-plot {
     --height: calc(60vh - 80px);
     --side: min(40vw, var(--height));
-    height: calc(100vh - var(--side) - 80px - 50px - 10px);
+    /* min-height: calc(100vh - var(--side) - 80px - 50px - 10px); */
+    height: 100%;
     width: calc(80vw - 10px);
 }
 
