@@ -16,6 +16,7 @@ def create_page(dash_app, dataset):
         html.Div(id="top", className="top", children=[
             left_sidebar, main_figure, violin_layout
             ]),
+        # html.Div(id="resizer", className="resizer"),
         html.Div(id="bottom", className="bottom", children=[
             bottom_left_sidebar, bottom_figure
         ])

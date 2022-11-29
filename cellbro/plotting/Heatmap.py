@@ -91,11 +91,12 @@ class Heatmap():
                     html.Label(
                         param.name, className="param-label",
                     ),
-                    dcc.Dropdown(
-                        options=param.allowed_values, value=param.default, id=f"heatmap-{key}", clearable=False,
-                        className="param-select",
-                    )
-                ], className="param-row"))
+                    html.Div([
+                        dcc.Dropdown(
+                            options=param.allowed_values, value=param.default, id=f"heatmap-{key}", clearable=False
+                        )
+                    ], className="param-select")
+                ], className="param-row-stacked"))
             else:
                 divs.append(html.Div([
                     html.Label(
@@ -113,16 +114,16 @@ class Heatmap():
         sidebar = html.Div(children=[
             html.Div([
                 html.H3("Heatmap Settings"),
-            ], id="heatmap-header"),
+            ], id="heatmap-header", className="sidebar-header"),
             dcc.Loading(type="circle", children=[
                 html.Div(children=[
                     Heatmap.params_layout(),
-                ], className="bottom-parameters"),
+                ], className="sidebar-parameters"),
                 html.Div([
                     dbc.Button("Plot", color="primary", className="mr-1", id="heatmap-submit"),
-                ], id="heatmap-footer", className="bottom-footer"),
+                ], id="heatmap-footer", className="sidebar-footer"),
             ],),
-        ], id="heatmap-sidebar", className="bottom-sidebar")
+        ], id="heatmap-sidebar", className="bottom-sidebar sidebar")
 
         figure = html.Div(children=[
             html.Div([

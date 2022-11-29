@@ -87,16 +87,16 @@ class Projection():
         left_sidebar = html.Div(children=[
             html.Div([
                 html.H3("Projection Settings"),
-            ], className="top-header"),
+            ], className="sidebar-header"),
             dcc.Loading(type="circle", children=[
                 html.Div(children=[
                     Projection.params_layout(),
-                ], className="top-parameters"),
+                ], className="sidebar-parameters"),
                 html.Div([
                     dbc.Button("Plot", color="primary", className="mr-1", id="projection-submit"),
-                ], className="top-footer")
+                ], className="sidebar-footer")
             ],),
-        ], className="top-sidebar")
+        ], className="top-sidebar sidebar")
 
         main = html.Div(children=[
             html.Div(children=[ 
@@ -104,14 +104,14 @@ class Projection():
                 html.Div(children=[
                     html.Label("Projection Type"),
                     dcc.Dropdown(["UMAP", "Trimap", "t-SNE", "PCA"], value="UMAP", id="projection-type", clearable=False),
-                ], style={"flex": "1"}),
+                ], className="param-column"),
 
                 # Projection Hue celect
                 html.Div(children=[
                     html.Label("Color"),
                     dcc.Dropdown(dataset.adata.obs_keys() + dataset.adata.var_names.tolist(), value=dataset.adata.obs_keys()[0], id="projection-color", clearable=False),
-                ], style={"flex": "1"}),
-            ], id="projection-select", className="main-select"),
+                ], className="param-column"),
+            ], id="projection-select", className="main-select top-parameters"),
             html.Div([
                 dcc.Loading(
                     id="loading-projection", type="circle",

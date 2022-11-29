@@ -140,25 +140,30 @@ class QC():
         top_sidebar = html.Div(children=[
             html.Div([
                 html.H3("Filtering Settings"),
-            ], className="top-header"),
+            ], className="sidebar-header"),
             dcc.Loading(type="circle", children=[
                 html.Div(children=[
                     QC.params_layout(),
-                ], className="top-parameters"),
+                ], className="sidebar-parameters"),
                 html.Div([
                     dbc.Button("Filter", color="primary", className="mr-1", id="filtering-submit"),
-                ], className="top-footer")
+                ], className="sidebar-footer")
             ],),
-        ], className="top-sidebar")
+        ], className="top-sidebar sidebar")
 
 
         bottom_sidebar = html.Div(children=[
+            html.Div([
+                html.H3("QC Violin Plots"),
+            ], className="sidebar-header"),
             dcc.Loading(type="circle", children=[
-                html.Div([
-                    dbc.Button("Plot", color="primary", className="mr-1", id="qc-submit"),
-                ], id="bottom-sidebar-footer")
+                # html.Div(children=[
+                # ], className="sidebar-parameters"),
+                # html.Div([
+                #     dbc.Button("Plot", color="primary", className="mr-1", id="qc-submit"),
+                # ], className="sidebar-footer")
             ],)
-        ], id="qc-violin-sidebar", className="bottom-sidebar")
+        ], id="qc-violin-sidebar", className="bottom-sidebar sidebar")
 
         main_figure = html.Div(children=[
             html.Div([

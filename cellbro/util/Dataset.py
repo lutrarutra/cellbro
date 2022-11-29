@@ -1,5 +1,7 @@
 import scanpy as sc
 
+import scout
+
 class Dataset():
     def __init__(self, path):
         self.path = path
@@ -14,13 +16,7 @@ class Dataset():
         sc.pp.calculate_qc_metrics(self.adata, qc_vars=["mt"], percent_top=False, log1p=False, inplace=True)
 
         print("Normalizing Counts")
-        self.adata.layers["counts"] = self.adata.X.copy()
-        sc.pp.normalize_total(self.adata, target_sum=1e4)
-        self.adata.layers["ncounts"] = self.adata.X.copy()
-        sc.pp.log1p(self.adata)
-
-        self.adata.layers["centered"] = self.adata.layers["counts"] - self.adata.layers["counts"].mean(axis=0)
-        self.adata.layers["logcentered"] = self.adata.X - self.adata.X.mean(axis=0)
+        scout.tl.scale_log_center(self.adata, target_sum=None)
 
         ncounts = self.adata.layers["ncounts"].toarray()
         self.adata.var["cv2"] = (ncounts.std(0)/ncounts.mean(0))**2

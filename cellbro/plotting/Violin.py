@@ -103,13 +103,13 @@ class Violin():
                 html.Div(children=[
                     html.Label("Feature"),
                     dcc.Dropdown(features, value=list(features.keys())[0], id="violin-feature", clearable=False),
-                ], style={"flex": "1"}),
+                ], className="param-column"),
                 # Groupby select
                 html.Div(children=[
                     html.Label("Group By"),
                     dcc.Dropdown(groupbys, value=None, id="violin-groupby", clearable=True),
-                ], style={"flex": "1"}),
-            ], id="violin-select", className="secondary-select"),
+                ], className="param-column"),
+            ], id="violin-select", className="secondary-select top-parameters"),
             html.Div([
                 dcc.Loading(
                     id="violin-projection", type="circle",
