@@ -6,7 +6,7 @@ class ParamsDict():
             self.params[param.key] = param
 
     def update(self, params_dict):
-        for i, key in enumerate(list(self.keys())):
+        for key in params_dict.keys():
             self.params[key].value = params_dict[key]
 
         return self
@@ -16,6 +16,9 @@ class ParamsDict():
 
     def add(self, param):
         self.params[param.key] = param
+
+    def pop(self, key):
+        return self.params.pop(key)
 
     def remove(self, key):
         del self.params[key]

@@ -19,10 +19,12 @@ projection_layout = go.Layout(
 umap_params = ParamsDict([
     Param(key="min_dist", name="Min. Distance", default=1.0, type=float, description="", step=0.1, _min=0.0),
     Param(key="spread", name="Spread", default=1.0, type=float, description="", step=0.1, _min=0.0),
+    Param(key="n_components", name="3D Projection", default=False, type=bool, nullable=False, description=""),
 ])
 
 tsne_params = ParamsDict([
     Param(key="n_pcs", name="Num. PCs", default=None, type=int, nullable=True, description=""),
+    Param(key="n_components", name="3D Projection", default=False, type=bool, nullable=False, description=""),
 ])
 
 trimap_params = ParamsDict([
@@ -30,19 +32,53 @@ trimap_params = ParamsDict([
     Param(key="n_outliers", name="Num. Outliers", default=5, type=int, description="", step=1),
     Param(key="n_random", name="Num. Random", default=5, type=int, description="", step=1),
     Param(key="weight_adj", name="Weight Adj.", default=500.0, type=float, description="", step=50.0),
+    Param(key="n_components", name="3D Projection", default=False, type=bool, nullable=False, description=""),
 ])
 
-pca_params = ParamsDict([])
+pca_params = ParamsDict([
+    Param(key="n_components", name="3D Projection", default=False, type=bool, nullable=False, description=""),
+])
 
 class Projection():
     def __init__(self, key, dataset, color):
         self.key = key
         self.dataset = dataset
         self.color_label = color
+        self.params = None
         if color in self.dataset.adata.obs_keys():
             self.color = self.dataset.adata.obs[color]
         else:
             self.color = self.dataset.adata.X[:,self.dataset.adata.var.index.get_loc(color)].toarray().T[0]
+
+    def plot(self):
+        if self.params["n_components"].value == 2:
+            fig = px.scatter(
+                x=self.dataset.adata.obsm[self.key][:,0],
+                y=self.dataset.adata.obsm[self.key][:,1],
+                color=self.color,
+                color_discrete_sequence=sc.pl.palettes.default_20,
+                labels={"x": f"{self.type} 1", "y": f"{self.type} 2"}
+            )
+        else:
+            fig = px.scatter_3d(
+                x=self.dataset.adata.obsm[self.key][:,0],
+                y=self.dataset.adata.obsm[self.key][:,1],
+                z=self.dataset.adata.obsm[self.key][:,2],
+                color=self.color,
+                color_discrete_sequence=sc.pl.palettes.default_20,
+                labels={"x": f"{self.type} 1", "y": f"{self.type} 2", "z" : f"{self.type} 3"},
+            )
+
+            fig.update_traces(marker=dict(size=2))
+
+        projection_layout["legend"] = dict(
+            title=self.color_label.capitalize()
+        )
+        fig.update_layout(projection_layout)
+        fig.update_xaxes(
+            scaleanchor="y", scaleratio=1,
+        )
+        return fig
 
     # Outputs from _plot()
     @staticmethod
@@ -124,18 +160,28 @@ class Projection():
 
     @staticmethod
     def _param_layout(projection_type, params):
-        layout = html.Div(children=[
-            html.Div(children=[
-                html.Label(
-                    param.name, className="param-label",
-                ),
-                dcc.Input(
+        divs = []
+        for key, param in params.items():
+            if param.type == bool:
+                inp = dbc.Switch(id=f"projection-{projection_type}-{key}", value=param.default)
+            else:
+                inp = dcc.Input(
                     id=f"projection-{projection_type}-{key}", type=param.input_type, value=param.value,
                     step=param.step if param.step != None else 0.1, className="param-input",
-                ),
-            ], className="param-row") for key, param in params.items()
-        ], style={"display": "none"}, id=f"projection-{projection_type.lower()}")
+                )
+
+            divs.append(
+                html.Div(children=[
+                    html.Label(
+                        param.name, className="param-label",
+                    ),
+                    inp,
+                ], className="param-row")
+            )
+
+        layout = html.Div(children=divs, style={"display": "none"}, id=f"projection-{projection_type.lower()}")
         return layout
+
 
     @staticmethod
     def params_layout():
@@ -145,22 +191,6 @@ class Projection():
             Projection._param_layout("trimap", trimap_params),
             Projection._param_layout("pca", pca_params),
         ])
-
-    def plot(self):
-        projection_figure = px.scatter(
-            x=self.dataset.adata.obsm[self.key][:,0], y=self.dataset.adata.obsm[self.key][:,1],
-            color=self.color,
-            color_discrete_sequence=sc.pl.palettes.default_20,
-            labels={"x": f"{self.type} 1", "y": f"{self.type} 2"}
-        )
-        projection_layout["legend"] = dict(
-            title=self.color_label.capitalize()
-        )
-        projection_figure.update_layout(projection_layout)
-        projection_figure.update_xaxes(
-            scaleanchor="y", scaleratio=1,
-        )
-        return projection_figure
 
     def add_params(self, adata):
         if f"{self.type}_params" not in adata.uns.keys():
@@ -175,6 +205,7 @@ class UMAP(Projection):
     def __init__(self, dataset, color, params):
         super().__init__("X_umap", dataset, color)
         self.type = "UMAP"
+        params["n_components"] = 3 if params["n_components"] else 2
         self.params = umap_params.update(params)
         rerun = self.add_params(dataset.adata)
         if self.key not in dataset.adata.obsm.keys() or rerun:
@@ -186,6 +217,7 @@ class TSNE(Projection):
     def __init__(self, dataset, color, params):
         super().__init__("X_tsne", dataset, color)
         self.type = "t-SNE"
+        params["n_components"] = 3 if params["n_components"] else 2
         self.params = tsne_params.update(params)
         rerun = self.add_params(dataset.adata)
         if self.key not in dataset.adata.obsm.keys() or rerun:
@@ -197,10 +229,11 @@ class PCA(Projection):
     def __init__(self, dataset, color, params):
         super().__init__("X_pca", dataset, color)
         self.type = "PCA"
+        params["n_components"] = 3 if params["n_components"] else 2
         self.params = pca_params.update(params)
         rerun = self.add_params(dataset.adata)
-        if self.key not in dataset.adata.obsm.keys() or rerun:
-            sc.tl.pca(dataset.adata, **self.params.unravel())
+        # if self.key not in dataset.adata.obsm.keys() or rerun:
+        #     sc.tl.pca(dataset.adata, **self.params.unravel())
 
         self.add_params(dataset.adata)
 
@@ -209,6 +242,7 @@ class Trimap(Projection):
     def __init__(self, dataset, color, params):
         super().__init__("X_trimap", dataset, color)
         self.type = "Trimap"
+        params["n_components"] = 3 if params["n_components"] else 2
         self.params = trimap_params.update(params)
         rerun = self.add_params(dataset.adata)
         if self.key not in dataset.adata.obsm.keys() or rerun:
