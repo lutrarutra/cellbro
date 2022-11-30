@@ -104,8 +104,6 @@ class PCA():
         text = self.dataset.adata.var_names.values.copy()
         text[dist < np.quantile(dist, 0.999)] = ""
 
-
-
         df = pd.DataFrame({"x":x, "y":y, "Gene":self.dataset.adata.var_names.values,"text":text})
         df["textposition"] = ""
         df.loc[df["y"] > 0, "textposition"] = df.loc[df["y"] > 0, "textposition"] + "top"
@@ -114,11 +112,6 @@ class PCA():
 
         df.loc[df["x"] < 0, "textposition"] = df.loc[df["x"] < 0, "textposition"] + " left"
         df.loc[df["x"] > 0, "textposition"] = df.loc[df["x"] > 0, "textposition"] + " right"
-
-        # df.loc[(df["x"] > 0) & (df["y"] > 0), "textposition"] = "top right"
-        # df.loc[(df["x"] > 0) & (df["y"] < 0), "textposition"] = "top left"
-        # df.loc[(df["x"] < 0) & (df["y"] > 0), "textposition"] = "bottom right"
-        # df.loc[(df["x"] < 0) & (df["y"] < 0), "textposition"] = "left bottom"
         
         xmin, xmax = np.min(x), np.max(x)
         ymin, ymax = np.min(y), np.max(y)
@@ -141,26 +134,44 @@ class PCA():
         fig.update_layout(figure_layout)
         return fig
 
-    def bottom_plots(self):
-        fig = make_subplots(rows=1, cols=3)
-        fig.add_trace(
-            list(self.explain_variance().select_traces())[0],
+    def explain_corr(self):
+        cats = list(set(self.dataset.adata.obs.columns) - set(self.dataset.adata.obs._get_numeric_data().columns))
+
+        Rs = np.zeros((10, len(cats)))
+        for i, cat in enumerate(cats):
+            for j in range(10):
+                Rs[j, i] = np.corrcoef(self.dataset.adata.obs[cat].cat.codes, self.dataset.adata.obsm["X_pca"][:, j])[0, 1]**2
+        
+        df = pd.DataFrame(Rs, columns=cats, index=range(1, 11)).reset_index()
+        fig = px.scatter(df, x="index", y=cats)
+        fig.update_traces(marker=dict(size=10, line=dict(width=2, color='DarkSlateGrey')))
+        fig.update_layout(
+            xaxis=dict(title="PC", tick0=1, dtick=1, showgrid=False, zeroline=False, visible=True, showticklabels=True),
+            yaxis=dict(range=[0,1], title="R<sup>2</sup>", tick0=0, dtick=0.2, showgrid=False, zeroline=False, visible=True, showticklabels=True),
+            legend_title="Feature", paper_bgcolor='white', plot_bgcolor='white',
+            margin=dict(t=0, b=0, l=0, r=0),
         )
-        fig.update_layout(figure_layout)
         return fig
+
+    def bottom_plots(self):
+        var_explained_fig = self.explain_variance()
+        corr_explained_fig = self.explain_corr()
+
+        return var_explained_fig, corr_explained_fig
 
     def plot(self):
         main_plot = self.projection()
         secondary_plot = self.correlation_circle()
-        bottom_plots = self.bottom_plots()
-        return [main_plot, secondary_plot, bottom_plots]
+        var_explained_fig, corr_explained_fig = self.bottom_plots()
+        return [main_plot, secondary_plot, var_explained_fig, corr_explained_fig]
     
     @staticmethod
     def get_callback_outputs():
         return [
             Output(component_id="pca-main-plot", component_property="figure"),
             Output(component_id="pca-secondary-plot", component_property="figure"),
-            Output(component_id="pca-bottom-plot", component_property="figure"),
+            Output(component_id="pca-var-plot", component_property="figure"),
+            Output(component_id="pca-corr-plot", component_property="figure"),
         ]
         
     # Inputs to Projection
@@ -189,7 +200,7 @@ class PCA():
                     PCA.params_layout(),
                 ], className="sidebar-parameters"),
                 html.Div([
-                    dbc.Button("Filter", color="primary", className="mr-1", id="pca-submit"),
+                    # dbc.Button("Filter", color="primary", className="mr-1", id="pca-submit"),
                 ], className="sidebar-footer")
             ],),
         ], className="top-sidebar sidebar")
@@ -200,19 +211,21 @@ class PCA():
                 html.H3("PCA Plots"),
             ], className="sidebar-header"),
             dcc.Loading(type="circle", children=[
-                html.Div(children=[
-                    html.Label("Plot Type"),
-                    dcc.Dropdown(["Bar", "Line", "Area", "Cumulative"], value="Bar", id="pca-hist_type", clearable=False),
-                ], className="param-row"),
                 # Num components
                 html.Div(children=[
-                    html.Label("Num. Components"),
-                    dcc.Input(
-                        id="pca-hist_n_pcs", type="number", value=30, min=2, step=1,
-                        max=dataset.adata.uns["pca"]["variance_ratio"].shape[0]+1,
-                        className="param-input"
-                    ),
-                ], className="param-row"),
+                    html.Div(children=[
+                        html.Label("Plot Type"),
+                        dcc.Dropdown(["Bar", "Linefig", "Area", "Cumulative"], value="Bar", id="pca-hist_type", clearable=False),
+                    ], className="param-row-stacked"),
+                    html.Div(children=[
+                        html.Label("Num. Components"),
+                        dcc.Input(
+                            id="pca-hist_n_pcs", type="number", value=30, min=2, step=1,
+                            max=dataset.adata.uns["pca"]["variance_ratio"].shape[0]+1,
+                            className="param-input"
+                        ),
+                    ], className="param-row")
+                ], className="sidebar-parameters"),
             ],)
         ], id="pca-bottom-sidebar", className="bottom-sidebar sidebar")
 
@@ -265,14 +278,18 @@ class PCA():
             ], id="pca-secondary-figure", className="secondary-figure")
         ], className="secondary")
 
-        bottom_figure = html.Div(children=[
+        bottom_figures = html.Div(children=[
             dcc.Loading(
-                id="loading-pca-bottom", className="loading-bottom", type="circle",
-                children=[html.Div(dcc.Graph(id="pca-bottom-plot", className="bottom-plot"))],
+                id="loading-var-bottom", className="loading-bottom", type="circle",
+                children=[html.Div(dcc.Graph(id="pca-var-plot", className="bottom-left-plot"))],
+            ),
+            dcc.Loading(
+                id="loading-corr-bottom", className="loading-bottom", type="circle",
+                children=[html.Div(dcc.Graph(id="pca-corr-plot", className="bottom-right-plot"))],
             )
         ], id="pca-bottom-figure", className="bottom-figure")
 
-        return top_sidebar, main_figure, secondary_figure, bottom_sidebar, bottom_figure
+        return top_sidebar, main_figure, secondary_figure, bottom_sidebar, bottom_figures
 
     @staticmethod
     def params_layout():
