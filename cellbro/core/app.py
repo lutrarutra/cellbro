@@ -13,6 +13,7 @@ from cellbro.core.pages.cells import create_page as create_cells_page
 from cellbro.core.pages.qc import create_page as create_qc_page
 from cellbro.core.pages.genes import create_page as create_genes_page
 from cellbro.core.pages.pca import create_page as create_pca_page
+from cellbro.core.pages.de import create_page as create_de_page
 # from cellbro.core.pages.home import create_page as create_home_page
 
 import scanpy as sc
@@ -30,6 +31,7 @@ class App():
         create_qc_page(self.dash_app, self.dataset)
         create_genes_page(self.dash_app, self.dataset)
         create_pca_page(self.dash_app, self.dataset)
+        create_de_page(self.dash_app, self.dataset)
 
         self.dash_app.layout = html.Div([
             dcc.Location(id="url"),

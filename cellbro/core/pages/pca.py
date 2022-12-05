@@ -1,8 +1,5 @@
 import dash
 from dash import html, dcc, Input, Output, State
-from dash.exceptions import PreventUpdate
-import plotly.express as px
-import plotly.graph_objects as go
 
 from cellbro.plotting.PCA import PCA
 

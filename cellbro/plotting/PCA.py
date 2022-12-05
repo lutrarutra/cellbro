@@ -135,8 +135,7 @@ class PCA():
         return fig
 
     def explain_corr(self):
-        cats = list(set(self.dataset.adata.obs.columns) - set(self.dataset.adata.obs._get_numeric_data().columns))
-
+        cats = self.dataset.get_categoricals()
         Rs = np.zeros((10, len(cats)))
         for i, cat in enumerate(cats):
             for j in range(10):

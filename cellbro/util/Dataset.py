@@ -28,3 +28,6 @@ class Dataset():
 
 
         print("Dataset Ready!")
+
+    def get_categoricals(self):
+        return list(set(self.adata.obs.columns) - set(self.adata.obs._get_numeric_data().columns))

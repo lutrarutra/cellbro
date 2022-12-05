@@ -24,7 +24,7 @@ umap_params = ParamsDict([
 
 tsne_params = ParamsDict([
     Param(key="n_pcs", name="Num. PCs", default=None, type=int, nullable=True, description=""),
-    Param(key="n_components", name="3D Projection", default=False, type=bool, nullable=False, description=""),
+    # Param(key="n_components", name="3D Projection", default=False, type=bool, nullable=False, description=""),
 ])
 
 trimap_params = ParamsDict([
@@ -51,7 +51,7 @@ class Projection():
             self.color = self.dataset.adata.X[:,self.dataset.adata.var.index.get_loc(color)].toarray().T[0]
 
     def plot(self):
-        if self.params["n_components"].value == 2:
+        if "n_components" not in self.params.keys() or self.params["n_components"].value == 2:
             fig = px.scatter(
                 x=self.dataset.adata.obsm[self.key][:,0],
                 y=self.dataset.adata.obsm[self.key][:,1],
@@ -217,7 +217,7 @@ class TSNE(Projection):
     def __init__(self, dataset, color, params):
         super().__init__("X_tsne", dataset, color)
         self.type = "t-SNE"
-        params["n_components"] = 3 if params["n_components"] else 2
+        # params["n_components"] = 3 if params["n_components"] else 2
         self.params = tsne_params.update(params)
         rerun = self.add_params(dataset.adata)
         if self.key not in dataset.adata.obsm.keys() or rerun:
