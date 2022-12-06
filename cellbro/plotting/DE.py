@@ -5,6 +5,7 @@ import dash_bootstrap_components as dbc
 from plotly.subplots import make_subplots
 
 from cellbro.util.Param import *
+from cellbro.util.Components import create_gene_card
 
 import scanpy as sc
 import pandas as pd
@@ -40,12 +41,12 @@ class DE():
         if self.params["submit"] is None:
             groupby_options = DE._get_groupby_options(self.dataset)
             if len(groupby_options) == 0:
-                return [[],None, [], None]
+                return [[],None, [], None, {"display": "none"}, {"display": "none"}]
             
             groupby_selected = groupby_options[0]
             refs_options = DE._get_reference_options(self.dataset, groupby_selected)
             refs_selected = next(iter(self.dataset.adata.uns[f"rank_genes_{groupby_selected}"].keys()))
-            return [groupby_options, groupby_selected, refs_options, refs_selected]
+            return [groupby_options, groupby_selected, refs_options, refs_selected, {"display": "block"}, {"display": "block"}]
 
         key = f"rank_genes_{self.params['groupby']}"
 
@@ -57,7 +58,7 @@ class DE():
         
         groupby_selected = self.params["groupby"]
         refs_selected = next(iter(self.dataset.adata.uns[key].keys()))
-        return [groupby_options, groupby_selected, refs_options, refs_selected]
+        return [groupby_options, groupby_selected, refs_options, refs_selected, {"display": "block"}, {"display": "block"}]
 
     def plot_secondary(self):
         key = f"rank_genes_{self.params['groupby']}"
@@ -86,6 +87,8 @@ class DE():
             Output(component_id="volcano-groupby", component_property="value"),
             Output(component_id="volcano-reference", component_property="options"),
             Output(component_id="volcano-reference", component_property="value"),
+            Output(component_id="volcano-groupby-container", component_property="style"),
+            Output(component_id="volcano-reference-container", component_property="style"),
         ]
         inputs = {
             "submit": Input(component_id="de-submit", component_property="n_clicks"),
@@ -115,6 +118,24 @@ class DE():
     def params_layout(dataset):
         cats = dataset.get_categoricals()
         divs = []
+
+        groups = DE._get_groupby_options(dataset)
+        refs = DE._get_reference_options(dataset, next(iter(groups), None))
+        # Volcano Group By Select
+        divs.append(html.Div(id="volcano-groupby-container", children=[
+            html.Label("Volcano GroupBy"),
+            html.Div([
+                dcc.Dropdown(options=groups, value=next(iter(groups), None), id="volcano-groupby", clearable=False),
+            ], className="param-select")
+        ], className="param-row-stacked", style={"display": "none" if len(groups) == 0 else "block"}))
+        
+        # Volcano Reference Select i.e. 'KO vs. Rest'
+        divs.append(html.Div(id="volcano-reference-container", children=[
+            html.Label("Volcano Reference"),
+            html.Div([
+                dcc.Dropdown(options=refs, value=next(iter(refs), None), id="volcano-reference", clearable=False),
+            ], className="param-select")
+        ], className="param-row-stacked", style={"display": "none" if len(groups) == 0 else "block"}))
 
         divs.append(
             html.Div(children=[
@@ -146,6 +167,12 @@ class DE():
         return layout
 
     @staticmethod
+    def on_hover(data, dataset):
+        gene = data['hovertext']
+        element = create_gene_card(gene, dataset)
+        return [element]
+
+    @staticmethod
     def _get_groupby_options(dataset):
         return [x[11:] for x in dataset.adata.uns.keys() if x.startswith("rank_genes_")]
 
@@ -171,24 +198,10 @@ class DE():
             ],),
         ], className="top-sidebar sidebar")
 
-        groups = DE._get_groupby_options(dataset)
-        refs = DE._get_reference_options(dataset, next(iter(groups), None))
-
         main = html.Div(children=[
             html.Div(children=[
-                # Volcano Group By Select
-                dcc.Loading(type="circle", children=[
-                    html.Label("Volcano GroupBy"),
-                    dcc.Dropdown(options=groups, value=next(iter(groups), None), id="volcano-groupby", clearable=False),
-                ], className="param-column"),
-                
-                # Volcano Reference Select i.e. 'KO vs. Rest'
-                dcc.Loading(type="circle", children=[
-                    html.Label("Volcano Reference"),
-                    dcc.Dropdown(options=refs, value=next(iter(refs), None), id="volcano-reference", clearable=False),
-                ], className="param-column"),
-
-            ], id="volcano-select", className="main-select top-parameters"),
+                create_gene_card(None, dataset),
+            ], id="de-volcano-info", className="main-select top-parameters"),
 
             html.Div([
                 dcc.Loading(

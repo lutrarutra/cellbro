@@ -25,8 +25,7 @@ class Dataset():
         print("Calculating Metrics")
         sc.tl.pca(self.adata)
         sc.pp.neighbors(self.adata, random_state=0)
-
-
+        self.adata.uns["gene_lists"] = {}
         print("Dataset Ready!")
 
     def get_categoricals(self):

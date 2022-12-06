@@ -25,6 +25,14 @@ def create_page(dash_app, dataset):
         if kwargs["groupby"] is None: raise PreventUpdate
         return DE(dataset, kwargs).plot()
 
+    @dash_app.callback(
+        [Output("de-volcano-info", "children")],
+        [Input("de-volcano-plot", "clickData")]
+    )
+    def _click(clickData):
+        if clickData is None: raise PreventUpdate
+        return DE.on_hover(clickData["points"][0], dataset)
+
     dash.register_page("pages.de", title="DE", path="/de", order=4, layout=layout)
 
 
