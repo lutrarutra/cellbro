@@ -5,11 +5,11 @@ from dash.exceptions import PreventUpdate
 from cellbro.plotting.DE import DE
 
 def create_page(dash_app, dataset):
-    top_sidebar, main = DE.create_layout(dataset)
+    top_sidebar, main, secondary = DE.create_layout(dataset)
 
     layout = [
         html.Div(id="top", className="top", children=[
-            top_sidebar, main
+            top_sidebar, main, secondary
         ]),
         html.Div(id="bottom", className="bottom", children=[
             # bottom_sidebar, bottom_figure

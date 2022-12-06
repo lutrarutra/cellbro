@@ -37,7 +37,6 @@ class DE():
         self.params = params
 
     def apply(self):
-        print(self.params["submit"])
         if self.params["submit"] is None:
             groupby_options = DE._get_groupby_options(self.dataset)
             if len(groupby_options) == 0:
@@ -60,7 +59,12 @@ class DE():
         refs_selected = next(iter(self.dataset.adata.uns[key].keys()))
         return [groupby_options, groupby_selected, refs_options, refs_selected]
 
-    def de_volcano(self):
+    def plot_secondary(self):
+        key = f"rank_genes_{self.params['groupby']}"
+        fig = scout.ply.pval_histogram(self.dataset.adata.uns[key][self.params["reference"]], layout=figure_layout)
+        return fig
+
+    def plot_de_volcano(self):
         key = f"rank_genes_{self.params['groupby']}"
         if self.params["reference"] is None:
             self.params["reference"] = list(self.dataset.adata.uns[key].keys())[0]
@@ -71,8 +75,9 @@ class DE():
         return fig
 
     def plot(self):
-        volcano = self.de_volcano()
-        return [volcano]
+        volcano = self.plot_de_volcano()
+        secondary = self.plot_secondary()
+        return [volcano, secondary]
 
     @staticmethod
     def get_apply_callbacks():
@@ -97,6 +102,7 @@ class DE():
     def get_plot_callbacks():
         outputs = [
             Output(component_id="de-volcano-plot", component_property="figure"),
+            Output(component_id="de-secondary-plot", component_property="figure"),
         ]
         inputs = {
             "groupby": Input(component_id="volcano-groupby", component_property="value"),
@@ -205,6 +211,25 @@ class DE():
         #     ],)
         # ], id="qc-violin-sidebar", className="bottom-sidebar sidebar")
 
+        secondary_options = {"pval_histogram": "P-Value Histogram"}
+
+        secondary = html.Div(children=[
+            html.Div(children=[
+                # Volcano Group By Select
+                dcc.Loading(type="circle", children=[
+                    html.Label("Plot Type"),
+                    dcc.Dropdown(options=secondary_options, value="pval_histogram", id="secondary-type", clearable=False),
+                ], className="param-column"),
+            ], id="de-secondary-select", className="main-select top-parameters"),
+
+            html.Div([
+                dcc.Loading(
+                    id="loading-de-secondary", type="circle",
+                    children=[html.Div(dcc.Graph(id="de-secondary-plot", className="secondary-plot"))],
+                )
+            ], id="de-secondary-figure", className="secondary-figure")
+        ], className="secondary")
+
 
         # secondary_figure = html.Div(children=[
         #     html.Div([
@@ -222,4 +247,4 @@ class DE():
         #     )
         # ], id="qc-violin-figure", className="bottom-figure")
 
-        return top_sidebar, main
+        return top_sidebar, main, secondary
