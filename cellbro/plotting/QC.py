@@ -42,12 +42,13 @@ class QC():
 
     def dispersion_plot(self):
         fig = px.scatter(
-            self.dataset.adata.var,
+            self.dataset.adata.var.reset_index(),
             x="mu",
             y="cv2",
             log_x=True,
             log_y=True,
             color_continuous_scale=px.colors.sequential.Viridis,
+            hover_name="index",
         )
         fig.update_traces(marker=dict(size=5, line=dict(width=1, color='DarkSlateGrey')))
         fig.update_layout(figure_layout)
@@ -104,6 +105,62 @@ class QC():
         secondary_figure = self.dispersion_plot()
 
         return [main_figure, secondary_figure, bottom_figure]
+
+    @staticmethod
+    def on_hover(data, dataset):
+        gene = data['hovertext']
+        if "gene_lists" not in dataset.adata.uns:
+            dataset.adata.uns["gene_lists"] = {
+                "top10": [],
+                "top20": [],
+                "top50": [],
+            }
+
+        gl_options = dataset.get_gene_lists()
+        gl_elements = []
+        for gl in gl_options:
+            gl_elements.append({"label": gl, "value": gl})
+        
+        gl_chosen = dataset.get_gene_lists(gene=gene)
+
+        element = html.Div([
+            html.Div([
+                html.Label("Gene:", className="hover-title"),
+                html.H3(gene, id="selected-gene", className="hover-title"),
+                html.Div([
+                    html.A(
+                        href=f"https://www.genecards.org/cgi-bin/carddisp.pl?gene={gene}", role="button", target="_blank",
+                        children=[html.Img(src="assets/logos/genecards_logo.png", style={"height": "20px"})]
+                    ),
+                    html.A(
+                        href=f"https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q={gene}", role="button", target="_blank",
+                        children=[html.Img(src="assets/logos/google_scholar_logo.png", style={"height": "20px"})]
+                    ),
+                ], className="hover-row"),
+            ], className="hover-header"),
+            html.Div([
+                html.Div([
+                    html.Label("Gene List(s)"),
+                    dcc.Dropdown(
+                        options=gl_elements,
+                        value=gl_chosen,
+                        id="gene-list-dropdown",
+                        clearable=True,
+                        placeholder="Select Gene List(s)",
+                        multi=True,
+                        style={"flex": "1"},
+                    ),
+                ], className="hover-col"),
+                html.Div([
+                    html.Label("Create New Gene List"),
+                    html.Div([
+                        dbc.Input(placeholder="New Gene List Name", id="new-gene-list-input", type="text"),
+                        dbc.Button("Create", id="new-gene-list-button", color="primary", className="mr-1")
+                    ], className="hover-row"),
+                ], className="hover-col"),
+            ], className="hover-info")
+        ], className="hover-container")
+        return [element]
 
     @staticmethod
     def get_filtering_callbacks():
@@ -175,6 +232,28 @@ class QC():
         ], className="main")
 
         secondary_figure = html.Div(children=[
+            html.Div(id="dispersion-info", children=[
+                html.Div([
+                    html.Label("Gene:", className="hover-title"),
+                    html.H3("", id="selected-gene", className="hover-title"),
+                    html.Div([
+                        html.Div([
+                            html.Label("Add to Gene List(s)"),
+                            dcc.Dropdown(
+                                id="gene-list-dropdown",
+                                options=[],
+                                value=[],
+                                multi=True,
+                                style={"flex": "1"},
+                            ),
+                            html.Label("or"),
+                            dbc.Input(placeholder="Create New List", id="new-gene-list-input", type="text"),
+                            dbc.Button("Create", id="new-gene-list-button", color="primary", className="mr-1"),
+                        ], className="hover-row", style={"display": "flex"}),
+                    ], className="hover-info")
+                ], className="hover-container", style={"display": "none"}),
+            ], className="secondary-select top-parameters"),
+
             html.Div([
                 dcc.Loading(
                     id="loading-dispersion", type="circle",

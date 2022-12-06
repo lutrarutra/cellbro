@@ -31,3 +31,20 @@ class Dataset():
 
     def get_categoricals(self):
         return list(set(self.adata.obs.columns) - set(self.adata.obs._get_numeric_data().columns))
+
+    def get_gene_lists(self, gene=None):
+        if "gene_lists" not in self.adata.uns: return []
+        if gene is None: return list(self.adata.uns["gene_lists"].keys())
+
+        return [gl for gl in self.adata.uns["gene_lists"].keys() if gene in self.adata.uns["gene_lists"][gl]]
+
+    def update_gene_lists(self, gene, gene_lists):
+        for gl_key in self.get_gene_lists():
+            if gl_key in gene_lists:
+                if gene not in self.adata.uns["gene_lists"][gl_key]:
+                    self.adata.uns["gene_lists"][gl_key].append(gene)
+            else:
+                if gene in self.adata.uns["gene_lists"][gl_key]:
+                    self.adata.uns["gene_lists"][gl_key].remove(gene)
+
+        return self.get_gene_lists(gene)
