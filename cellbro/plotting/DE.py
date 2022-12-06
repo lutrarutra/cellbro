@@ -53,6 +53,7 @@ class DE():
         if key not in self.dataset.adata.uns.keys():
             scout.tl.rank_marker_genes(self.dataset.adata, groupby=self.params["groupby"])
 
+        print(self.dataset.adata.uns[key]["KO"].loc["MANF"])
         groupby_options = DE._get_groupby_options(self.dataset)
         refs_options = DE._get_reference_options(self.dataset, self.params["groupby"])
         
