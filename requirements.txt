@@ -1,0 +1,13 @@
+flask
+tqdm
+numpy
+pandas
+scanpy
+scvi-tools
+leidenalg
+trimap
+gseapy
+plotly
+dash
+dash-bootstrap-components
+chart-studio
