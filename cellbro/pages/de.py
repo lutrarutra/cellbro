@@ -5,8 +5,113 @@ from dash.exceptions import PreventUpdate
 
 import cellbro.plots.DE as DE
 import scout
-from cellbro.plots.DashPage import DashPage
 from cellbro.util.Components import create_gene_card
+from cellbro.util.DashAction import DashAction
+from cellbro.util.DashPage import DashPage
+
+
+class ApplyDE(DashAction):
+    def apply(self, params):
+        return DE.apply(self.dataset, params=params)
+
+    def setup_callbacks(self, dash_app):
+        outputs = [
+            Output(component_id="volcano-groupby", component_property="options"),
+            Output(component_id="volcano-groupby", component_property="value"),
+            Output(component_id="volcano-reference", component_property="options"),
+            Output(component_id="volcano-reference", component_property="value"),
+            Output(
+                component_id="volcano-groupby-container", component_property="style"
+            ),
+            Output(
+                component_id="volcano-reference-container", component_property="style"
+            ),
+        ]
+        inputs = {
+            "submit": Input(component_id="de-submit", component_property="n_clicks"),
+        }
+        states = {
+            "groupby": State(component_id="de-groupby", component_property="value"),
+        }
+        callbacks = dict(output=outputs, inputs=inputs, state=states)
+        for param in DE.de_params.values():
+            states[param.key] = State(
+                component_id=f"de-{param.key}", component_property="value"
+            )
+
+        @dash_app.callback(**callbacks)
+        def _(**kwargs):
+            return self.apply(params=kwargs)
+
+
+class PlotVolcano(DashAction):
+    def apply(self, params):
+        return [DE.plot_de_volcano(dataset=self.dataset, params=params)]
+
+    def setup_callbacks(self, dash_app):
+        outputs = [
+            Output(component_id="de-volcano-plot", component_property="figure"),
+        ]
+        inputs = {
+            "groupby": Input(
+                component_id="volcano-groupby", component_property="value"
+            ),
+            "reference": Input(
+                component_id="volcano-reference", component_property="value"
+            ),
+        }
+        callbacks = dict(output=outputs, inputs=inputs)
+
+        @dash_app.callback(**callbacks)
+        def _(**kwargs):
+            if kwargs["groupby"] is None:
+                raise PreventUpdate
+            return self.apply(params=kwargs)
+
+
+class PlotPvalHistogram(DashAction):
+    def apply(self, params):
+        return [DE.plot_pval_histogram(dataset=self.dataset, params=params)]
+
+    def setup_callbacks(self, dash_app):
+        outputs = [
+            Output(component_id="de-secondary-plot", component_property="figure"),
+        ]
+        inputs = {
+            "groupby": Input(
+                component_id="volcano-groupby", component_property="value"
+            ),
+            "reference": Input(
+                component_id="volcano-reference", component_property="value"
+            ),
+        }
+        callbacks = dict(output=outputs, inputs=inputs)
+
+        @dash_app.callback(**callbacks)
+        def _(**kwargs):
+            if kwargs["groupby"] is None:
+                raise PreventUpdate
+            return self.apply(params=kwargs)
+
+
+class ClickAction(DashAction):
+    def apply(self, params):
+        gene = params["click_data"]["points"][0]["hovertext"]
+        element = create_gene_card(gene, self.dataset)
+        return [element]
+
+    def setup_callbacks(self, dash_app):
+        outputs = [Output("de-volcano-info", "children")]
+        inputs = {
+            "click_data": Input("de-volcano-plot", "clickData"),
+        }
+        callbacks = dict(output=outputs, inputs=inputs)
+
+        @dash_app.callback(**callbacks)
+        def _(**kwargs):
+            if kwargs["click_data"] is None:
+                raise PreventUpdate
+            return self.apply(params=kwargs)
 
 
 class DEPage(DashPage):
@@ -14,34 +119,13 @@ class DEPage(DashPage):
         super().__init__("pages.de", "DE", "/de", 4)
         self.dataset = dataset
         self.layout = self.create_layout()
+        self.actions = dict(
+            apply_de=ApplyDE(dataset=self.dataset),
+            plot_volcano=PlotVolcano(dataset=self.dataset),
+            plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset),
+            click_action=ClickAction(dataset=self.dataset),
+        )
         self.setup_callbacks(dash_app)
-
-    def plot(self, **kwargs) -> list:
-        volcano = DE.plot_de_volcano(dataset=self.dataset, params=kwargs)
-        secondary = DE.plot_pval_histogram(dataset=self.dataset, params=kwargs)
-        return [volcano, secondary]
-
-    def apply(self, **kwargs):
-        return DE.apply(dataset=self.dataset, params=kwargs)
-
-    def setup_callbacks(self, dash_app):
-        @dash_app.callback(**self._get_apply_callbacks())
-        def _(**kwargs):
-            return self.apply(**kwargs)
-
-        @dash_app.callback(**self._get_plot_callbacks())
-        def _(**kwargs):
-            if kwargs["groupby"] is None:
-                raise PreventUpdate
-            return self.plot(**kwargs)
-
-        @dash_app.callback(**self._get_on_click_callbacks())
-        def _(click_data):
-            if click_data is None:
-                raise PreventUpdate
-            gene = click_data["points"][0]["hovertext"]
-            element = create_gene_card(gene, self.dataset)
-            return [element]
 
     def create_layout(self):
         top_sidebar = html.Div(
@@ -168,48 +252,6 @@ class DEPage(DashPage):
         ]
         return layout
 
-    def _get_apply_callbacks(self):
-        outputs = [
-            Output(component_id="volcano-groupby", component_property="options"),
-            Output(component_id="volcano-groupby", component_property="value"),
-            Output(component_id="volcano-reference", component_property="options"),
-            Output(component_id="volcano-reference", component_property="value"),
-            Output(
-                component_id="volcano-groupby-container", component_property="style"
-            ),
-            Output(
-                component_id="volcano-reference-container", component_property="style"
-            ),
-        ]
-        inputs = {
-            "submit": Input(component_id="de-submit", component_property="n_clicks"),
-        }
-        states = {
-            "groupby": State(component_id="de-groupby", component_property="value"),
-        }
-        for param in DE.de_params.values():
-            states[param.key] = State(
-                component_id=f"de-{param.key}", component_property="value"
-            )
-
-        return dict(output=outputs, inputs=inputs, state=states)
-
-    def _get_plot_callbacks(self):
-        outputs = [
-            Output(component_id="de-volcano-plot", component_property="figure"),
-            Output(component_id="de-secondary-plot", component_property="figure"),
-        ]
-        inputs = {
-            "groupby": Input(
-                component_id="volcano-groupby", component_property="value"
-            ),
-            "reference": Input(
-                component_id="volcano-reference", component_property="value"
-            ),
-        }
-        states = {}
-        return dict(output=outputs, inputs=inputs, state=states)
-
     def _params_layout(self):
         cats = self.dataset.get_categoricals()
         divs = []
@@ -313,10 +355,3 @@ class DEPage(DashPage):
 
         layout = html.Div(children=divs)
         return layout
-
-    def _get_on_click_callbacks(self):
-        outputs = [Output("de-volcano-info", "children")]
-        inputs = {
-            "click_data": Input("de-volcano-plot", "clickData"),
-        }
-        return dict(output=outputs, inputs=inputs)

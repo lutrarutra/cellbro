@@ -9,8 +9,8 @@ from dash.exceptions import PreventUpdate
 from plotly.subplots import make_subplots
 
 import scout
-from cellbro.plots.DashPage import DashPage
 from cellbro.util.Components import create_gene_card
+from cellbro.util.DashPage import DashPage
 from cellbro.util.Param import *
 
 figure_layout = go.Layout(
