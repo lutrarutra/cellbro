@@ -5,11 +5,11 @@ import plotly.graph_objects as go
 import scanpy as sc
 from dash import ALL, Dash, Input, Output, State, dcc, html
 
-from cellbro.core.pages.cells import create_page as create_cells_page
-from cellbro.core.pages.de import create_page as create_de_page
-from cellbro.core.pages.genes import create_page as create_genes_page
-from cellbro.core.pages.pca import create_page as create_pca_page
-from cellbro.core.pages.qc import create_page as create_qc_page
+import cellbro.pages.de as de
+from cellbro.pages.cells import create_page as create_cells_page
+from cellbro.pages.genes import create_page as create_genes_page
+from cellbro.pages.pca import create_page as create_pca_page
+from cellbro.pages.qc import create_page as create_qc_page
 from cellbro.util.Dataset import Dataset
 
 # from cellbro.core.pages.home import create_page as create_home_page
@@ -20,6 +20,8 @@ class App:
         self.dash_app = Dash(
             __name__,
             use_pages=True,
+            pages_folder="../pages",
+            assets_folder="../assets",
             external_stylesheets=[dbc.themes.BOOTSTRAP],
         )
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
@@ -29,7 +31,9 @@ class App:
         create_qc_page(self.dash_app, self.dataset)
         create_genes_page(self.dash_app, self.dataset)
         create_pca_page(self.dash_app, self.dataset)
-        create_de_page(self.dash_app, self.dataset)
+        # create_de_page(self.dash_app, self.dataset)
+        de_page = de.DEPage(self.dataset, self.dash_app)
+        de_page.create()
 
         self.dash_app.layout = html.Div(
             [

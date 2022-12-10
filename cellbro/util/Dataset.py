@@ -1,8 +1,15 @@
+from dataclasses import dataclass
+
 import scanpy as sc
 
 import scout
 
-class Dataset():
+
+@dataclass
+class Dataset:
+    path: str
+    adata: sc.AnnData
+
     def __init__(self, path):
         self.path = path
         print("Reading File")
@@ -13,13 +20,15 @@ class Dataset():
 
         print("Calculating QC Metrics")
         self.adata.var["mt"] = self.adata.var_names.str.startswith("MT-")
-        sc.pp.calculate_qc_metrics(self.adata, qc_vars=["mt"], percent_top=False, log1p=False, inplace=True)
+        sc.pp.calculate_qc_metrics(
+            self.adata, qc_vars=["mt"], percent_top=False, log1p=False, inplace=True
+        )
 
         print("Normalizing Counts")
         scout.tl.scale_log_center(self.adata, target_sum=None)
 
         ncounts = self.adata.layers["ncounts"].toarray()
-        self.adata.var["cv2"] = (ncounts.std(0)/ncounts.mean(0))**2
+        self.adata.var["cv2"] = (ncounts.std(0) / ncounts.mean(0)) ** 2
         self.adata.var["mu"] = ncounts.mean(0)
 
         print("Calculating Metrics")
@@ -29,13 +38,22 @@ class Dataset():
         print("Dataset Ready!")
 
     def get_categoricals(self):
-        return list(set(self.adata.obs.columns) - set(self.adata.obs._get_numeric_data().columns))
+        return list(
+            set(self.adata.obs.columns)
+            - set(self.adata.obs._get_numeric_data().columns)
+        )
 
     def get_gene_lists(self, gene=None):
-        if "gene_lists" not in self.adata.uns: return []
-        if gene is None: return list(self.adata.uns["gene_lists"].keys())
+        if "gene_lists" not in self.adata.uns:
+            return []
+        if gene is None:
+            return list(self.adata.uns["gene_lists"].keys())
 
-        return [gl for gl in self.adata.uns["gene_lists"].keys() if gene in self.adata.uns["gene_lists"][gl]]
+        return [
+            gl
+            for gl in self.adata.uns["gene_lists"].keys()
+            if gene in self.adata.uns["gene_lists"][gl]
+        ]
 
     def update_gene_lists(self, gene, gene_lists):
         for gl_key in self.get_gene_lists():
