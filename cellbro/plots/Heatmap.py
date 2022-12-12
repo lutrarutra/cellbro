@@ -89,32 +89,6 @@ class Heatmap:
         return fig, style
 
     @staticmethod
-    def get_callback_outputs():
-        return [
-            Output(component_id="heatmap-plot", component_property="figure"),
-            Output(component_id="heatmap-plot", component_property="style"),
-        ]
-
-    # Inputs to Projection
-    @staticmethod
-    def get_callback_inputs():
-        return {
-            "submit": Input(
-                component_id="heatmap-submit", component_property="n_clicks"
-            ),
-        }
-
-    @staticmethod
-    def get_callback_states():
-        states = dict(
-            [
-                (key, State(component_id=f"heatmap-{key}", component_property="value"))
-                for key in heatmap_params.keys()
-            ]
-        )
-        return states
-
-    @staticmethod
     def params_layout():
         divs = []
         for key, param in heatmap_params.items():
@@ -160,7 +134,7 @@ class Heatmap:
                         className="param-row",
                     )
                 )
-        return html.Div(children=divs)
+        return html.Div(divs)
 
     @staticmethod
     def create_layout(dataset):

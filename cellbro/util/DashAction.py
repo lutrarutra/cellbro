@@ -15,9 +15,9 @@ from cellbro.util.Param import *
 
 
 class DashAction(ABC):
-    params: ParamsDict
-    callbacks: list
-    dataset: Dataset
+    # params: ParamsDict
+    # callbacks: list
+    # dataset: Dataset
 
     def __init__(self, dataset):
         self.dataset = dataset

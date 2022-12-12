@@ -5,8 +5,8 @@ import plotly.graph_objects as go
 import scanpy as sc
 from dash import ALL, Dash, Input, Output, State, dcc, html
 
+import cellbro.pages.cells as cells
 import cellbro.pages.de as de
-from cellbro.pages.cells import create_page as create_cells_page
 from cellbro.pages.genes import create_page as create_genes_page
 from cellbro.pages.pca import create_page as create_pca_page
 from cellbro.pages.qc import create_page as create_qc_page
@@ -27,7 +27,9 @@ class App:
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
         self.dataset = Dataset("data/vas.h5ad")
 
-        create_cells_page(self.dash_app, self.dataset)
+        # create_cells_page(self.dash_app, self.dataset)
+        cells_page = cells.CellsPage(self.dataset, self.dash_app)
+        cells_page.create()
         create_qc_page(self.dash_app, self.dataset)
         create_genes_page(self.dash_app, self.dataset)
         create_pca_page(self.dash_app, self.dataset)
