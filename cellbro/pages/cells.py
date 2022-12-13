@@ -182,8 +182,8 @@ class PlotViolin(DashAction):
 
 
 class CellsPage(DashPage):
-    def __init__(self, dataset, dash_app):
-        super().__init__("pages.cells", "Cells", "/cells", 2)
+    def __init__(self, dataset, dash_app, order):
+        super().__init__("pages.cells", "Cells", "/cells", order)
         self.dataset = dataset
         self.actions = dict(
             projection_action=PlotProjection(self.dataset),

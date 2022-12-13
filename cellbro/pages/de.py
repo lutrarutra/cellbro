@@ -115,8 +115,8 @@ class ClickAction(DashAction):
 
 
 class DEPage(DashPage):
-    def __init__(self, dataset, dash_app):
-        super().__init__("pages.de", "DE", "/de", 4)
+    def __init__(self, dataset, dash_app, order):
+        super().__init__("pages.de", "DE", "/de", order)
         self.dataset = dataset
         self.layout = self.create_layout()
         self.actions = dict(
