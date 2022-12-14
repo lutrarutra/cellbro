@@ -8,8 +8,8 @@ from dash import ALL, Dash, Input, Output, State, dcc, html
 import cellbro.pages.cells as cells
 import cellbro.pages.de as de
 import cellbro.pages.qc as qc
+import cellbro.pages.pca as pca
 from cellbro.pages.genes import create_page as create_genes_page
-from cellbro.pages.pca import create_page as create_pca_page
 from cellbro.util.Dataset import Dataset
 
 # from cellbro.core.pages.home import create_page as create_home_page
@@ -34,7 +34,9 @@ class App:
         qc_page = qc.QCPage(self.dataset, self.dash_app, order=1)
         qc_page.create()
         # create_genes_page(self.dash_app, self.dataset)
-        create_pca_page(self.dash_app, self.dataset)
+        # create_pca_page(self.dash_app, self.dataset)
+        pca_page = pca.PCAPage(self.dataset, self.dash_app, order=4)
+        pca_page.create()
         # create_de_page(self.dash_app, self.dataset)
         de_page = de.DEPage(self.dataset, self.dash_app, order=3)
         de_page.create()

@@ -49,7 +49,7 @@ qc_params = ParamsDict(
 def filter(self, submit):
     # Makes sure that filtering is not done on initial load
     if submit is None:
-        return list(self.params.values())
+        return list(self.params.values()) # !=
 
     self.dataset.adata = self.dataset.adata[
         self.dataset.adata.obs.pct_counts_mt < self.params["pct_counts_mt"], :

@@ -5,7 +5,7 @@ from dash.exceptions import PreventUpdate
 
 import cellbro.plots.DE as DE
 import scout
-from cellbro.util.Components import create_gene_card
+import cellbro.util.Components as Components
 from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
 
@@ -33,13 +33,12 @@ class ApplyDE(DashAction):
         states = {
             "groupby": State(component_id="de-groupby", component_property="value"),
         }
-        callbacks = dict(output=outputs, inputs=inputs, state=states)
         for param in DE.de_params.values():
             states[param.key] = State(
                 component_id=f"de-{param.key}", component_property="value"
             )
 
-        @dash_app.callback(**callbacks)
+        @dash_app.callback(output=outputs, inputs=inputs, state=states)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
@@ -60,9 +59,8 @@ class PlotVolcano(DashAction):
                 component_id="volcano-reference", component_property="value"
             ),
         }
-        callbacks = dict(output=outputs, inputs=inputs)
 
-        @dash_app.callback(**callbacks)
+        @dash_app.callback(output=outputs, inputs=inputs)
         def _(**kwargs):
             if kwargs["groupby"] is None:
                 raise PreventUpdate
@@ -85,9 +83,8 @@ class PlotPvalHistogram(DashAction):
                 component_id="volcano-reference", component_property="value"
             ),
         }
-        callbacks = dict(output=outputs, inputs=inputs)
 
-        @dash_app.callback(**callbacks)
+        @dash_app.callback(output=outputs, inputs=inputs)
         def _(**kwargs):
             if kwargs["groupby"] is None:
                 raise PreventUpdate
@@ -97,7 +94,7 @@ class PlotPvalHistogram(DashAction):
 class ClickAction(DashAction):
     def apply(self, params):
         gene = params["click_data"]["points"][0]["hovertext"]
-        element = create_gene_card(gene, self.dataset)
+        element = Components.create_gene_card(gene, self.dataset)
         return [element]
 
     def setup_callbacks(self, dash_app):
@@ -105,9 +102,8 @@ class ClickAction(DashAction):
         inputs = {
             "click_data": Input("de-volcano-plot", "clickData"),
         }
-        callbacks = dict(output=outputs, inputs=inputs)
 
-        @dash_app.callback(**callbacks)
+        @dash_app.callback(output=outputs, inputs=inputs)
         def _(**kwargs):
             if kwargs["click_data"] is None:
                 raise PreventUpdate
@@ -166,7 +162,7 @@ class DEPage(DashPage):
             children=[
                 html.Div(
                     children=[
-                        create_gene_card(None, self.dataset),
+                        Components.create_gene_card(None, self.dataset),
                     ],
                     id="de-volcano-info",
                     className="main-select top-parameters",
