@@ -5,6 +5,7 @@ import scanpy as sc
 from dash import Input, Output, State, dcc, html
 
 from cellbro.util.Param import *
+import cellbro.util.Components as Components
 
 heatmap_layout = go.Layout(
     paper_bgcolor="white",
@@ -89,54 +90,6 @@ class Heatmap:
         return fig, style
 
     @staticmethod
-    def params_layout():
-        divs = []
-        for key, param in heatmap_params.items():
-            if param.type == list:
-                divs.append(
-                    html.Div(
-                        children=[
-                            html.Label(
-                                param.name,
-                                className="param-label",
-                            ),
-                            html.Div(
-                                [
-                                    dcc.Dropdown(
-                                        options=param.allowed_values,
-                                        value=param.default,
-                                        id=f"heatmap-{key}",
-                                        clearable=False,
-                                    )
-                                ],
-                                className="param-select",
-                            ),
-                        ],
-                        className="param-row-stacked",
-                    )
-                )
-            else:
-                divs.append(
-                    html.Div(
-                        [
-                            html.Label(
-                                param.name,
-                                className="param-label",
-                            ),
-                            dcc.Input(
-                                id=f"heatmap-{key}",
-                                type=param.input_type,
-                                value=param.value,
-                                step=param.step if param.step != None else 0.1,
-                                className="param-input",
-                            ),
-                        ],
-                        className="param-row",
-                    )
-                )
-        return html.Div(divs)
-
-    @staticmethod
     def create_layout(dataset):
         sidebar = html.Div(
             children=[
@@ -151,9 +104,7 @@ class Heatmap:
                     type="circle",
                     children=[
                         html.Div(
-                            children=[
-                                Heatmap.params_layout(),
-                            ],
+                            children=Components.params_layout(heatmap_params, "heatmap"),
                             className="sidebar-parameters",
                         ),
                         html.Div(

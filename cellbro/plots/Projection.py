@@ -36,19 +36,22 @@ class ProjectionType(Enum):
     UMAP = "umap"
     TRIMAP = "trimap"
     TSNE = "tsne"
+    MDE = "mde"
+    SCVI_UMAP = "scvi_umap"
+    # SCVI_MDE = "scvi_mde"
     # PCA = "PCA"
 
 
 class Projection(ABC):
-    def __init__(self, dataset, color, params):
+    def __init__(self, dataset, color, params: ParamsDict):
         self.dataset = dataset
         self.color_label = color
         self.color = color
+
         # TODO: something smarter :)
         if "n_components" in params.params.keys():
-            params.params["n_components"].value = (
-                3 if params.params["n_components"].value else 2
-            )
+            params.params["n_components"].value = 3 if params.params["n_components"].value else 2
+
         self.params = params
 
         if color in self.dataset.adata.obs_keys():
@@ -164,14 +167,8 @@ class Projection(ABC):
                 )
             )
 
-        layout = html.Div(
-            children=divs,
-            style={"display": "none"},
-            id=f"projection-{projection_cls.get_type().value}",
-        )
-        return layout
 
-
+        return divs
 # class PCA(Projection):
 #     def __init__(self, dataset, color, params):
 #         super().__init__("X_pca", dataset, color)
@@ -183,3 +180,29 @@ class Projection(ABC):
 #         #     sc.tl.pca(dataset.adata, **self.params.unravel())
 
 #         self.add_params(dataset.adata)
+
+
+def parse_params(params):
+    projection_type = params.pop("projection_type")
+    projection_color = params.pop("projection_color")
+    key = None
+    if projection_type == "UMAP":
+        key = "umap"
+    elif projection_type == "t-SNE":
+        key = "tsne"
+    elif projection_type == "SCVI-UMAP":
+        key = "scvi_umap"
+    else:
+        key = "trimap"
+
+    projection_params = dict(
+        [
+            (param_key.replace(f"{key}_", ""), params[param_key])
+            for param_key in params.keys()
+            if param_key.startswith(f"{key}_")
+        ]
+    )
+    print(projection_params)
+    return projection_type, dict(color=projection_color, params=projection_params)
+    # elif projection_type == "PCA":
+    #     return PCA(dataset=dataset, color=color, params=params)

@@ -9,6 +9,7 @@ import cellbro.pages.cells as cells
 import cellbro.pages.de as de
 import cellbro.pages.qc as qc
 import cellbro.pages.pca as pca
+import cellbro.pages.scvi as scvi
 from cellbro.pages.genes import create_page as create_genes_page
 from cellbro.util.Dataset import Dataset
 
@@ -27,19 +28,22 @@ class App:
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
         self.dataset = Dataset("data/vas.h5ad")
 
-        # create_cells_page(self.dash_app, self.dataset)
-        cells_page = cells.CellsPage(self.dataset, self.dash_app, order=2)
-        cells_page.create()
-        # create_qc_page(self.dash_app, self.dataset)
         qc_page = qc.QCPage(self.dataset, self.dash_app, order=1)
         qc_page.create()
-        # create_genes_page(self.dash_app, self.dataset)
-        # create_pca_page(self.dash_app, self.dataset)
-        pca_page = pca.PCAPage(self.dataset, self.dash_app, order=4)
-        pca_page.create()
-        # create_de_page(self.dash_app, self.dataset)
+
+        cells_page = cells.CellsPage(self.dataset, self.dash_app, order=2)
+        cells_page.create()
+
         de_page = de.DEPage(self.dataset, self.dash_app, order=3)
         de_page.create()
+
+        pca_page = pca.PCAPage(self.dataset, self.dash_app, order=4)
+        pca_page.create()
+
+        scvi_page = scvi.SCVIPage(self.dataset, self.dash_app, order=5)
+        scvi_page.create()
+
+        # create_genes_page(self.dash_app, self.dataset)
 
         self.dash_app.layout = html.Div(
             [

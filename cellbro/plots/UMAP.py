@@ -6,7 +6,7 @@ from cellbro.util.Param import Param, ParamsDict
 
 
 class UMAP(Projection):
-    def __init__(self, dataset, color, params):
+    def __init__(self, dataset, color, params: ParamsDict):
         super().__init__(dataset, color, UMAP._params.update(params))
 
     def apply(self):
@@ -54,3 +54,22 @@ class UMAP(Projection):
             ),
         ]
     )
+
+
+class SCVI_UMAP(UMAP):
+    def __init__(self, dataset, color, params: ParamsDict):
+        super().__init__(dataset, color, params)
+
+    def apply(self):
+        self.dataset.adata.obsm[SCVI_UMAP.get_key()] = sc.tl.umap(
+            self.dataset.adata, neighbors_key="neighbors_scvi",
+            copy=True, **self.params.unravel()
+        ).obsm["X_umap"].copy()
+
+    @staticmethod
+    def get_type() -> ProjectionType:
+        return ProjectionType.SCVI_UMAP
+
+    @staticmethod
+    def get_key() -> str:
+        return "X_scvi_umap"

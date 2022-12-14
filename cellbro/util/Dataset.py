@@ -43,6 +43,12 @@ class Dataset:
             - set(self.adata.obs._get_numeric_data().columns)
         )
 
+    def get_continuous(self):
+        return list(self.adata.obs._get_numeric_data().columns)
+
+    def get_neighbors(self):
+        return [key for key in self.adata.uns_keys() if "neighbors" in key]
+
     def get_gene_lists(self, gene=None):
         if "gene_lists" not in self.adata.uns:
             return []

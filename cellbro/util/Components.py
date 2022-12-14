@@ -3,6 +3,39 @@ import plotly.express as px
 from dash import html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 
+from cellbro.util.DashAction import DashAction
+
+
+class CollapseDiv(DashAction):
+    def __init__(self, id, btn_id, children, collapsed=True):
+        super().__init__(dataset=None)
+        self.id = id
+        self.btn_id = btn_id
+        self.children = children
+        self.collapsed = collapsed
+        self.layout = self.create_layout()
+
+    def create_layout(self):
+        return dbc.Collapse(
+            children=self.children,
+            id=self.id,
+            is_open=not self.collapsed,
+        )
+
+    def apply(self, params):
+        pass
+
+    def setup_callbacks(self, dash_app):
+        @dash_app.callback(
+            output=Output(self.id, "is_open"),
+            inputs=[Input(self.btn_id, "n_clicks")],
+            state=[State(self.id, "is_open")],
+        )
+        def _(n, is_open):
+            if n:
+                return not is_open
+            return is_open
+
 
 def create_gene_card(gene, dataset):
     gl_options = dataset.get_gene_lists()
@@ -50,3 +83,53 @@ def create_gene_card(gene, dataset):
         ], className="hover-info")
     ], className="hover-container", style={"display": "none" if gene == None else "flex"})
     return element
+
+
+def params_layout(params, id_prefix):
+    divs = []
+    for key, param in params.items():
+        if param.type == list:
+            divs.append(
+                html.Div(
+                    children=[
+                        html.Label(
+                            param.name,
+                            className="param-label",
+                        ),
+                        html.Div(
+                            [
+                                dcc.Dropdown(
+                                    options=param.allowed_values,
+                                    value=param.default,
+                                    id=f"{id_prefix}-{key}",
+                                    clearable=False,
+                                )
+                            ],
+                            className="param-select",
+                        ),
+                    ],
+                    className="param-row-stacked",
+                )
+            )
+        else:
+            divs.append(
+                html.Div(
+                    [
+                        html.Label(
+                            param.name,
+                            className="param-label",
+                        ),
+                        dcc.Input(
+                            id=f"{id_prefix}-{key}",
+                            type=param.input_type,
+                            value=param.value,
+                            step=param.step if param.step != None else 0.1,
+                            className="param-input",
+                        ),
+                    ],
+                    className="param-row",
+                )
+            )
+    return divs
+
+

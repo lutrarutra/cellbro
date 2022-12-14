@@ -1,4 +1,4 @@
-
+from dataclasses import dataclass
 class ParamsDict():
     def __init__(self, params_list):
         self.params = {}
@@ -38,18 +38,21 @@ class ParamsDict():
             params[key] = param.value
         return params
 
+@dataclass
 class Param():
-    def __init__(
-        self, key, name, default, type,
-        description, nullable=False, allowed_values=None,
-        _min=None, _max=None, step=None,
-        ):
-        self.key = key
-        self.name = name
-        self.default = default
-        self.value = default
-        self.type = type
-        self.allowed_values = allowed_values
+    key: str
+    name: str
+    default: any
+    type: type
+    description: str = ""
+    allowed_values: list = None
+    nullable: bool = False
+    _min: int = None
+    _max: int = None
+    step: int = None
+
+    def __post_init__(self):
+        self.value = self.default
         if self.type == str:
             self.input_type = "text"
         elif self.type == int:
@@ -58,10 +61,5 @@ class Param():
             self.input_type = "number"
         else:
             self.input_type = "text"
-        self.description = description
-        self.nullable = nullable
-        self.min = _min
-        self.max = _max
-        self.step = step
 
     

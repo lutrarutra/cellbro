@@ -226,6 +226,15 @@ h3 {
     width: 100%;
 }
 
+.param-class {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    width: 100%;
+    padding: 10px 0 10px 0;
+    /* border-top: solid 1px #5c5c5c; */
+    border-bottom: solid 1px #5c5c5c;
+}
 
 .param-column {
     display: flex;

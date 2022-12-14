@@ -5,34 +5,13 @@ import plotly.graph_objects as go
 from dash import Input, Output, State, dcc, html
 
 from cellbro.plots.Heatmap import Heatmap, heatmap_params
-from cellbro.plots.Projection import Projection, ProjectionType
+from cellbro.plots.Projection import Projection, ProjectionType, parse_params
 from cellbro.plots.Trimap import Trimap
 from cellbro.plots.TSNE import TSNE
-from cellbro.plots.UMAP import UMAP
+from cellbro.plots.UMAP import UMAP, SCVI_UMAP
 from cellbro.plots.Violin import Violin
 from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
-
-
-def parse_params(params):
-    projection_type = params.pop("projection_type")
-    projection_color = params.pop("projection_color")
-    key = None
-    if projection_type == "UMAP":
-        key = "umap"
-    elif projection_type == "t-SNE":
-        key = "tsne"
-    else:
-        key = "trimap"
-
-    projection_params = dict(
-        [
-            (param_key.replace(f"{key}_", ""), params[param_key])
-            for param_key in params.keys()
-            if param_key.startswith(f"{key}_")
-        ]
-    )
-    return projection_type, dict(color=projection_color, params=projection_params)
 
 
 def projection_factory(dataset, params) -> Projection:
@@ -42,11 +21,12 @@ def projection_factory(dataset, params) -> Projection:
     elif projection_type == "t-SNE":
         return TSNE(dataset=dataset, **kwargs)
     # elif projection_type == "Trimap":
-    else:
+    elif projection_type == "SCVI-UMAP":
+        return SCVI_UMAP(dataset=dataset, **kwargs)
+    elif projection_type == "Trimap":
         return Trimap(dataset=dataset, **kwargs)
-    # elif projection_type == "PCA":
-    #     return PCA(dataset=dataset, color=color, params=params)
-
+    else:
+        assert False, "Invalid projection type"
 
 class PlotProjection(DashAction):
     def apply(self, params):
@@ -58,7 +38,7 @@ class PlotProjection(DashAction):
                 {"display": "block"},
                 {"display": "none"},
                 {"display": "none"},
-                # {"display": "none"},
+                {"display": "none"},
             ]
 
         elif projection.get_type() == ProjectionType.TSNE:
@@ -67,7 +47,7 @@ class PlotProjection(DashAction):
                 {"display": "none"},
                 {"display": "block"},
                 {"display": "none"},
-                # {"display": "none"},
+                {"display": "none"},
             ]
 
         elif projection.get_type() == ProjectionType.TRIMAP:
@@ -76,7 +56,15 @@ class PlotProjection(DashAction):
                 {"display": "none"},
                 {"display": "none"},
                 {"display": "block"},
-                # {"display": "none"},
+                {"display": "none"},
+            ]
+        elif projection.get_type() == ProjectionType.SCVI_UMAP:
+            return [
+                projection.plot(),
+                {"display": "none"},
+                {"display": "none"},
+                {"display": "none"},
+                {"display": "block"},
             ]
         assert False, "Invalid projection type"
 
@@ -86,6 +74,7 @@ class PlotProjection(DashAction):
             Output(component_id="projection-umap", component_property="style"),
             Output(component_id="projection-tsne", component_property="style"),
             Output(component_id="projection-trimap", component_property="style"),
+            Output(component_id="projection-scvi_umap", component_property="style"),
             # Output(component_id="projection-pca", component_property="style"),
         ]
 
@@ -107,6 +96,11 @@ class PlotProjection(DashAction):
                 component_id=f"projection-umap-{key}", component_property="value"
             )
 
+        for key in SCVI_UMAP._params.keys():
+            states[f"scvi_umap_{key}"] = State(
+                component_id=f"projection-scvi_umap-{key}", component_property="value"
+            )
+
         for key in TSNE._params.keys():
             states[f"tsne_{key}"] = State(
                 component_id=f"projection-tsne-{key}", component_property="value"
@@ -116,14 +110,13 @@ class PlotProjection(DashAction):
             states[f"trimap_{key}"] = State(
                 component_id=f"projection-trimap-{key}", component_property="value"
             )
-        callbacks = dict(output=outputs, inputs=inputs, state=states)
 
         # for key in pca_params.keys():
         #     states[f"pca_{key}"] = State(
         #         component_id=f"projection-pca-{key}", component_property="value"
         #     )
         # Projection
-        @dash_app.callback(**callbacks)
+        @dash_app.callback(output=outputs, inputs=inputs, state=states)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
@@ -206,9 +199,30 @@ class CellsPage(DashPage):
                     children=[
                         html.Div(
                             children=[
-                                Projection.get_layout(UMAP),
-                                Projection.get_layout(TSNE),
-                                Projection.get_layout(Trimap),
+                                html.Div(
+                                    children=Projection.get_layout(UMAP),
+                                    style={"display": "none"},
+                                    id=f"projection-{UMAP.get_type().value}",
+                                    className="param-class"
+                                ),
+                                html.Div(
+                                    children=Projection.get_layout(TSNE),
+                                    style={"display": "none"},
+                                    id=f"projection-{TSNE.get_type().value}",
+                                    className="param-class"
+                                ),
+                                html.Div(
+                                    children=Projection.get_layout(Trimap),
+                                    style={"display": "none"},
+                                    id=f"projection-{Trimap.get_type().value}",
+                                    className="param-class"
+                                ),
+                                html.Div(
+                                    children=Projection.get_layout(SCVI_UMAP),
+                                    style={"display": "none"},
+                                    id=f"projection-{SCVI_UMAP.get_type().value}",
+                                    className="param-class"
+                                ),
                             ],
                             className="sidebar-parameters",
                         ),
@@ -228,6 +242,10 @@ class CellsPage(DashPage):
             ],
             className="top-sidebar sidebar",
         )
+        neighbors = self.dataset.get_neighbors()
+        available_projections = ["UMAP", "Trimap", "t-SNE", "PCA"]
+        if "neighbors_scvi" in self.dataset.adata.uns_keys():
+            available_projections.append("SCVI-UMAP")
 
         main_figure = html.Div(
             children=[
@@ -238,10 +256,8 @@ class CellsPage(DashPage):
                             children=[
                                 html.Label("Projection Type"),
                                 dcc.Dropdown(
-                                    ["UMAP", "Trimap", "t-SNE", "PCA"],
-                                    value="UMAP",
-                                    id="projection-type",
-                                    clearable=False,
+                                    available_projections, value="UMAP",
+                                    id="projection-type", clearable=False,
                                 ),
                             ],
                             className="param-column",
