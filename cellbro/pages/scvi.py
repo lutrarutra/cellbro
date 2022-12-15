@@ -1,5 +1,5 @@
 import dash
-from dash import Input, Output, State, dcc, html
+from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 
@@ -11,7 +11,7 @@ from cellbro.util.DashAction import DashAction
 from cellbro.plots.UMAP import SCVI_UMAP
 
 class FitAction(DashAction):
-    def apply(self, params):
+    def apply(self, params: dict):
         setup_params = dict(
             [(key[6:], value) for key, value in params.items() if key.startswith("setup_")]
         )
@@ -21,12 +21,16 @@ class FitAction(DashAction):
         train_params = dict(
             [(key[6:], value) for key, value in params.items() if key.startswith("train_")]
         )
-
         scvi_plots.setup(self.dataset, setup_params)
         scvi_plots.fit(self.dataset, model_params, train_params)
 
-        _, kwargs = Projection.parse_params(params)
+        return self.plot(params)
 
+    def plot(self, params: dict):
+        if "neighbors_scvi" not in self.dataset.get_neighbors():
+            raise PreventUpdate
+        
+        _, kwargs = Projection.parse_params(params)
         projection = SCVI_UMAP(dataset=self.dataset, **kwargs)
         projection.apply()
 
@@ -63,10 +67,13 @@ class FitAction(DashAction):
 
         @dash_app.callback(output=output, inputs=inputs, state=state)
         def _(**kwargs):
-            submit = kwargs.pop("submit")
-            if submit is None:
-                raise PreventUpdate
-            return self.apply(params=kwargs)
+            _ = kwargs.pop("submit")
+            if ctx.triggered_id == "fit-submit":
+                return self.apply(params=kwargs)
+            # if submit is None:
+            #     raise PreventUpdate
+            
+            return self.plot(params=kwargs)
 
 class SCVIPage(DashPage):
     def __init__(self, dataset, dash_app, order):
@@ -234,8 +241,7 @@ class SCVIPage(DashPage):
                                 dcc.Dropdown(
                                     self.dataset.adata.obs_keys()
                                     + self.dataset.adata.var_names.tolist(),
-                                    value=self.dataset.adata.obs_keys()[
-                                        0],
+                                    value=self.dataset.adata.obs_keys()[0],
                                     id="projection-color",
                                     clearable=False,
                                 ),

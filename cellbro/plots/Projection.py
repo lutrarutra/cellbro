@@ -182,7 +182,7 @@ class Projection(ABC):
 #         self.add_params(dataset.adata)
 
 
-def parse_params(params):
+def parse_params(params: dict):
     projection_type = params.pop("projection_type")
     projection_color = params.pop("projection_color")
     key = None

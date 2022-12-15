@@ -173,8 +173,12 @@ h3 {
     height: 80px;
 }
 
-.top-parameters > div {
-    flex-grow: 1;
+/* .top-parameters > div {
+    width: 100%;
+} */
+
+.param-column {
+    width: 100%;
 }
 
 .hover-container {
