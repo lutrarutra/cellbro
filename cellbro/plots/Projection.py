@@ -202,7 +202,6 @@ def parse_params(params: dict):
             if param_key.startswith(f"{key}_")
         ]
     )
-    print(projection_params)
     return projection_type, dict(color=projection_color, params=projection_params)
     # elif projection_type == "PCA":
     #     return PCA(dataset=dataset, color=color, params=params)

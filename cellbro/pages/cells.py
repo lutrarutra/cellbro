@@ -153,7 +153,6 @@ class PlotHeatmap(DashAction):
         def _(submit, **kwargs):
             return self.apply(params=kwargs)
 
-
 class PlotViolin(DashAction):
     def apply(self, params):
         return Violin(self.dataset).plot(**params)
@@ -174,6 +173,20 @@ class PlotViolin(DashAction):
             return self.apply(params=kwargs)
 
 
+class UpdateAvailableProjectionTypes(DashAction):
+    def setup_callbacks(self, dash_app):
+        @dash_app.callback(
+            output=Output("projection-type", "options"),
+            inputs={"_": Input("projection-type", "value")}
+        )
+        def _(_):
+            neighbors = self.dataset.get_neighbors()
+            available_projections = ["UMAP", "Trimap", "t-SNE", "PCA"]
+            if "neighbors_scvi" in neighbors:
+                available_projections.append("SCVI-UMAP")
+
+            return available_projections
+
 class CellsPage(DashPage):
     def __init__(self, dataset, dash_app, order):
         super().__init__("pages.cells", "Cells", "/cells", order)
@@ -182,6 +195,7 @@ class CellsPage(DashPage):
             projection_action=PlotProjection(self.dataset),
             heatmap_action=PlotHeatmap(self.dataset),
             violin_action=PlotViolin(self.dataset),
+            update_projection_types=UpdateAvailableProjectionTypes(self.dataset),
         )
         self.setup_callbacks(dash_app)
 
@@ -244,7 +258,7 @@ class CellsPage(DashPage):
         )
         neighbors = self.dataset.get_neighbors()
         available_projections = ["UMAP", "Trimap", "t-SNE", "PCA"]
-        if "neighbors_scvi" in self.dataset.adata.uns_keys():
+        if "neighbors_scvi" in neighbors:
             available_projections.append("SCVI-UMAP")
 
         main_figure = html.Div(

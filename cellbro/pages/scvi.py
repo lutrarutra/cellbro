@@ -43,10 +43,10 @@ class FitAction(DashAction):
         inputs = {
             "submit": Input("fit-submit", "n_clicks"),
             "projection_color": Input(
-                component_id="projection-color", component_property="value"
+                component_id="scvi-projection-color", component_property="value"
             ),
             "projection_type": Input(
-                component_id="projection-type", component_property="value"
+                component_id="scvi-projection-type", component_property="value"
             ),
         }
         state = {
@@ -229,7 +229,7 @@ class SCVIPage(DashPage):
                                 html.Label("Projection Type"),
                                 dcc.Dropdown(
                                     ["SCVI-UMAP"], value="SCVI-UMAP",
-                                    id="projection-type", clearable=False,
+                                    id="scvi-projection-type", clearable=False,
                                 ),
                             ],
                             className="param-column",
@@ -242,7 +242,7 @@ class SCVIPage(DashPage):
                                     self.dataset.adata.obs_keys()
                                     + self.dataset.adata.var_names.tolist(),
                                     value=self.dataset.adata.obs_keys()[0],
-                                    id="projection-color",
+                                    id="scvi-projection-color",
                                     clearable=False,
                                 ),
                             ],

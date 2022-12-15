@@ -28,9 +28,18 @@ scvi_train_params = ParamsDict([
 ])
 
 def setup(dataset, params):
+    if params == dataset.adata.uns["scvi_setup_params"]:
+        return
+
     scvi.model.SCVI.setup_anndata(dataset.adata, layer="counts", **params)
+    dataset.adata.uns["scvi_setup_params"] = params
 
 def fit(dataset, model_params, train_params):
+    if (
+        model_params == dataset.adata.uns["scvi_model_params"] and
+        train_params == dataset.adata.uns["scvi_train_params"]
+    ): return
+
     vae = scvi.model.SCVI(dataset.adata, **model_params)
     vae.train(**train_params)
 
@@ -41,3 +50,6 @@ def fit(dataset, model_params, train_params):
 
     for key, value in likelihood_params.items():
         dataset.adata.layers[f"scvi_{key}"] = value
+
+    dataset.adata.uns["scvi_model_params"] = model_params
+    dataset.adata.uns["scvi_train_params"] = train_params

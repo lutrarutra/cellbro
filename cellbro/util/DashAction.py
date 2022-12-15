@@ -22,10 +22,6 @@ class DashAction(ABC):
     def __init__(self, dataset):
         self.dataset = dataset
 
-    @abstractmethod
-    def apply(self, params):
-        ...
-
     # @abstractmethod
     # def create_layout(self) -> list:
     #     ...

@@ -37,6 +37,10 @@ class Dataset:
         self.adata.uns["gene_lists"] = {}
         print("Dataset Ready!")
 
+        self.adata.uns["scvi_setup_params"] = {}
+        self.adata.uns["scvi_model_params"] = {}
+        self.adata.uns["scvi_train_params"] = {}
+
     def get_categoricals(self):
         return list(
             set(self.adata.obs.columns)
