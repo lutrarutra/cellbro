@@ -2,10 +2,6 @@ from abc import ABC, abstractmethod
 
 import dash
 
-from cellbro.util.DashAction import DashAction
-from cellbro.util.Dataset import Dataset
-
-
 class DashPage(ABC):
     def __init__(self, module: str, title: str, path: str, order: int):
         self.module = module
@@ -18,9 +14,9 @@ class DashPage(ABC):
     def create_layout(self) -> list:
         ...
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         for key, action in self.actions.items():
-            action.setup_callbacks(dash_app)
+            action.setup_callbacks(app)
 
     def create(self):
         dash.register_page(

@@ -9,7 +9,7 @@ from dash.exceptions import PreventUpdate
 from plotly.subplots import make_subplots
 
 import scout
-from cellbro.util.Components import create_gene_card
+# import cellbro.util.Components import Components
 from cellbro.util.DashPage import DashPage
 from cellbro.util.Param import *
 

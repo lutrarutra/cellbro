@@ -68,7 +68,7 @@ class PlotProjection(DashAction):
             ]
         assert False, "Invalid projection type"
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         outputs = [
             Output(component_id="projection-plot", component_property="figure"),
             Output(component_id="projection-umap", component_property="style"),
@@ -116,7 +116,7 @@ class PlotProjection(DashAction):
         #         component_id=f"projection-pca-{key}", component_property="value"
         #     )
         # Projection
-        @dash_app.callback(output=outputs, inputs=inputs, state=states)
+        @app.dash_app.callback(output=outputs, inputs=inputs, state=states)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
@@ -125,7 +125,7 @@ class PlotHeatmap(DashAction):
     def apply(self, params):
         return Heatmap(self.dataset, params).plot()
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         output = [
             Output(component_id="heatmap-plot", component_property="figure"),
             Output(component_id="heatmap-plot", component_property="style"),
@@ -149,7 +149,7 @@ class PlotHeatmap(DashAction):
         )
         callbacks = dict(output=output, inputs=inputs, state=state)
 
-        @dash_app.callback(**callbacks)
+        @app.dash_app.callback(**callbacks)
         def _(submit, **kwargs):
             return self.apply(params=kwargs)
 
@@ -157,7 +157,7 @@ class PlotViolin(DashAction):
     def apply(self, params):
         return Violin(self.dataset).plot(**params)
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         output = [
             Output(component_id="violin-plot", component_property="figure"),
         ]
@@ -168,14 +168,14 @@ class PlotViolin(DashAction):
         }
         callbacks = dict(output=output, inputs=inputs)
 
-        @dash_app.callback(**callbacks)
+        @app.dash_app.callback(**callbacks)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
 
 class UpdateAvailableProjectionTypes(DashAction):
-    def setup_callbacks(self, dash_app):
-        @dash_app.callback(
+    def setup_callbacks(self, app):
+        @app.dash_app.callback(
             output=Output("projection-type", "options"),
             inputs={"_": Input("projection-type", "value")}
         )
@@ -188,7 +188,7 @@ class UpdateAvailableProjectionTypes(DashAction):
             return available_projections
 
 class CellsPage(DashPage):
-    def __init__(self, dataset, dash_app, order):
+    def __init__(self, dataset, app, order):
         super().__init__("pages.cells", "Cells", "/cells", order)
         self.dataset = dataset
         self.actions = dict(
@@ -197,7 +197,7 @@ class CellsPage(DashPage):
             violin_action=PlotViolin(self.dataset),
             update_projection_types=UpdateAvailableProjectionTypes(self.dataset),
         )
-        self.setup_callbacks(dash_app)
+        self.setup_callbacks(app)
 
     def create_layout(self) -> list:
         left_sidebar = html.Div(

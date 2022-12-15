@@ -1,3 +1,7 @@
+import redis
+import rq
+import flask
+
 import dash
 import dash_bootstrap_components as dbc
 import plotly.express as px
@@ -18,8 +22,15 @@ from cellbro.util.Dataset import Dataset
 
 class App:
     def __init__(self):
+        self.server = flask.Flask(__name__)
+        self.redis_url = "redis://localhost:6379"
+        self.redis_conn = redis.from_url(self.redis_url)
+        self.queue = rq.Queue(connection=self.redis_conn)
+
         self.dash_app = Dash(
             __name__,
+            server=self.server,
+            serve_locally=True,
             use_pages=True,
             pages_folder="../pages",
             assets_folder="../assets",
@@ -28,19 +39,19 @@ class App:
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
         self.dataset = Dataset("data/vas.h5ad")
 
-        qc_page = qc.QCPage(self.dataset, self.dash_app, order=1)
+        qc_page = qc.QCPage(self.dataset, self, order=1)
         qc_page.create()
 
-        cells_page = cells.CellsPage(self.dataset, self.dash_app, order=2)
+        cells_page = cells.CellsPage(self.dataset, self, order=2)
         cells_page.create()
 
-        de_page = de.DEPage(self.dataset, self.dash_app, order=3)
+        de_page = de.DEPage(self.dataset, self, order=3)
         de_page.create()
 
-        pca_page = pca.PCAPage(self.dataset, self.dash_app, order=4)
+        pca_page = pca.PCAPage(self.dataset, self, order=4)
         pca_page.create()
 
-        scvi_page = scvi.SCVIPage(self.dataset, self.dash_app, order=5)
+        scvi_page = scvi.SCVIPage(self.dataset, self, order=5)
         scvi_page.create()
 
         # create_genes_page(self.dash_app, self.dataset)

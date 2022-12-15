@@ -14,7 +14,7 @@ class ApplyDE(DashAction):
     def apply(self, params):
         return DE.apply(self.dataset, params=params)
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         outputs = [
             Output(component_id="volcano-groupby", component_property="options"),
             Output(component_id="volcano-groupby", component_property="value"),
@@ -38,7 +38,7 @@ class ApplyDE(DashAction):
                 component_id=f"de-{param.key}", component_property="value"
             )
 
-        @dash_app.callback(output=outputs, inputs=inputs, state=states)
+        @app.dash_app.callback(output=outputs, inputs=inputs, state=states)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
@@ -47,7 +47,7 @@ class PlotVolcano(DashAction):
     def apply(self, params):
         return [DE.plot_de_volcano(dataset=self.dataset, params=params)]
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         outputs = [
             Output(component_id="de-volcano-plot", component_property="figure"),
         ]
@@ -60,7 +60,7 @@ class PlotVolcano(DashAction):
             ),
         }
 
-        @dash_app.callback(output=outputs, inputs=inputs)
+        @app.dash_app.callback(output=outputs, inputs=inputs)
         def _(**kwargs):
             if kwargs["groupby"] is None:
                 raise PreventUpdate
@@ -71,7 +71,7 @@ class PlotPvalHistogram(DashAction):
     def apply(self, params):
         return [DE.plot_pval_histogram(dataset=self.dataset, params=params)]
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         outputs = [
             Output(component_id="de-secondary-plot", component_property="figure"),
         ]
@@ -84,7 +84,7 @@ class PlotPvalHistogram(DashAction):
             ),
         }
 
-        @dash_app.callback(output=outputs, inputs=inputs)
+        @app.dash_app.callback(output=outputs, inputs=inputs)
         def _(**kwargs):
             if kwargs["groupby"] is None:
                 raise PreventUpdate
@@ -97,13 +97,13 @@ class ClickAction(DashAction):
         element = Components.create_gene_card(gene, self.dataset)
         return [element]
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         outputs = [Output("de-volcano-info", "children")]
         inputs = {
             "click_data": Input("de-volcano-plot", "clickData"),
         }
 
-        @dash_app.callback(output=outputs, inputs=inputs)
+        @app.dash_app.callback(output=outputs, inputs=inputs)
         def _(**kwargs):
             if kwargs["click_data"] is None:
                 raise PreventUpdate
@@ -111,7 +111,7 @@ class ClickAction(DashAction):
 
 
 class DEPage(DashPage):
-    def __init__(self, dataset, dash_app, order):
+    def __init__(self, dataset, app, order):
         super().__init__("pages.de", "DE", "/de", order)
         self.dataset = dataset
         self.layout = self.create_layout()
@@ -121,7 +121,7 @@ class DEPage(DashPage):
             plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset),
             click_action=ClickAction(dataset=self.dataset),
         )
-        self.setup_callbacks(dash_app)
+        self.setup_callbacks(app)
 
     def create_layout(self):
         top_sidebar = html.Div(

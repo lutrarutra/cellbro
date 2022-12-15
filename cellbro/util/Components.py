@@ -5,7 +5,6 @@ import dash_bootstrap_components as dbc
 
 from cellbro.util.DashAction import DashAction
 
-
 class CollapseDiv(DashAction):
     def __init__(self, id, btn_id, children, collapsed=True):
         super().__init__(dataset=None)
@@ -25,8 +24,8 @@ class CollapseDiv(DashAction):
     def apply(self, params):
         pass
 
-    def setup_callbacks(self, dash_app):
-        @dash_app.callback(
+    def setup_callbacks(self, app):
+        @app.dash_app.callback(
             output=Output(self.id, "is_open"),
             inputs=[Input(self.btn_id, "n_clicks")],
             state=[State(self.id, "is_open")],

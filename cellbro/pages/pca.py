@@ -14,13 +14,13 @@ class ClickAction(DashAction):
         element = Components.create_gene_card(gene, self.dataset)
         return [element]
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         outputs = [Output("pca-secondary-select", "children")]
         inputs = {
             "click_data": Input("pca-secondary-plot", "clickData"),
         }
 
-        @dash_app.callback(output=outputs, inputs=inputs)
+        @app.dash_app.callback(output=outputs, inputs=inputs)
         def _(**kwargs):
             if kwargs["click_data"] is None:
                 raise PreventUpdate
@@ -30,7 +30,7 @@ class PlotAction(DashAction):
     def apply(self, params):
         return PCA.PCA(self.dataset, **params).plot()
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         output = [
             Output(component_id="pca-main-plot", component_property="figure"),
             Output(component_id="pca-secondary-plot", component_property="figure"),
@@ -51,13 +51,13 @@ class PlotAction(DashAction):
             ),
         }
 
-        @dash_app.callback(output=output, inputs=inputs)
+        @app.dash_app.callback(output=output, inputs=inputs)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
 
 class PCAPage(DashPage):
-    def __init__(self, dataset, dash_app, order):
+    def __init__(self, dataset, app, order):
         super().__init__("pages.pca", "PCA", "/pca", order)
         self.dataset = dataset
         self.layout = self.create_layout()
@@ -65,7 +65,7 @@ class PCAPage(DashPage):
             plot_action=PlotAction(self.dataset),
             click_action=ClickAction(self.dataset)
         )
-        self.setup_callbacks(dash_app)
+        self.setup_callbacks(app)
 
     def create_layout(self) -> list:
         top_sidebar = html.Div(

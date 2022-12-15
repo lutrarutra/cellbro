@@ -12,6 +12,7 @@ from plotly.subplots import make_subplots
 
 from cellbro.util.Dataset import Dataset
 from cellbro.util.Param import *
+# from cellbro.core.app import App
 
 
 class DashAction(ABC):
@@ -27,5 +28,5 @@ class DashAction(ABC):
     #     ...
 
     @abstractmethod
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         ...

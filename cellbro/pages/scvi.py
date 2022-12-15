@@ -36,7 +36,7 @@ class FitAction(DashAction):
 
         return [projection.plot()]
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         output = [
             Output("scvi-projection-plot", "figure"),
         ]
@@ -65,7 +65,7 @@ class FitAction(DashAction):
                 component_id=f"projection-scvi_umap-{key}", component_property="value"
             )
 
-        @dash_app.callback(output=output, inputs=inputs, state=state)
+        @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(**kwargs):
             _ = kwargs.pop("submit")
             if ctx.triggered_id == "fit-submit":
@@ -76,14 +76,14 @@ class FitAction(DashAction):
             return self.plot(params=kwargs)
 
 class SCVIPage(DashPage):
-    def __init__(self, dataset, dash_app, order):
+    def __init__(self, dataset, app, order):
         super().__init__("pages.scvi", "SCVI", "/scvi", order)
         self.dataset = dataset
         self.actions = dict(
             fit=FitAction(self.dataset),
         )
         self.layout = self.create_layout()
-        self.setup_callbacks(dash_app)
+        self.setup_callbacks(app)
 
 
     def create_layout(self) -> list:

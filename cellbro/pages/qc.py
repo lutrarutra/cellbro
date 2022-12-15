@@ -1,5 +1,4 @@
 import scanpy as sc
-import dash
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -42,7 +41,7 @@ class PlotAction(DashAction):
     def apply(self, params):
         return QC.plot(self.dataset, params)
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         output = [
             Output(component_id="mt-plot", component_property="figure"),
             Output(component_id="dispersion-plot", component_property="figure"),
@@ -54,8 +53,7 @@ class PlotAction(DashAction):
             inputs[param.key] = Input(
                 component_id=f"qc-{param.key}", component_property="value"
             )
-
-        @dash_app.callback(output=output, inputs=inputs)
+        @app.dash_app.callback(output=output, inputs=inputs)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
@@ -74,7 +72,7 @@ class FilterAction(DashAction):
 
         return list(self.params.values())
 
-    def setup_callbacks(self, dash_app):
+    def setup_callbacks(self, app):
         output = []
         for param in QC.qc_params.values():
             output.append(
@@ -92,7 +90,7 @@ class FilterAction(DashAction):
                 component_id=f"qc-{param.key}", component_property="value"
             )
 
-        @dash_app.callback(output=output, inputs=inputs, state=state)
+        @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
@@ -103,8 +101,8 @@ class ClickAction(DashAction):
         element = Components.create_gene_card(gene, self.dataset)
         return [element]
 
-    def setup_callbacks(self, dash_app):
-        @dash_app.callback(
+    def setup_callbacks(self, app):
+        @app.dash_app.callback(
             [Output("dispersion-info", "children")], [Input("dispersion-plot", "clickData")]
         )
         def _(clickData):
@@ -119,8 +117,8 @@ class SelectGeneListAction(DashAction):
         res = self.dataset.update_gene_lists(params["selected_gene"], params["gene_list"])
         return res, self.dataset.get_gene_lists()
 
-    def setup_callbacks(self, dash_app):
-        @dash_app.callback(
+    def setup_callbacks(self, app):
+        @app.dash_app.callback(
             output=[
                 Output("gene-list-dropdown", "value"),
                 Output("gene-list-dropdown", "options"),
@@ -150,7 +148,7 @@ class SelectGeneListAction(DashAction):
 
 
 class QCPage(DashPage):
-    def __init__(self, dataset, dash_app, order):
+    def __init__(self, dataset, app, order):
         super().__init__("pages.qc", "QC", "/qc", order)
         self.dataset = dataset
         self.layout = self.create_layout()
@@ -160,7 +158,7 @@ class QCPage(DashPage):
             click=ClickAction(dataset),
             select_gene_list=SelectGeneListAction(dataset),
         )
-        self.setup_callbacks(dash_app)
+        self.setup_callbacks(app)
 
     def create_layout(self):
         top_sidebar = html.Div(
