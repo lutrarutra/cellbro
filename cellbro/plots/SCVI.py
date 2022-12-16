@@ -7,9 +7,14 @@ import scanpy as sc
 from dash import Input, Output, State, dcc, html
 from plotly.subplots import make_subplots
 
+import rq
+
 import scvi
 
 from cellbro.util.Param import *
+from cellbro.plots.UMAP import SCVI_UMAP
+import cellbro.plots.Projection as Projection
+
 
 scvi_model_params = ParamsDict([
     Param("gene_likelihood", "Gene Likelihood", default="zinb", type=list, allowed_values=["zinb", "nb", "poisson"]),

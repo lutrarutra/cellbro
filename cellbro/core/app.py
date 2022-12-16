@@ -1,5 +1,3 @@
-import redis
-import rq
 import flask
 
 import dash
@@ -19,13 +17,12 @@ from cellbro.util.Dataset import Dataset
 
 # from cellbro.core.pages.home import create_page as create_home_page
 
-
 class App:
     def __init__(self):
+        # self.conn = redis_conn
+        # self.queue = queue
+        
         self.server = flask.Flask(__name__)
-        self.redis_url = "redis://localhost:6379"
-        self.redis_conn = redis.from_url(self.redis_url)
-        self.queue = rq.Queue(connection=self.redis_conn)
 
         self.dash_app = Dash(
             __name__,
@@ -37,7 +34,8 @@ class App:
             external_stylesheets=[dbc.themes.BOOTSTRAP],
         )
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
-        self.dataset = Dataset("data/vas.h5ad")
+        self.dataset = Dataset(
+            "/home/lutrarutra/Documents/dev/bioinfo/cellbrowser/data/vas.h5ad")
 
         qc_page = qc.QCPage(self.dataset, self, order=1)
         qc_page.create()
@@ -104,8 +102,3 @@ class App:
 
     def run(self):
         self.dash_app.run_server(debug=True, host="127.0.0.1")
-
-
-if __name__ == "__main__":
-    app = App()
-    app.run()
