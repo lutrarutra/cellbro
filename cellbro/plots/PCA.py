@@ -168,7 +168,7 @@ class PCA:
         return fig
 
     def explain_corr(self):
-        cats = self.dataset.get_categoricals()
+        cats = self.dataset.get_categoric()
         Rs = np.zeros((10, len(cats)))
         for i, cat in enumerate(cats):
             for j in range(10):

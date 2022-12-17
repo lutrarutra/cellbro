@@ -249,7 +249,7 @@ class DEPage(DashPage):
         return layout
 
     def _params_layout(self):
-        cats = self.dataset.get_categoricals()
+        cats = self.dataset.get_categoric()
         divs = []
 
         groups = DE.get_groupby_options(dataset=self.dataset)

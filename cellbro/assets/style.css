@@ -112,16 +112,20 @@ h3 {
     background-color: white;
     display: flex;
     height: 60vh;
+    width: 100vw;
 }
 
 .bottom {
     border-top: solid 1px #5c5c5c;
     display: flex;
     overflow-y: hidden;
+    width: 100vw;
 }
 
 .sidebar {
-    width: 20vw;
+    position: absolute;
+    display: none;
+    width: 300px;
     height: 100%;
     background-color: #0E1117;
 }
@@ -145,32 +149,33 @@ h3 {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    --side: min(40vw, calc(60vh - 80px));
-    width: var(--side);
-    height: calc(var(--side) + 80px);
+    width: 50vw;
+    height: 60vh;
 }
 
 .secondary {
     display: flex;
     flex-direction: column;
     align-items: center;
-    --side: min(40vw, calc(60vh - 80px));
-    height: calc(var(--side) + 80px);
-    width: calc(100vw - 20vw - var(--side));
+    width: 50vw;
+    height: 60vh;
 }
 
 .top-parameters {
+    width: 50vw;
+    height: 100px;
     display: flex;
     justify-content: space-evenly;
     align-items: center;
     background-color: #020409;
     display: flex;
     gap: 10px;
-    /* padding-left: 10px;
-    padding-right: 10px; */
-    padding: 0 5px 0 5px;
+    padding: 0 10px 0 10px;
+}
+
+.top-parameters > div {
     width: 100%;
-    height: 80px;
+    height: 100%;
 }
 
 /* .top-parameters > div {
@@ -183,8 +188,7 @@ h3 {
 
 .hover-container {
     display: flex;
-    height: 80px;
-    
+    height: 100px;
 }
 
 .hover-info {
@@ -236,7 +240,6 @@ h3 {
     justify-content: space-evenly;
     width: 100%;
     padding: 10px 0 10px 0;
-    /* border-top: solid 1px #5c5c5c; */
     border-bottom: solid 1px #5c5c5c;
 }
 
@@ -249,9 +252,41 @@ h3 {
 }
 
 .main-figure {
-    --side: min(40vw, calc(60vh - 80px));
-    width: var(--side);
-    height: var(--side);
+    width: 50vw;
+    height: 100%;
+}
+
+.main-figure > div {
+    height: 100%;
+}
+
+.main-figure > div > div {
+    height: 100%;
+}
+
+.main-plot {
+    background-color: white;
+    width: 50vw;
+    height: 100%;
+}
+
+.secondary-figure {
+    width: 50vw;
+    height: 100%;
+}
+
+.secondary-figure > div {
+    height: 100%;
+}
+
+.secondary-figure > div > div {
+    height: 100%;
+}
+
+.secondary-plot {
+    background-color: white;
+    width: 50vw;
+    height: 100%;
 }
 
 .dropdown-menu {
@@ -269,32 +304,12 @@ h3 {
     width: 100%;
 }
 
-.main-plot {
-    background-color: white;
-    --side: min(40vw, calc(60vh - 80px));
-    height: var(--side);
-    width: var(--side);
-}
-
-.secondary-figure {
-    --side: min(40vw, calc(60vh - 80px));
-    height: var(--side);
-    width: calc(100vw - 20vw - var(--side));
-}
-
-.secondary-plot {
-    background-color: white;
-    --side: min(40vw, calc(60vh - 80px));
-    height: var(--side);
-    width: calc(100vw - 20vw - var(--side));
-}
-
 .bottom-figure {
     background-color: white;
     display: flex;
     overflow: hidden;
     height: 100%;
-    width: 80vw;
+    width: 100vw;
 }
 
 .bottom-left-plot {
@@ -310,7 +325,7 @@ h3 {
 .bottom-plot {
     background-color: white;
     height: calc(100vh - 60vh - 50px);
-    width: 80vw;
+    width: 100vw;
 }
 
 #heatmap-figure {
@@ -359,13 +374,6 @@ h3 {
 .param-row-stacked {
     width: 100%;
     height: 70px;
-}
-
-.param-select {
-    width: 100%;
-    height: 100%;
-    position:relative;
-    overflow-y: visible;
 }
 
 .param-label {

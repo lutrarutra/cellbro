@@ -79,12 +79,12 @@ class Violin:
     @staticmethod
     def create_layout(dataset):
         var_names = [(f, f) for f in sorted(list(dataset.adata.var_names))]
+
         other = [
             (f, f.replace("_", " ").capitalize())
-            for f in sorted(list(dataset.adata.obs.columns))
-            if type(dataset.adata.obs[f][0]) != str
-            and type(dataset.adata.obs[f][0]) != pd.CategoricalDtype
+            for f in sorted(list(dataset.get_numeric()))
         ]
+
         features = dict(other + var_names)
 
         groupbys = dict(

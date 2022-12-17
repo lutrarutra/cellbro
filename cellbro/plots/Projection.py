@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import scanpy as sc
 from dash import Input, Output, State, dcc, html
 
+
 from cellbro.util.Param import *
 
 projection_layout = go.Layout(
@@ -42,30 +43,11 @@ class ProjectionType(Enum):
     # PCA = "PCA"
 
 
-class Projection(ABC):
+class Projection():
     def __init__(self, dataset, color, params: ParamsDict):
         self.dataset = dataset
-        self.color_label = color
         self.color = color
-
-        # TODO: something smarter :)
-        if "n_components" in params.params.keys():
-            params.params["n_components"].value = 3 if params.params["n_components"].value else 2
-
         self.params = params
-
-        if color in self.dataset.adata.obs_keys():
-            self.color = self.dataset.adata.obs[color]
-        else:
-            self.color = (
-                self.dataset.adata.X[:, self.dataset.adata.var.index.get_loc(color)]
-                .toarray()
-                .T[0]
-            )
-
-        rerun = self.add_params()
-        if self.get_key() not in self.dataset.adata.obsm.keys() or rerun:
-            self.apply()
 
     @staticmethod
     @abstractmethod
@@ -87,42 +69,7 @@ class Projection(ABC):
         ...
 
     def plot(self):
-        if (
-            "n_components" not in self.params.keys()
-            or self.params["n_components"].value == 2
-        ):
-            fig = px.scatter(
-                x=self.dataset.adata.obsm[self.get_key()][:, 0],
-                y=self.dataset.adata.obsm[self.get_key()][:, 1],
-                color=self.color,
-                color_discrete_sequence=sc.pl.palettes.default_20,
-                labels={
-                    "x": f"{self.get_type().value} 1",
-                    "y": f"{self.get_type().value} 2",
-                },
-            )
-        else:
-            fig = px.scatter_3d(
-                x=self.dataset.adata.obsm[self.get_key()][:, 0],
-                y=self.dataset.adata.obsm[self.get_key()][:, 1],
-                z=self.dataset.adata.obsm[self.get_key()][:, 2],
-                color=self.color,
-                color_discrete_sequence=sc.pl.palettes.default_20,
-                labels={
-                    "x": f"{self.get_type().value} 1",
-                    "y": f"{self.get_type().value} 2",
-                    "z": f"{self.get_type().value} 3",
-                },
-            )
-
-            fig.update_traces(marker=dict(size=2))
-
-        projection_layout["legend"] = dict(title=self.color_label.capitalize())
-        fig.update_layout(projection_layout)
-        fig.update_xaxes(
-            scaleanchor="y",
-            scaleratio=1,
-        )
+        
         return fig
 
     def add_params(self):

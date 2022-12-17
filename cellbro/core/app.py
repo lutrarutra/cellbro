@@ -35,7 +35,7 @@ class App:
         )
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
         self.dataset = Dataset(
-            "/home/lutrarutra/Documents/dev/bioinfo/cellbrowser/data/vas.h5ad")
+            "/home/lutrarutra/Documents/dev/bioinfo/cellbrowser/data/full.h5ad")
 
         qc_page = qc.QCPage(self.dataset, self, order=1)
         qc_page.create()

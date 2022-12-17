@@ -87,8 +87,8 @@ class SCVIPage(DashPage):
 
 
     def create_layout(self) -> list:
-        cats = self.dataset.get_categoricals()
-        conts = self.dataset.get_continuous()
+        cats = self.dataset.get_categoric()
+        conts = self.dataset.get_numeric()
 
         self.actions["param-collapse-scvi-setup"] = Components.CollapseDiv(
             id="param-collapse-scvi-setup",
@@ -240,7 +240,7 @@ class SCVIPage(DashPage):
                                 html.Label("Color"),
                                 dcc.Dropdown(
                                     self.dataset.adata.obs_keys()
-                                    + self.dataset.adata.var_names.tolist(),
+                                    + list(self.dataset.adata.var_names),
                                     value=self.dataset.adata.obs_keys()[0],
                                     id="scvi-projection-color",
                                     clearable=False,

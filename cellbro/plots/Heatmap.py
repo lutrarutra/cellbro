@@ -7,6 +7,8 @@ from dash import Input, Output, State, dcc, html
 from cellbro.util.Param import *
 import cellbro.util.Components as Components
 
+import scipy
+
 heatmap_layout = go.Layout(
     paper_bgcolor="white",
     plot_bgcolor="white",
@@ -58,13 +60,17 @@ class Heatmap:
 
     def plot(self):
         if self.params["layer"] == "log1p":
-            z = self.dataset.adata[:, self.selected_genes].X.toarray()
+            z = self.dataset.adata[:, self.selected_genes].X
+            if isinstance(z, scipy.sparse.csr_matrix):
+                z = z.toarray()
         else:
             z = (
                 self.dataset.adata[:, self.selected_genes]
                 .layers[self.params["layer"]]
-                .toarray()
             )
+            if isinstance(z, scipy.sparse.csr_matrix):
+                z = z.toarray()
+                
         fig = px.imshow(
             z.T,
             y=self.selected_genes,

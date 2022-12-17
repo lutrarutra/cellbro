@@ -142,7 +142,7 @@ class PCAPage(DashPage):
                             children=[
                                 html.Label("Color"),
                                 dcc.Dropdown(
-                                    self.dataset.adata.obs_keys() + self.dataset.adata.var_names.tolist(),
+                                    self.dataset.adata.obs_keys() + list(self.dataset.adata.var_names),
                                     value=self.dataset.adata.obs_keys()[0],
                                     id="pca-color", clearable=False,
                                 ),

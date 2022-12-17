@@ -3,7 +3,6 @@ from cellbro.core.app import App
 
 # dataset = Dataset("/home/lutrarutra/Documents/dev/bioinfo/cellbrowser/data/vas.h5ad")
 
-
 if __name__ == "__main__":
     app = App()
     app.run()

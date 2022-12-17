@@ -4,7 +4,6 @@ import scanpy as sc
 
 import scout
 
-
 @dataclass
 class Dataset:
     path: str
@@ -13,7 +12,18 @@ class Dataset:
     def __init__(self, path):
         self.path = path
         print("Reading File")
+
         self.adata = sc.read_h5ad(self.path)
+    
+        self.adata.uns["gene_lists"] = {}
+        self.adata.uns["scvi_setup_params"] = {}
+        self.adata.uns["scvi_model_params"] = {}
+        self.adata.uns["scvi_train_params"] = {}
+        
+        print("Dataset Ready!")
+
+
+    def pp(self):
         print("Filtering Cells")
         sc.pp.filter_cells(self.adata, min_genes=3000)
         sc.pp.filter_genes(self.adata, min_cells=10)
@@ -34,27 +44,21 @@ class Dataset:
         print("Calculating Metrics")
         sc.tl.pca(self.adata)
         sc.pp.neighbors(self.adata, random_state=0)
-        self.adata.uns["gene_lists"] = {}
-        print("Dataset Ready!")
 
-        self.adata.uns["scvi_setup_params"] = {}
-        self.adata.uns["scvi_model_params"] = {}
-        self.adata.uns["scvi_train_params"] = {}
-
-    def get_categoricals(self):
+    def get_categoric(self):
         return list(
             set(self.adata.obs.columns)
             - set(self.adata.obs._get_numeric_data().columns)
         )
 
-    def get_continuous(self):
+    def get_numeric(self):
         return list(self.adata.obs._get_numeric_data().columns)
 
     def get_neighbors(self):
         return [key for key in self.adata.uns_keys() if "neighbors" in key]
 
     def get_gene_lists(self, gene=None):
-        if "gene_lists" not in self.adata.uns:
+        if "gene_lists" not in self.adata.uns.keys():
             return []
         if gene is None:
             return list(self.adata.uns["gene_lists"].keys())

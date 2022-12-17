@@ -7,9 +7,14 @@ import scanpy as sc
 from dash import Input, Output, State, dcc, html
 from plotly.subplots import make_subplots
 
-import rq
+import warnings
 
-import scvi
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", category=DeprecationWarning
+    )
+
+    import scvi
 
 from cellbro.util.Param import *
 from cellbro.plots.UMAP import SCVI_UMAP
