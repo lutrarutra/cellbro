@@ -7,7 +7,7 @@ from dash import Input, Output, State, dcc, html
 from cellbro.util.Param import *
 import cellbro.util.Components as Components
 
-import scipy
+import scout
 
 heatmap_layout = go.Layout(
     paper_bgcolor="white",
@@ -22,7 +22,7 @@ heatmap_params = ParamsDict(
         Param(
             key="layer",
             name="Layer",
-            default="log1p",
+            default="logcentered",
             type=list,
             description="",
             allowed_values={
@@ -36,7 +36,7 @@ heatmap_params = ParamsDict(
         Param(
             key="colormap",
             name="Colormap",
-            default="RdBu_r",
+            default="seismic",
             type=list,
             description="",
             allowed_values={
@@ -46,11 +46,11 @@ heatmap_params = ParamsDict(
                 "inferno": "Inferno",
                 "magma": "Magma",
                 "cividis": "Cividis",
+                "seismic": "Seismic"
             },
         ),
     ]
 )
-
 
 class Heatmap:
     def __init__(self, dataset, params):
@@ -59,26 +59,30 @@ class Heatmap:
         self.selected_genes = dataset.adata.var_names[:50]
 
     def plot(self):
-        if self.params["layer"] == "log1p":
-            z = self.dataset.adata[:, self.selected_genes].X
-            if isinstance(z, scipy.sparse.csr_matrix):
-                z = z.toarray()
-        else:
-            z = (
-                self.dataset.adata[:, self.selected_genes]
-                .layers[self.params["layer"]]
-            )
-            if isinstance(z, scipy.sparse.csr_matrix):
-                z = z.toarray()
+        # if self.params["layer"] == "log1p":
+        #     z = self.dataset.adata[:, self.selected_genes].X
+        #     if isinstance(z, scipy.sparse.csr_matrix):
+        #         z = z.toarray()
+        # else:
+        #     z = (
+        #         self.dataset.adata[:, self.selected_genes]
+        #         .layers[self.params["layer"]]
+        #     )
+        #     if isinstance(z, scipy.sparse.csr_matrix):
+        #         z = z.toarray()
                 
-        fig = px.imshow(
-            z.T,
-            y=self.selected_genes,
-            aspect="auto",
-            color_continuous_scale=self.params["colormap"],
-            color_continuous_midpoint=0 if "centered" in self.params["layer"] else None,
+        # fig = px.imshow(
+        #     z.T,
+        #     y=self.selected_genes,
+        #     aspect="auto",
+        #     color_continuous_scale=self.params["colormap"],
+        #     color_continuous_midpoint=0 if "centered" in self.params["layer"] else None,
+        # )
+        # fig.update_layout(heatmap_layout)
+        fig = scout.ply.heatmap(
+            adata=self.dataset.adata, var_names=self.selected_genes,
+            categoricals=["leiden"], layer=self.params["layer"], cluster_cells=False, layout=dict()
         )
-        fig.update_layout(heatmap_layout)
         # mn, mx = z.min(), z.max()
         # colorbar = px.scatter(
         #     x=[0,0], y=[0,0], color=[mn, mx],
@@ -91,7 +95,7 @@ class Heatmap:
         # fig.update_layout(xaxis=dict(rangeslider=dict(visible=True, yaxis=dict(rangemode="fixed"), thickness=0.01), type="linear"))
         style = {
             # "width": f"{int(z.shape[0]/2)+100}px",
-            "height": f"{z.shape[1] * 20 + 50}px",
+            "height": f"{len(self.selected_genes) * 20 + 50}px",
         }
         return fig, style
 
@@ -128,8 +132,7 @@ class Heatmap:
                     ],
                 ),
             ],
-            id="heatmap-sidebar",
-            className="bottom-sidebar sidebar",
+            id="cells-bot-sidebar", className="sidebar"
         )
 
         figure = html.Div(

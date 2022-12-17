@@ -61,7 +61,7 @@ class PCAPage(DashPage):
         super().__init__("pages.pca", "PCA", "/pca", order)
         self.dataset = dataset
         self.layout = self.create_layout()
-        self.actions = dict(
+        self.actions.update(
             plot_action=PlotAction(self.dataset),
             click_action=ClickAction(self.dataset)
         )
@@ -86,7 +86,7 @@ class PCAPage(DashPage):
                     ],
                 ),
             ],
-            className="top-sidebar sidebar",
+            className="sidebar", id="pca-top-sidebar"
         )
 
         bottom_sidebar = html.Div(
@@ -129,8 +129,7 @@ class PCAPage(DashPage):
                     ],
                 ),
             ],
-            id="pca-bottom-sidebar",
-            className="bottom-sidebar sidebar",
+            id="pca-bot-sidebar", className="sidebar",
         )
 
         main_figure = html.Div(

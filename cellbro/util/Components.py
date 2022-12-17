@@ -1,9 +1,29 @@
-import plotly.graph_objects as go
-import plotly.express as px
 from dash import html, dcc, Input, Output, State
+from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 
 from cellbro.util.DashAction import DashAction
+
+class HideSidebar(DashAction):
+    def __init__(self, id, btn_id="sidebar-btn"):
+        super().__init__(dataset=None)
+        self.id = id
+        self.btn_id = btn_id
+
+    def setup_callbacks(self, app):
+        @app.dash_app.callback(
+            output=Output(self.id, "className"),
+            inputs=[Input(self.btn_id, "value")],
+            state=[State(self.id, "className")],
+        )
+        def _(value, cls):
+            if value != None:
+                if value:
+                    return cls + " open"
+                else:
+                    return cls.replace("open", "")
+
+            raise PreventUpdate
 
 class CollapseDiv(DashAction):
     def __init__(self, id, btn_id, children, collapsed=True):
@@ -21,8 +41,6 @@ class CollapseDiv(DashAction):
             is_open=not self.collapsed,
         )
 
-    def apply(self, params):
-        pass
 
     def setup_callbacks(self, app):
         @app.dash_app.callback(

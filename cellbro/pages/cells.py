@@ -13,6 +13,7 @@ from cellbro.plots.UMAP import UMAP, SCVI_UMAP
 from cellbro.plots.Violin import Violin
 from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
+import cellbro.util.Components as Components
 
 import scout
 
@@ -153,7 +154,7 @@ class CellsPage(DashPage):
     def __init__(self, dataset, app, order):
         super().__init__("pages.cells", "Cells", "/cells", order)
         self.dataset = dataset
-        self.actions = dict(
+        self.actions.update(
             projection_action=PlotProjection(self.dataset),
             heatmap_action=PlotHeatmap(self.dataset),
             violin_action=PlotViolin(self.dataset),
@@ -216,7 +217,7 @@ class CellsPage(DashPage):
                     ],
                 ),
             ],
-            className="top-sidebar sidebar",
+            className="sidebar", id="cells-top-sidebar"
         )
         # neighbors = self.dataset.get_neighbors()
         # available_projections = ["UMAP", "Trimap", "t-SNE", "PCA"]

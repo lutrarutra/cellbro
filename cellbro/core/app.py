@@ -2,10 +2,9 @@ import flask
 
 import dash
 import dash_bootstrap_components as dbc
-import plotly.express as px
-import plotly.graph_objects as go
-import scanpy as sc
+
 from dash import ALL, Dash, Input, Output, State, dcc, html
+from dash.exceptions import PreventUpdate
 
 import cellbro.pages.cells as cells
 import cellbro.pages.de as de
@@ -21,6 +20,7 @@ class App:
     def __init__(self):
         # self.conn = redis_conn
         # self.queue = queue
+        self.sidebar_open = False
         
         self.server = flask.Flask(__name__)
 
@@ -60,6 +60,10 @@ class App:
                 html.Div(
                     [
                         html.Div(
+                            id="sidebar-btn-container",
+                            children=[dbc.Switch(id="sidebar-btn", value=self.sidebar_open)]
+                        ),
+                        html.Div(
                             [
                                 html.Div(
                                     [
@@ -70,8 +74,7 @@ class App:
                                                 id=f"{page['name']}_nav_link",
                                                 className="nav-link",
                                             ),
-                                        )
-                                        for page in dash.page_registry.values()
+                                        ) for page in dash.page_registry.values()
                                     ]
                                 )
                             ],

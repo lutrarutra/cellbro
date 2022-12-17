@@ -152,7 +152,7 @@ class QCPage(DashPage):
         super().__init__("pages.qc", "QC", "/qc", order)
         self.dataset = dataset
         self.layout = self.create_layout()
-        self.actions = dict(
+        self.actions.update(
             plot=PlotAction(dataset),
             filter=FilterAction(dataset),
             click=ClickAction(dataset),
@@ -192,7 +192,7 @@ class QCPage(DashPage):
                     ],
                 ),
             ],
-            className="top-sidebar sidebar",
+            className="sidebar", id="qc-top-sidebar"
         )
 
         bottom_sidebar = html.Div(
@@ -214,8 +214,7 @@ class QCPage(DashPage):
                     ],
                 ),
             ],
-            id="qc-violin-sidebar",
-            className="bottom-sidebar sidebar",
+            id="qc-bot-sidebar", className="sidebar",
         )
 
         main_figure = html.Div(

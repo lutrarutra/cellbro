@@ -115,7 +115,7 @@ class DEPage(DashPage):
         super().__init__("pages.de", "DE", "/de", order)
         self.dataset = dataset
         self.layout = self.create_layout()
-        self.actions = dict(
+        self.actions.update(
             apply_de=ApplyDE(dataset=self.dataset),
             plot_volcano=PlotVolcano(dataset=self.dataset),
             plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset),
@@ -155,7 +155,7 @@ class DEPage(DashPage):
                     ],
                 ),
             ],
-            className="top-sidebar sidebar",
+            className="sidebar", id="de-top-sidebar"
         )
 
         main = html.Div(

@@ -79,7 +79,7 @@ class SCVIPage(DashPage):
     def __init__(self, dataset, app, order):
         super().__init__("pages.scvi", "SCVI", "/scvi", order)
         self.dataset = dataset
-        self.actions = dict(
+        self.actions.update(
             fit=FitAction(self.dataset),
         )
         self.layout = self.create_layout()
@@ -188,7 +188,7 @@ class SCVIPage(DashPage):
                     ],
                 ),
             ],
-            className="top-sidebar sidebar",
+            className="sidebar", id="scvi-top-sidebar"
         )
 
         bottom_sidebar = html.Div(
