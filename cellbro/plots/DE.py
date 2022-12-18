@@ -78,6 +78,10 @@ def apply(dataset, params):
 
     groupby_selected = params["groupby"]
     refs_selected = next(iter(dataset.adata.uns[key].keys()))
+
+    print(groupby_selected)
+    print(dataset.adata.uns.keys())
+
     return [
         groupby_options,
         groupby_selected,

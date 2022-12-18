@@ -11,6 +11,7 @@ import cellbro.pages.de as de
 import cellbro.pages.qc as qc
 import cellbro.pages.pca as pca
 import cellbro.pages.scvi as scvi
+import cellbro.pages.gsea as gsea
 from cellbro.pages.genes import create_page as create_genes_page
 from cellbro.util.Dataset import Dataset
 
@@ -46,10 +47,13 @@ class App:
         de_page = de.DEPage(self.dataset, order=3)
         de_page.create(self)
 
-        pca_page = pca.PCAPage(self.dataset, order=4)
+        gsea_page = gsea.GSEAPage(self.dataset, order=4)
+        gsea_page.create(self)
+
+        pca_page = pca.PCAPage(self.dataset, order=5)
         pca_page.create(self)
 
-        scvi_page = scvi.SCVIPage(self.dataset, order=5)
+        scvi_page = scvi.SCVIPage(self.dataset, order=6)
         scvi_page.create(self)
 
         # create_genes_page(self.dash_app, self.dataset)
@@ -60,6 +64,7 @@ class App:
                 html.Div(
                     [
                         dcc.Store(id="genelist-store"),
+                        dcc.Store(id="groupby-store"),
                         html.Div(
                             id="sidebar-btn-container",
                             children=[dbc.Switch(id="sidebar-btn", value=self.sidebar_open)]

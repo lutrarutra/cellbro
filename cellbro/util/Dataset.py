@@ -100,3 +100,6 @@ class Dataset:
                     self.adata.uns["gene_lists"][gl_key].remove(gene)
 
         return self.get_gene_lists(gene)
+
+    def get_rank_genes_groups(self):
+        return [key[11:] for key in self.adata.uns_keys() if "rank_genes_" in key]

@@ -3,8 +3,9 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
-import cellbro.plots.DE as DE
 import scout
+
+import cellbro.plots.DE as DE
 import cellbro.util.Components as Components
 from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
@@ -12,10 +13,10 @@ from cellbro.util.DashPage import DashPage
 
 class ApplyDE(DashAction):
     def apply(self, params):
-        return DE.apply(self.dataset, params=params)
+        return DE.apply(self.dataset, params=params) + [{"new": True}]
 
     def setup_callbacks(self, app):
-        outputs = [
+        output = [
             Output(component_id="volcano-groupby", component_property="options"),
             Output(component_id="volcano-groupby", component_property="value"),
             Output(component_id="volcano-reference", component_property="options"),
@@ -26,19 +27,20 @@ class ApplyDE(DashAction):
             Output(
                 component_id="volcano-reference-container", component_property="style"
             ),
+            Output(component_id="groupby-store", component_property="data"),
         ]
         inputs = {
             "submit": Input(component_id="de-submit", component_property="n_clicks"),
         }
-        states = {
+        state = {
             "groupby": State(component_id="de-groupby", component_property="value"),
         }
         for param in DE.de_params.values():
-            states[param.key] = State(
+            state[param.key] = State(
                 component_id=f"de-{param.key}", component_property="value"
             )
 
-        @app.dash_app.callback(output=outputs, inputs=inputs, state=states)
+        @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
