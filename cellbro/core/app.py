@@ -143,7 +143,6 @@ class App:
             inputs=[Input("genelist-store", "data")]
         )
         def _(genelist_store):
-            print("NEW GENE list added")
             return self.dataset.get_gene_lists()
 
     def run(self):

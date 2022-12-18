@@ -8,12 +8,14 @@ from dash import Input, Output, State, dcc, html
 
 from cellbro.util.Param import *
 
+import scout
+
 violin_layout = go.Layout(
     paper_bgcolor="white",
     plot_bgcolor="white",
     xaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=True),
     yaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=True),
-    margin=dict(t=0, b=0, l=0, r=0),
+    margin=dict(t=5, b=5, l=5, r=5),
 )
 
 
@@ -22,57 +24,7 @@ class Violin:
         self.dataset = dataset
 
     def plot(self, feature, groupby):
-        fig = go.Figure()
-
-        is_gene = feature not in self.dataset.adata.obs_keys()
-
-        if is_gene:
-            x = self.dataset.adata[:, feature].X.toarray().T.squeeze()
-        else:
-            x = self.dataset.adata.obs[feature].values.squeeze()
-
-        if groupby is not None:
-            f = self.dataset.adata.obs[groupby].values
-            df = pd.DataFrame(np.array([x, f]).T, columns=[feature, groupby])
-            groups = df[groupby].unique()
-            for i, g in enumerate(groups):
-                fig.add_trace(
-                    go.Violin(
-                        x=df[df[groupby] == g][groupby],
-                        y=df[df[groupby] == g][feature],
-                        name=g,
-                        line_color=sc.pl.palettes.default_20[i],
-                        box_visible=True,
-                        points="all",
-                        pointpos=0,
-                        marker=dict(size=2),
-                        jitter=0.6,
-                    )
-                )
-            violin_layout["legend"] = dict(title=groupby.capitalize())
-            violin_layout["xaxis"]["showticklabels"] = True
-            violin_layout["xaxis_title"] = groupby.replace("_", " ").title()
-
-        else:
-            df = pd.DataFrame(x, columns=[feature])
-            fig.add_trace(
-                go.Violin(
-                    y=df[feature],
-                    line_color=sc.pl.palettes.default_20[0],
-                    box_visible=True,
-                    points="all",
-                    pointpos=0,
-                    marker=dict(size=2),
-                    jitter=0.6,
-                )
-            )
-            violin_layout["xaxis"]["showticklabels"] = False
-            violin_layout["xaxis_title"] = ""
-
-        violin_layout["yaxis_title"] = (
-            feature if is_gene else feature.replace("_", " ").title()
-        )
-        fig.update_layout(violin_layout)
+        fig = scout.ply.violin(self.dataset.adata, y=feature, groupby=groupby, layout=violin_layout)
 
         return [fig]
 
@@ -90,9 +42,7 @@ class Violin:
         groupbys = dict(
             [
                 (k, k.replace("_", " ").capitalize())
-                for k in dataset.adata.obs.columns
-                if type(dataset.adata.obs[k][0]) == str
-                or type(dataset.adata.obs[k][0]) == pd.CategoricalDtype
+                for k in dataset.get_categoric()
             ]
         )
         figure = html.Div(

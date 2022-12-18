@@ -90,7 +90,7 @@ class Heatmap:
 
         style = {
             # "width": f"{int(z.shape[0]/2)+100}px",
-            # "height": f"{len(self.selected_genes) * 20 + 50}px",
+            "height": fig.layout["height"],
         }
         return fig, style
 
