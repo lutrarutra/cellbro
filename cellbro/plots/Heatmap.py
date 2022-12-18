@@ -40,13 +40,13 @@ heatmap_params = ParamsDict(
             type=list,
             description="",
             allowed_values={
+                "seismic": "Seismic (for centered)",
                 "RdBu_r": "B-W-R",
                 "viridis": "Viridis",
                 "plasma": "Plasma",
                 "inferno": "Inferno",
                 "magma": "Magma",
                 "cividis": "Cividis",
-                "seismic": "Seismic"
             },
         ),
     ]
@@ -101,38 +101,11 @@ class Heatmap:
 
     @staticmethod
     def create_layout(dataset):
-        sidebar = html.Div(
-            children=[
-                html.Div(
-                    [
-                        html.H3("Heatmap Settings"),
-                    ],
-                    id="heatmap-header",
-                    className="sidebar-header",
-                ),
-                dcc.Loading(
-                    type="circle",
-                    children=[
-                        html.Div(
-                            children=Components.params_layout(heatmap_params, "heatmap"),
-                            className="sidebar-parameters",
-                        ),
-                        html.Div(
-                            [
-                                dbc.Button(
-                                    "Plot",
-                                    color="primary",
-                                    className="mr-1",
-                                    id="heatmap-submit",
-                                ),
-                            ],
-                            id="heatmap-footer",
-                            className="sidebar-footer",
-                        ),
-                    ],
-                ),
-            ],
-            id="cells-bot-sidebar", className="sidebar"
+        sidebar = Components.create_sidebar(
+            id="cells-bot-sidebar", class_name="bot-sidebar",
+            title="Heatmap Settings",
+            params_children=Components.params_layout(heatmap_params, "heatmap"),
+            btn_id="heatmap-submit", btn_text="Plot"
         )
 
         figure = html.Div(

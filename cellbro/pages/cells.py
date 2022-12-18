@@ -162,67 +162,45 @@ class CellsPage(DashPage):
         )
         self.setup_callbacks(app)
 
+    def _params_layout(self):
+        return [
+            html.Div(
+                children=Projection.Projection.get_layout(
+                    UMAP),
+                style={"display": "none"},
+                id=f"projection-{UMAP.get_type().value}",
+                className="param-class"
+            ),
+            html.Div(
+                children=Projection.Projection.get_layout(
+                    TSNE),
+                style={"display": "none"},
+                id=f"projection-{TSNE.get_type().value}",
+                className="param-class"
+            ),
+            html.Div(
+                children=Projection.Projection.get_layout(
+                    Trimap),
+                style={"display": "none"},
+                id=f"projection-{Trimap.get_type().value}",
+                className="param-class"
+            ),
+            html.Div(
+                children=Projection.Projection.get_layout(
+                    SCVI_UMAP),
+                style={"display": "none"},
+                id=f"projection-{SCVI_UMAP.get_type().value}",
+                className="param-class"
+            ),
+        ]
+
     def create_layout(self) -> list:
-        left_sidebar = html.Div(
-            children=[
-                html.Div(
-                    [
-                        html.H3("Projection Settings"),
-                    ],
-                    className="sidebar-header",
-                ),
-                dcc.Loading(
-                    type="circle",
-                    children=[
-                        html.Div(
-                            children=[
-                                html.Div(
-                                    children=Projection.Projection.get_layout(UMAP),
-                                    style={"display": "none"},
-                                    id=f"projection-{UMAP.get_type().value}",
-                                    className="param-class"
-                                ),
-                                html.Div(
-                                    children=Projection.Projection.get_layout(TSNE),
-                                    style={"display": "none"},
-                                    id=f"projection-{TSNE.get_type().value}",
-                                    className="param-class"
-                                ),
-                                html.Div(
-                                    children=Projection.Projection.get_layout(Trimap),
-                                    style={"display": "none"},
-                                    id=f"projection-{Trimap.get_type().value}",
-                                    className="param-class"
-                                ),
-                                html.Div(
-                                    children=Projection.Projection.get_layout(SCVI_UMAP),
-                                    style={"display": "none"},
-                                    id=f"projection-{SCVI_UMAP.get_type().value}",
-                                    className="param-class"
-                                ),
-                            ],
-                            className="sidebar-parameters",
-                        ),
-                        html.Div(
-                            [
-                                dbc.Button(
-                                    "Plot",
-                                    color="primary",
-                                    className="mr-1",
-                                    id="projection-submit",
-                                ),
-                            ],
-                            className="sidebar-footer",
-                        ),
-                    ],
-                ),
-            ],
-            className="sidebar", id="cells-top-sidebar"
+        top_sidebar = Components.create_sidebar(
+            id="cells-top-sidebar", class_name="top-sidebar",
+            title="Projection Settings",
+            params_children=self._params_layout(),
+            btn_id="projection-submit", btn_text="Plot"
         )
-        # neighbors = self.dataset.get_neighbors()
-        # available_projections = ["UMAP", "Trimap", "t-SNE", "PCA"]
-        # if "neighbors_scvi" in neighbors:
-        #     available_projections.append("SCVI-UMAP")
 
         available_projections = list(self.dataset.adata.obsm.keys())
 
@@ -287,7 +265,7 @@ class CellsPage(DashPage):
             html.Div(
                 id="top",
                 className="top",
-                children=[left_sidebar, main_figure, violin_layout],
+                children=[top_sidebar, main_figure, violin_layout],
             ),
             # html.Div(id="resizer", className="resizer"),
             html.Div(

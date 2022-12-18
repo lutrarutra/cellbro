@@ -4,6 +4,45 @@ import dash_bootstrap_components as dbc
 
 from cellbro.util.DashAction import DashAction
 
+
+def create_sidebar(id, title, params_children, class_name="", btn_id=None, btn_text="Apply"):
+    if btn_id is not None:
+        btn_container = [
+            dbc.Button(
+                btn_text,
+                color="primary",
+                className="mr-1",
+                id=btn_id
+            ),
+        ]
+    else: btn_container = []
+    
+    return html.Div(
+        children=[
+            html.Div(
+                [
+                    html.H3(title),
+                ],
+                className="sidebar-header",
+            ),
+            dcc.Loading(
+                type="circle", parent_className="sidebar-container", 
+                children=[
+                    html.Div(
+                        children=params_children,
+                        className="sidebar-parameters",
+                    ),
+                    html.Div(
+                        children=btn_container,
+                        className="sidebar-footer",
+                    ),
+                ],
+            ),
+        ],
+        className=f"sidebar {class_name}", id=id
+    )
+
+
 class HideSidebar(DashAction):
     def __init__(self, id, btn_id="sidebar-btn"):
         super().__init__(dataset=None)

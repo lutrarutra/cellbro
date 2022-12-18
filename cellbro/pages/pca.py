@@ -68,68 +68,18 @@ class PCAPage(DashPage):
         self.setup_callbacks(app)
 
     def create_layout(self) -> list:
-        top_sidebar = html.Div(
-            children=[
-                html.Div(
-                    [
-                        html.H3("PCA Projection Settings"),
-                    ],
-                    className="sidebar-header",
-                ),
-                dcc.Loading(
-                    type="circle",
-                    children=[
-                        html.Div(children=[self._params_layout()], className="sidebar-parameters"),
-                        html.Div([
-                                # dbc.Button("Filter", color="primary", className="mr-1", id="pca-submit"),
-                        ], className="sidebar-footer",),
-                    ],
-                ),
-            ],
-            className="sidebar", id="pca-top-sidebar"
+        top_sidebar = Components.create_sidebar(
+            id="pca-top-sidebar", class_name="top-sidebar",
+            title="PCA Projection Settings",
+            params_children=self._top_params_layout(),
+            btn_id=None, btn_text="Plot"
         )
 
-        bottom_sidebar = html.Div(
-            children=[
-                html.Div([
-                    html.H3("PCA Plots"),
-                ], className="sidebar-header"),
-                dcc.Loading(
-                    type="circle",
-                    children=[
-                        # Num components
-                        html.Div(
-                            children=[
-                                html.Div(
-                                    children=[
-                                        html.Label("Plot Type"),
-                                        dcc.Dropdown(
-                                            ["Bar", "Linefig", "Area", "Cumulative"],
-                                            value="Bar",
-                                            id="pca-hist_type",
-                                            clearable=False,
-                                        ),
-                                    ],
-                                    className="param-row-stacked",
-                                ),
-                                html.Div(
-                                    children=[
-                                        html.Label("Num. Components"),
-                                        dcc.Input(
-                                            id="pca-hist_n_pcs", type="number", value=30, min=2, step=1,
-                                            max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
-                                            className="param-input",
-                                        ),
-                                    ],
-                                    className="param-row",
-                                ),
-                            ],
-                            className="sidebar-parameters",
-                        ),
-                    ],
-                ),
-            ],
-            id="pca-bot-sidebar", className="sidebar",
+        bot_sidebar = Components.create_sidebar(
+            id="pca-bot-sidebar", class_name="bot-sidebar",
+            title="PCA Plots",
+            params_children=self._bot_params_layout(),
+            btn_id=None, btn_text="Plot"
         )
 
         main_figure = html.Div(
@@ -263,12 +213,39 @@ class PCAPage(DashPage):
                 children=[top_sidebar, main_figure, secondary_figure],
             ),
             html.Div(
-                id="bottom", className="bottom", children=[bottom_sidebar, bottom_figure]
+                id="bottom", className="bottom", children=[bot_sidebar, bottom_figure]
             ),
         ]
         return layout
 
-    def _params_layout(self):
+    def _bot_params_layout(self):
+        return [
+            html.Div(
+                children=[
+                    html.Label("Plot Type"),
+                    dcc.Dropdown(
+                        ["Bar", "Linefig", "Area", "Cumulative"],
+                        value="Cumulative",
+                        id="pca-hist_type",
+                        clearable=False,
+                    ),
+                ],
+                className="param-row-stacked",
+            ),
+            html.Div(
+                children=[
+                    html.Label("Num. Components"),
+                    dcc.Input(
+                        id="pca-hist_n_pcs", type="number", value=30, min=2, step=1,
+                        max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
+                        className="param-input",
+                    ),
+                ],
+                className="param-row",
+            ),
+        ]
+
+    def _top_params_layout(self):
         divs = []
         for key, param in PCA.pca_params.items():
             divs.append(
@@ -285,5 +262,5 @@ class PCAPage(DashPage):
                 )
             )
 
-        layout = html.Div(children=[divs])
-        return layout
+        # layout = html.Div(children=[divs])
+        return divs

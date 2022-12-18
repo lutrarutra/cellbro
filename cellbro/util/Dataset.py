@@ -19,6 +19,9 @@ class Dataset:
         self.adata.uns["scvi_setup_params"] = {}
         self.adata.uns["scvi_model_params"] = {}
         self.adata.uns["scvi_train_params"] = {}
+
+        if "log1p" in self.adata.uns.keys():
+            self.adata.uns["log1p"] = {"base": None}
         
         print("Dataset Ready!")
 
@@ -28,22 +31,25 @@ class Dataset:
         sc.pp.filter_cells(self.adata, min_genes=3000)
         sc.pp.filter_genes(self.adata, min_cells=10)
 
-        print("Calculating QC Metrics")
-        self.adata.var["mt"] = self.adata.var_names.str.startswith("MT-")
-        sc.pp.calculate_qc_metrics(
-            self.adata, qc_vars=["mt"], percent_top=False, log1p=False, inplace=True
-        )
-
         print("Normalizing Counts")
         scout.tl.scale_log_center(self.adata, target_sum=None)
 
-        ncounts = self.adata.layers["ncounts"].toarray()
-        self.adata.var["cv2"] = (ncounts.std(0) / ncounts.mean(0)) ** 2
-        self.adata.var["mu"] = ncounts.mean(0)
 
         print("Calculating Metrics")
         sc.tl.pca(self.adata)
         sc.pp.neighbors(self.adata, random_state=0)
+
+    def qc_done(self):
+        if not "pct_counts_mt" in self.adata.obs.columns:
+            return False
+        
+        if not "cv2" in self.adata.var.columns:
+            return False
+        
+        if not "mu" in self.adata.var.columns:
+            return False
+
+        return True
 
     def get_categoric(self):
         return list(

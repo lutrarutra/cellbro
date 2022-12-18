@@ -21,8 +21,6 @@ class DashPage(ABC):
 
     def setup_callbacks(self, app):
         for key, action in self.actions.items():
-            print(self.path)
-            print(key)
             action.setup_callbacks(app)
 
     def create(self):

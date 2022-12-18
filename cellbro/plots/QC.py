@@ -1,12 +1,12 @@
-import dash_bootstrap_components as dbc
 import pandas as pd
+import scipy
+import scanpy as sc
+
 import plotly.express as px
 import plotly.graph_objects as go
-import scanpy as sc
-from dash import Input, Output, State, dcc, html
+
 from plotly.subplots import make_subplots
 
-import cellbro.util.Components as Components
 from cellbro.util.Param import *
 
 figure_layout = go.Layout(
@@ -45,6 +45,19 @@ qc_params = ParamsDict(
         ),
     ]
 )
+
+def apply_dispersion_qc(dataset):
+        ncounts = dataset.adata.layers["ncounts"]
+        if isinstance(ncounts, scipy.sparse.csr_matrix):
+            ncounts = ncounts.toarray()
+        dataset.adata.var["cv2"] = (ncounts.std(0) / ncounts.mean(0)) ** 2
+        dataset.adata.var["mu"] = ncounts.mean(0)
+
+def apply_mt_qc(dataset):
+    dataset.adata.var["mt"] = dataset.adata.var_names.str.startswith("MT-")
+    sc.pp.calculate_qc_metrics(
+        dataset.adata, qc_vars=["mt"], percent_top=False, log1p=False, inplace=True
+    )
 
 def filter(self, submit):
     # Makes sure that filtering is not done on initial load
@@ -139,18 +152,3 @@ def plot(dataset, params):
     secondary_figure = dispersion_plot(dataset, params)
 
     return [main_figure, secondary_figure, bottom_figure]
-
-
-def params_layout():
-    layout = html.Div(children=[
-        html.Div(children=[
-            html.Label(
-                param.name, className="param-label",
-            ),
-            dcc.Input(
-                id=f"qc-{key}", type=param.input_type, value=param.value,
-                step=param.step if param.step != None else 0.1, className="param-input",
-            ),
-        ], className="param-row") for key, param in qc_params.items()
-    ])
-    return layout

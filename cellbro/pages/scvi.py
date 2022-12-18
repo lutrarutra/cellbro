@@ -98,7 +98,7 @@ class SCVIPage(DashPage):
                     html.Label("Batch Key"),
                     dcc.Dropdown(
                         options=cats, value=None, id="batch_key", clearable=True,
-                        placeholder="Select Variable",
+                        placeholder="Select Variable (Optional)",
                         multi=False, style={"flex": "1"},
                     ),
                 ], className="param-row-stacked"),
@@ -106,7 +106,7 @@ class SCVIPage(DashPage):
                     html.Label("Continuous Covariates"),
                     dcc.Dropdown(
                         options=conts, value=None, id="continuous_covariate_keys", clearable=True,
-                        placeholder="Select Variable(s)",
+                        placeholder="Select Variable(s) (Optional)",
                         multi=True, style={"flex": "1"},
                     ),
                 ], className="param-row-stacked"),
@@ -114,7 +114,7 @@ class SCVIPage(DashPage):
                     html.Label("Categorical Covariates"),
                     dcc.Dropdown(
                         options=cats, value=None, id="categorical_covariate_keys", clearable=True,
-                        placeholder="Select Variable(s)",
+                        placeholder="Select Variable(s) (Optional)",
                         multi=True, style={"flex": "1"},
                     ),
                 ], className="param-row-stacked"),
@@ -141,83 +141,18 @@ class SCVIPage(DashPage):
             children=Projection.Projection.get_layout(SCVI_UMAP),
         )
 
-        top_sidebar = html.Div(
-            children=[
-                html.Div(
-                    [
-                        html.H3("SCVI Settings"),
-                    ],
-                    className="sidebar-header",
-                ),
-                dcc.Loading(
-                    type="circle",
-                    children=[
-                        html.Div([ 
-                            html.Div([
-                                dbc.Button(
-                                    "Setup Parameters", id="btn-param-collapse-scvi-setup", color="info", n_clicks=0
-                                ),
-                                self.actions["param-collapse-scvi-setup"].layout,
-                            ], className="param-class"),
-
-                            html.Div([
-                                dbc.Button(
-                                    "Model Parameters", id="btn-param-collapse-scvi_model", color="info", n_clicks=0
-                                ),
-                                self.actions["param-collapse-scvi_model"].layout,
-                            ], className="param-class"),
-
-                            html.Div([
-                                dbc.Button(
-                                    "Train Parameters", id="btn-param-collapse-scvi_train", color="info", n_clicks=0
-                                ),
-                                self.actions["param-collapse-scvi_train"].layout,
-                            ], className="param-class"),
-
-                            html.Div([
-                                dbc.Button(
-                                    "Projection Parameters", id="btn-param-collapse-scvi_umap", color="info", n_clicks=0
-                                ),
-                                self.actions["param-collapse-scvi_umap"].layout,
-                            ], className="param-class"),
-                        ], className="sidebar-parameters"),
-                        
-                        html.Div([
-                            dbc.Button("Run", color="primary", className="mr-1", id="fit-submit"),
-                        ], className="sidebar-footer",),
-                    ],
-                ),
-            ],
-            className="sidebar", id="scvi-top-sidebar"
+        top_sidebar = Components.create_sidebar(
+            id="scvi-top-sidebar", class_name="top-sidebar",
+            title="SCVI Settings",
+            params_children=self._params_layout(),
+            btn_id="fit-submit", btn_text="Rune"
         )
 
-        bottom_sidebar = html.Div(
-            children=[
-                html.Div([
-                    html.H3("SCVI Plot Settings"),
-                ], className="sidebar-header"),
-                dcc.Loading(
-                    type="circle",
-                    children=[
-                        # Num components
-                        html.Div(
-                            children=[
-                                html.Div(
-                                    children=[],
-                                    className="param-row-stacked",
-                                ),
-                                html.Div(
-                                    children=[],
-                                    className="param-row",
-                                ),
-                            ],
-                            className="sidebar-parameters",
-                        ),
-                    ],
-                ),
-            ],
-            id="scvi-bottom-sidebar",
-            className="bottom-sidebar sidebar",
+        bot_sidebar = Components.create_sidebar(
+            id="scvi-bot-sidebar", class_name="bot-sidebar",
+            title="Empty",
+            params_children=[],
+            btn_id=None, btn_text="Rune"
         )
 
         main_figure = html.Div(
@@ -315,7 +250,38 @@ class SCVIPage(DashPage):
                 children=[top_sidebar, main_figure, secondary_figure],
             ),
             html.Div(
-                id="bottom", className="bottom", children=[bottom_sidebar, bottom_figure]
+                id="bottom", className="bottom", children=[bot_sidebar, bottom_figure]
             ),
         ]
         return layout
+
+    def _params_layout(self):
+        return [
+            html.Div([
+                dbc.Button(
+                    "Setup Parameters", id="btn-param-collapse-scvi-setup", color="info", n_clicks=0
+                ),
+                self.actions["param-collapse-scvi-setup"].layout,
+            ], className="param-class"),
+
+            html.Div([
+                dbc.Button(
+                    "Model Parameters", id="btn-param-collapse-scvi_model", color="info", n_clicks=0
+                ),
+                self.actions["param-collapse-scvi_model"].layout,
+            ], className="param-class"),
+
+            html.Div([
+                dbc.Button(
+                    "Train Parameters", id="btn-param-collapse-scvi_train", color="info", n_clicks=0
+                ),
+                self.actions["param-collapse-scvi_train"].layout,
+            ], className="param-class"),
+
+            html.Div([
+                dbc.Button(
+                    "Projection Parameters", id="btn-param-collapse-scvi_umap", color="info", n_clicks=0
+                ),
+                self.actions["param-collapse-scvi_umap"].layout,
+            ], className="param-class"),
+        ]

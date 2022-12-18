@@ -124,38 +124,11 @@ class DEPage(DashPage):
         self.setup_callbacks(app)
 
     def create_layout(self):
-        top_sidebar = html.Div(
-            children=[
-                html.Div(
-                    [
-                        html.H3("Differential Expression Settings"),
-                    ],
-                    className="sidebar-header",
-                ),
-                dcc.Loading(
-                    type="circle",
-                    children=[
-                        html.Div(
-                            children=[
-                                self._params_layout(),
-                            ],
-                            className="sidebar-parameters",
-                        ),
-                        html.Div(
-                            [
-                                dbc.Button(
-                                    "Apply",
-                                    color="primary",
-                                    className="mr-1",
-                                    id="de-submit",
-                                ),
-                            ],
-                            className="sidebar-footer",
-                        ),
-                    ],
-                ),
-            ],
-            className="sidebar", id="de-top-sidebar"
+        top_sidebar = Components.create_sidebar(
+            id="de-top-sidebar", btn_id="de-submit",
+            title="Differential Expression Settings",
+            params_children=self._params_layout(),
+            class_name="top-sidebar"
         )
 
         main = html.Div(
@@ -234,6 +207,12 @@ class DEPage(DashPage):
             className="secondary",
         )
 
+        bot_sidebar = Components.create_sidebar(
+            id="de-bot-sidebar", class_name="bot-sidebar",
+            title="Empty", 
+            params_children=[],
+        )
+
         layout = [
             html.Div(
                 id="top", className="top", children=[top_sidebar, main, secondary]
@@ -243,6 +222,7 @@ class DEPage(DashPage):
                 className="bottom",
                 children=[
                     # bottom_sidebar, bottom_figure
+                    bot_sidebar
                 ],
             ),
         ]
@@ -349,5 +329,5 @@ class DEPage(DashPage):
                 )
             )
 
-        layout = html.Div(children=divs)
-        return layout
+        # layout = html.Div(children=divs)
+        return divs
