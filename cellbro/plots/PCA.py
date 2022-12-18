@@ -3,11 +3,10 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import scanpy as sc
-from dash import Input, Output, State, dcc, html
-from plotly.subplots import make_subplots
 
 from cellbro.util.Param import *
+
+import scout
 
 figure_layout = go.Layout(
     paper_bgcolor="white",
@@ -31,31 +30,27 @@ class PCA:
         self.color = color
         self.pc_x = pc_x - 1
         self.pc_y = pc_y - 1
-        self.color_label = color
         self.hist_n_pcs = hist_n_pcs
         self.hist_type = hist_type
 
-        if color in self.dataset.adata.obs_keys():
-            self.color = self.dataset.adata.obs[color].values
-        else:
-            self.color = (
-                self.dataset.adata.X[:, self.dataset.adata.var.index.get_loc(color)]
-                .toarray()
-                .T[0]
-            )
+        # if color in self.dataset.adata.obs_keys():
+        #     self.color = self.dataset.adata.obs[color].values
+        # else:
+        #     self.color = (
+        #         self.dataset.adata.X[:, self.dataset.adata.var.index.get_loc(color)]
+        #         .toarray()
+        #         .T[0]
+        #     )
         # self.params = params
 
     def projection(self):
+        fig = scout.ply.projection(
+            self.dataset.adata, obsm_layer="X_pca", hue=self.color,
+            layout=figure_layout, components=[self.pc_x, self.pc_y],
+        )
         x_ratio = self.dataset.adata.uns["pca"]["variance_ratio"][self.pc_x]
         y_ratio = self.dataset.adata.uns["pca"]["variance_ratio"][self.pc_y]
-        fig = px.scatter(
-            x=self.dataset.adata.obsm["X_pca"][:, self.pc_x],
-            y=self.dataset.adata.obsm["X_pca"][:, self.pc_y],
-            color=self.color,
-            color_discrete_sequence=sc.pl.palettes.default_20,
-            labels={"x": f"PC {self.pc_x+1}", "y": f"PC {self.pc_y+1}"},
-        )
-        figure_layout["legend"] = dict(title=self.color_label.capitalize())
+
         fig.update_layout(figure_layout)
         fig.update_xaxes(scaleanchor="y", scaleratio=1)
         fig.update_layout(
