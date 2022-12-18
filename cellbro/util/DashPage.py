@@ -23,7 +23,7 @@ class DashPage(ABC):
         for key, action in self.actions.items():
             action.setup_callbacks(app)
 
-    def create(self):
+    def create(self, app):
         dash.register_page(
             self.module,
             title=self.title,
@@ -31,3 +31,4 @@ class DashPage(ABC):
             order=self.order,
             layout=self.create_layout(),
         )
+        self.setup_callbacks(app)

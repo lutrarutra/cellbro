@@ -3,7 +3,7 @@ import flask
 import dash
 import dash_bootstrap_components as dbc
 
-from dash import ALL, Dash, Input, Output, State, dcc, html
+from dash import ALL, Dash, Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
 import cellbro.pages.cells as cells
@@ -37,20 +37,20 @@ class App:
         self.dataset = Dataset(
             "/home/lutrarutra/Documents/dev/bioinfo/cellbrowser/data/full.h5ad")
 
-        qc_page = qc.QCPage(self.dataset, self, order=1)
-        qc_page.create()
+        qc_page = qc.QCPage(self.dataset, order=1)
+        qc_page.create(self)
 
-        cells_page = cells.CellsPage(self.dataset, self, order=2)
-        cells_page.create()
+        cells_page = cells.CellsPage(self.dataset, order=2)
+        cells_page.create(self)
 
-        de_page = de.DEPage(self.dataset, self, order=3)
-        de_page.create()
+        de_page = de.DEPage(self.dataset, order=3)
+        de_page.create(self)
 
-        pca_page = pca.PCAPage(self.dataset, self, order=4)
-        pca_page.create()
+        pca_page = pca.PCAPage(self.dataset, order=4)
+        pca_page.create(self)
 
-        scvi_page = scvi.SCVIPage(self.dataset, self, order=5)
-        scvi_page.create()
+        scvi_page = scvi.SCVIPage(self.dataset, order=5)
+        scvi_page.create(self)
 
         # create_genes_page(self.dash_app, self.dataset)
 
@@ -59,6 +59,7 @@ class App:
                 dcc.Location(id="url"),
                 html.Div(
                     [
+                        dcc.Store(id="genelist-store"),
                         html.Div(
                             id="sidebar-btn-container",
                             children=[dbc.Switch(id="sidebar-btn", value=self.sidebar_open)]
@@ -87,6 +88,7 @@ class App:
             ]
         )
 
+        # TABS
         @self.dash_app.callback(
             [
                 Output(
@@ -102,6 +104,47 @@ class App:
                 "nav-link active" if pathname == page["relative_path"] else "nav-link"
                 for page in dash.page_registry.values()
             ]
+
+        # GENE CARD
+        @self.dash_app.callback(
+            output=[
+                Output("gene-list-dropdown", "value"),
+                Output("gene-list-dropdown", "options"),
+                Output("genelist-store", "data")
+            ],
+            inputs=[
+                Input("gene-list-dropdown", "value"),
+                Input("new-gene-list-button", "n_clicks"),
+            ],
+            state=[
+                State("selected-gene", "children"),
+                State("new-gene-list-input", "value"),
+            ],
+        )
+        def _(gene_list, create_new_list, selected_gene, new_gene_list_name):
+            if ctx.triggered_id == "new-gene-list-button":
+                if create_new_list is None:
+                    raise PreventUpdate
+                if new_gene_list_name is None:
+                    raise PreventUpdate
+                if new_gene_list_name in self.dataset.get_gene_lists():
+                    raise PreventUpdate
+
+                self.dataset.adata.uns["gene_lists"][new_gene_list_name] = [selected_gene]
+
+                return self.dataset.get_gene_lists(selected_gene), self.dataset.get_gene_lists(), {"new": True}
+
+            res = self.dataset.update_gene_lists(selected_gene, gene_list)
+            return res, self.dataset.get_gene_lists(), {"new":False}
+
+        # NEW GENE LIST
+        @self.dash_app.callback(
+            output=Output("heatmap-selected-genelists", "options"),
+            inputs=[Input("genelist-store", "data")]
+        )
+        def _(genelist_store):
+            print("NEW GENE list added")
+            return self.dataset.get_gene_lists()
 
     def run(self):
         self.dash_app.run_server(debug=True, host="127.0.0.1")

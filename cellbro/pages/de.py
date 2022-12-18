@@ -111,17 +111,15 @@ class ClickAction(DashAction):
 
 
 class DEPage(DashPage):
-    def __init__(self, dataset, app, order):
+    def __init__(self, dataset, order):
         super().__init__("pages.de", "DE", "/de", order)
         self.dataset = dataset
-        self.layout = self.create_layout()
         self.actions.update(
             apply_de=ApplyDE(dataset=self.dataset),
             plot_volcano=PlotVolcano(dataset=self.dataset),
             plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset),
             click_action=ClickAction(dataset=self.dataset),
         )
-        self.setup_callbacks(app)
 
     def create_layout(self):
         top_sidebar = Components.create_sidebar(

@@ -105,6 +105,7 @@ h3 {
 
 #page {
     height: 100vh;
+    overflow: hidden;
     /* background-color: pink; */
 }
 
@@ -140,6 +141,14 @@ h3 {
     z-index: 10;
     transition: all 0.4s ease;
     padding: 0 10px 0 10px;
+}
+
+.top-sidebar {
+    height: 60vh;
+}
+
+.bot-sidebar {
+    height: calc(100vh - 60vh - 50px);
 }
 
 .open {
@@ -349,14 +358,6 @@ h3 {
     overflow-x: hidden;
 }
 
-.top-sidebar {
-    height: 60vh;
-}
-
-.bot-sidebar {
-    height: calc(100vh - 60vh - 50px);
-}
-
 .sidebar-header {
     display: flex;
     align-items: center;
@@ -364,13 +365,17 @@ h3 {
     height: 80px;
 }
 
-.sidebar-container {
-    height: 100%;
+.top-sidebar .sidebar-container {
+    height: calc(60vh - 80px);
+}
+
+.bot-sidebar .sidebar-container {
+    height: calc(100vh - 60vh - 50px - 80px);
 }
 
 .sidebar-parameters {
-    overflow-y: auto;
-    height: calc(100% - 80px - 60px);
+    overflow-y: scroll;
+    height: calc(100% - 60px);
     width: 100%;
 }
 
@@ -391,7 +396,7 @@ h3 {
 
 .param-row-stacked {
     width: 100%;
-    height: 70px;
+    min-height: 70px;
 }
 
 .param-label {

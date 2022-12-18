@@ -57,15 +57,13 @@ class PlotAction(DashAction):
 
 
 class PCAPage(DashPage):
-    def __init__(self, dataset, app, order):
+    def __init__(self, dataset, order):
         super().__init__("pages.pca", "PCA", "/pca", order)
         self.dataset = dataset
-        self.layout = self.create_layout()
         self.actions.update(
             plot_action=PlotAction(self.dataset),
             click_action=ClickAction(self.dataset)
         )
-        self.setup_callbacks(app)
 
     def create_layout(self) -> list:
         top_sidebar = Components.create_sidebar(

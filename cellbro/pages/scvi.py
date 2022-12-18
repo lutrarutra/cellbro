@@ -76,15 +76,12 @@ class FitAction(DashAction):
             return self.plot(params=kwargs)
 
 class SCVIPage(DashPage):
-    def __init__(self, dataset, app, order):
+    def __init__(self, dataset, order):
         super().__init__("pages.scvi", "SCVI", "/scvi", order)
         self.dataset = dataset
         self.actions.update(
             fit=FitAction(self.dataset),
         )
-        self.layout = self.create_layout()
-        self.setup_callbacks(app)
-
 
     def create_layout(self) -> list:
         cats = self.dataset.get_categoric()

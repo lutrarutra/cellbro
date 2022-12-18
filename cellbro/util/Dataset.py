@@ -14,8 +14,10 @@ class Dataset:
         print("Reading File")
 
         self.adata = sc.read_h5ad(self.path)
-    
-        self.adata.uns["gene_lists"] = {}
+
+        if "gene_lists" not in self.adata.uns.keys():
+            self.adata.uns["gene_lists"] = {}
+
         self.adata.uns["scvi_setup_params"] = {}
         self.adata.uns["scvi_model_params"] = {}
         self.adata.uns["scvi_train_params"] = {}
@@ -74,6 +76,9 @@ class Dataset:
             for gl in self.adata.uns["gene_lists"].keys()
             if gene in self.adata.uns["gene_lists"][gl]
         ]
+
+    def get_genes_from_list(self, gene_list):
+        return self.adata.uns["gene_lists"][gene_list]
 
     def update_gene_lists(self, gene, gene_lists):
         for gl_key in self.get_gene_lists():

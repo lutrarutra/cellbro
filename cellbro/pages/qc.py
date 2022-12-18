@@ -118,39 +118,6 @@ class ClickAction(DashAction):
             return self.apply(params=dict(clickData=clickData))
 
 
-class SelectGeneListAction(DashAction):
-    def apply(self, params):
-        res = self.dataset.update_gene_lists(params["selected_gene"], params["gene_list"])
-        return res, self.dataset.get_gene_lists()
-
-    def setup_callbacks(self, app):
-        @app.dash_app.callback(
-            output=[
-                Output("gene-list-dropdown", "value"),
-                Output("gene-list-dropdown", "options"),
-            ],
-            inputs=[
-                Input("gene-list-dropdown", "value"),
-                Input("new-gene-list-button", "n_clicks"),
-            ],
-            state=[
-                State("selected-gene", "children"),
-                State("new-gene-list-input", "value"),
-            ],
-        )
-        def _(gene_list, create_new_list, selected_gene, new_gene_list_name):
-            if ctx.triggered_id == "new-gene-list-button":
-                if create_new_list is None:
-                    raise PreventUpdate
-                if new_gene_list_name is None:
-                    raise PreventUpdate
-                if new_gene_list_name in self.dataset.get_gene_lists():
-                    raise PreventUpdate
-                self.dataset.adata.uns["gene_lists"][new_gene_list_name] = [selected_gene]
-                return self.dataset.get_gene_lists(selected_gene), self.dataset.get_gene_lists()
-
-            return self.apply(params=dict(selected_gene=selected_gene, gene_list=gene_list))
-
 class PerformQC(DashAction):
     def apply(self):
         if not "pct_counts_mt" in self.dataset.adata.obs.columns:
@@ -182,20 +149,16 @@ class PerformQC(DashAction):
             return [{"display": "block"}, {"display": "none"}, {"qc_done": False}]
 
 class QCPage(DashPage):
-    def __init__(self, dataset, app, order):
+    def __init__(self, dataset, order):
         super().__init__("pages.qc", "QC", "/qc", order)
         self.dataset = dataset
-
-        self.layout = self.create_layout()
         self.actions.update(
             plot=PlotAction(dataset),
             filter=FilterAction(dataset),
             click=ClickAction(dataset),
-            select_gene_list=SelectGeneListAction(dataset),
             top_sidebar_temp=Components.HideSidebar(id=f"qc-top-sidebar-temp"),
             perform_qc=PerformQC(dataset),
         )
-        self.setup_callbacks(app)
 
     def create_layout(self):
 

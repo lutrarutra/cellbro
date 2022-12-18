@@ -111,7 +111,7 @@ def create_gene_card(gene, dataset):
                     children=[html.Img(src="assets/logos/genecards_logo.png", style={"height": "20px"})]
                 ),
                 html.A(
-                    href=f"https://scholar.google.com/scholar?hl=en&as_sdt=0%2C5&q={gene}", role="button", target="_blank",
+                    href=f"https://scholar.google.com/scholar?q={gene}", role="button", target="_blank",
                     children=[html.Img(src="assets/logos/google_scholar_logo.png", style={"height": "20px"})]
                 ),
             ], className="hover-row"),
@@ -138,6 +138,7 @@ def create_gene_card(gene, dataset):
             ], className="hover-col"),
         ], className="hover-info")
     ], className="hover-container", style={"display": "none" if gene == None else "flex"})
+
     return element
 
 
@@ -186,6 +187,7 @@ def params_layout(params, id_prefix):
                     className="param-row",
                 )
             )
+            
     return divs
 
 

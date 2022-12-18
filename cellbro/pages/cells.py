@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
-from cellbro.plots.Heatmap import Heatmap, heatmap_params
+from cellbro.plots.Heatmap import Heatmap, heatmap_params, AddGenesFromList
 import cellbro.plots.Projection as Projection
 from cellbro.plots.Trimap import Trimap
 from cellbro.plots.TSNE import TSNE
@@ -16,7 +16,6 @@ from cellbro.util.DashPage import DashPage
 import cellbro.util.Components as Components
 
 import scout
-
 
 class PlotProjection(DashAction):
     def plot(self, params):
@@ -109,9 +108,9 @@ class PlotHeatmap(DashAction):
                 for key in heatmap_params.keys()
             ]
         )
-        callbacks = dict(output=output, inputs=inputs, state=state)
+        state["selected_genes"] = State("heatmap-selected-genes", "value")
 
-        @app.dash_app.callback(**callbacks)
+        @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, **kwargs):
             return self.apply(params=kwargs)
 
@@ -151,7 +150,7 @@ class UpdateAvailableProjectionTypes(DashAction):
             return available_projections
 
 class CellsPage(DashPage):
-    def __init__(self, dataset, app, order):
+    def __init__(self, dataset, order):
         super().__init__("pages.cells", "Cells", "/cells", order)
         self.dataset = dataset
         self.actions.update(
@@ -159,8 +158,8 @@ class CellsPage(DashPage):
             heatmap_action=PlotHeatmap(self.dataset),
             violin_action=PlotViolin(self.dataset),
             update_projection_types=UpdateAvailableProjectionTypes(self.dataset),
+            heatmap_add_genes=AddGenesFromList(self.dataset),
         )
-        self.setup_callbacks(app)
 
     def _params_layout(self):
         return [
