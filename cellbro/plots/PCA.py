@@ -142,22 +142,20 @@ class PCA:
         yaxis_range = [ymin - 0.3 * ymax, ymax + 0.3 * ymax]
 
         fig = px.scatter(
-            df,
-            x="x",
-            y="y",
-            text="text",
-            hover_name="Gene",
+            df, x="x", y="y", text="text", hover_name="Gene",
             hover_data={"x": ":.2f", "y": ":.2f", "Gene": False, "text": False},
             labels={"x": f"PC {self.pc_x+1}", "y": f"PC {self.pc_y+1}"}
-            # color_discrete_sequence=sc.pl.palettes.default_20,
         )
 
-        fig.update_traces(textposition=df["textposition"])
+        fig.update_traces(
+            textposition=df["textposition"],
+            marker=dict(size=5, line=dict(width=1, color="DarkSlateGrey"))
+        )
+        
         fig.update_layout(
             xaxis_title=f"PC {self.pc_x+1} ({x_ratio*100:.1f} %)",
             yaxis_title=f"PC {self.pc_y+1} ({y_ratio*100:.1f} %)",
-            xaxis_range=xaxis_range,
-            yaxis_range=yaxis_range,
+            xaxis_range=xaxis_range, yaxis_range=yaxis_range,
         )
         fig.update_layout(figure_layout)
         return fig
@@ -182,23 +180,12 @@ class PCA:
         )
         fig.update_layout(
             xaxis=dict(
-                title="PC",
-                tick0=1,
-                dtick=1,
-                showgrid=False,
-                zeroline=False,
-                visible=True,
-                showticklabels=True,
+                title="PC", tick0=1, dtick=1, showgrid=False, zeroline=False,
+                visible=True, showticklabels=True,
             ),
             yaxis=dict(
-                range=[0, 1],
-                title="R<sup>2</sup>",
-                tick0=0,
-                dtick=0.2,
-                showgrid=False,
-                zeroline=False,
-                visible=True,
-                showticklabels=True,
+                range=[0, 1], title="R<sup>2</sup>", tick0=0, dtick=0.2, showgrid=False,
+                zeroline=False, visible=True, showticklabels=True,
             ),
             legend_title="Feature",
             paper_bgcolor="white",
