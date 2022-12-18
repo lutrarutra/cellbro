@@ -85,7 +85,7 @@ class Heatmap:
     def plot(self):
         fig = scout.ply.heatmap(
             adata=self.dataset.adata, var_names=self.selected_genes,
-            categoricals=["leiden"], layer=self.params["layer"], cluster_cells=False, layout=dict()
+            categoricals=["leiden"], layer=self.params["layer"], cluster_cells_by=self.params["cluster_cells_by"], layout=dict()
         )
 
         style = {
@@ -136,6 +136,8 @@ class Heatmap:
         genes = sorted(dataset.adata.var_names.tolist())
         gene_lists = sorted(dataset.get_gene_lists())
 
+        categoricals = dataset.get_categoric() + ["barcode"]
+
         divs = [
             html.Div([
                 html.Label(
@@ -154,7 +156,26 @@ class Heatmap:
                         style={"width": "100%"}
                     ),
                 ], style={"display":"flex", "gap":"10px"})
-            ], className="param-row-stacked")
+            ], className="param-row-stacked"),
+            html.Div(
+                children=[
+                    html.Label(
+                        "Cluster Group By",
+                        className="param-label",
+                    ),
+                    html.Div(
+                        [
+                            dcc.Dropdown(
+                                options=categoricals, value=None,
+                                id="heatmap-cluster-cells-by", clearable=True,
+                                placeholder="Select Categorical (Optional)",
+                            )
+                        ],
+                        className="param-select",
+                    ),
+                ],
+                className="param-row-stacked",
+            )
         ]
         divs.extend(Components.params_layout(heatmap_params, "heatmap"))
 

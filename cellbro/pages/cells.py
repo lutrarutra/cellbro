@@ -109,6 +109,7 @@ class PlotHeatmap(DashAction):
             ]
         )
         state["selected_genes"] = State("heatmap-selected-genes", "value")
+        state["cluster_cells_by"] = State("heatmap-cluster-cells-by", "value")
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, **kwargs):
@@ -223,8 +224,7 @@ class CellsPage(DashPage):
                             children=[
                                 html.Label("Color"),
                                 dcc.Dropdown(
-                                    self.dataset.adata.obs_keys()
-                                    + list(self.dataset.adata.var_names),
+                                    self.dataset.get_obs_features(),
                                     value=self.dataset.adata.obs_keys()[0],
                                     id="projection-color",
                                     clearable=False,

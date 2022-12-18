@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import scanpy as sc
+import pandas as pd
 
 import scout
 
@@ -14,6 +15,8 @@ class Dataset:
         print("Reading File")
 
         self.adata = sc.read_h5ad(self.path)
+
+        self.adata.obs["barcode"] = pd.Categorical(self.adata.obs_names)
 
         if "gene_lists" not in self.adata.uns.keys():
             self.adata.uns["gene_lists"] = {}
@@ -56,8 +59,15 @@ class Dataset:
     def get_categoric(self):
         return list(
             set(self.adata.obs.columns)
-            - set(self.adata.obs._get_numeric_data().columns)
+            - set(self.adata.obs._get_numeric_data().columns) - set(["barcode"])
         )
+
+    def get_obs_features(self):
+        res = self.adata.obs_keys() + list(self.adata.var_names)
+        if "barcode" in res:
+            res.remove("barcode")
+
+        return res
 
     def get_numeric(self):
         return list(self.adata.obs._get_numeric_data().columns)
