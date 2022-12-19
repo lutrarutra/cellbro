@@ -10,9 +10,10 @@ class DashPage(ABC):
         self.title = title
         self.path = path
         self.order = order
+        self._id = "home" if path == "/" else path[1:]
         self.actions = dict(
-            top_sidebar=Components.HideSidebar(id=f"{path[1:]}-top-sidebar"),
-            bot_sidebar=Components.HideSidebar(id=f"{path[1:]}-bot-sidebar"),
+            top_sidebar=Components.HideSidebar(id=f"{self._id}-top-sidebar"),
+            bot_sidebar=Components.HideSidebar(id=f"{self._id}-bot-sidebar"),
         )
 
     @abstractmethod

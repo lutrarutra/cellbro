@@ -6,6 +6,7 @@ import dash_bootstrap_components as dbc
 from dash import ALL, Dash, Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
+import cellbro.pages.home as home
 import cellbro.pages.cells as cells
 import cellbro.pages.de as de
 import cellbro.pages.qc as qc
@@ -37,6 +38,9 @@ class App:
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
         self.dataset = Dataset(
             "/home/lutrarutra/Documents/dev/bioinfo/cellbrowser/data/full.h5ad")
+
+        home_page = home.HomePage(self.dataset, order=0)
+        home_page.create(self)
 
         qc_page = qc.QCPage(self.dataset, order=1)
         qc_page.create(self)
