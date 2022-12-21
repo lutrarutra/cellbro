@@ -39,7 +39,6 @@ class Dataset:
         print("Normalizing Counts")
         scout.tl.scale_log_center(self.adata, target_sum=None)
 
-
         print("Calculating Metrics")
         sc.tl.pca(self.adata)
         sc.pp.neighbors(self.adata, random_state=0)
@@ -103,3 +102,6 @@ class Dataset:
 
     def get_rank_genes_groups(self):
         return [key[11:] for key in self.adata.uns_keys() if "rank_genes_" in key]
+
+    def get_scvi_projections(self):
+        return [x for x in list(self.adata.obsm.keys()) if "X_umap_scvi" in x]

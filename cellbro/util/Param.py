@@ -46,6 +46,7 @@ class Param():
     type: type
     description: str = ""
     allowed_values: list = None
+    placeholder: str = None
     nullable: bool = False
     _min: int = None
     _max: int = None

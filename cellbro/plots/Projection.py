@@ -44,10 +44,28 @@ class ProjectionType(Enum):
 
 
 class Projection():
-    def __init__(self, dataset, color, params: ParamsDict):
+    def __init__(self, dataset, params: ParamsDict):
         self.dataset = dataset
-        self.color = color
         self.params = params
+
+    @classmethod
+    def parse_params(cls, params):
+        key = cls.get_key()
+        print(key)
+        projection_params = dict(
+            [
+                (param_key.replace(f"{key}_", ""), params[param_key])
+                for param_key in params.keys()
+                if param_key.startswith(f"{key}_")
+            ]
+        )
+        print(projection_params)
+        return projection_params
+
+    @classmethod
+    @abstractmethod
+    def get_key(cls) -> str:
+        ...
 
     @staticmethod
     @abstractmethod
@@ -56,21 +74,12 @@ class Projection():
 
     @staticmethod
     @abstractmethod
-    def get_key() -> str:
-        ...
-
-    @staticmethod
-    @abstractmethod
     def get_params() -> ParamsDict:
         ...
 
     @abstractmethod
-    def apply(self):
+    def apply(self) -> str:
         ...
-
-    def plot(self):
-        
-        return fig
 
     def add_params(self):
         if f"{self.get_type()}_params" not in self.dataset.adata.uns.keys():
@@ -93,12 +102,13 @@ class Projection():
                     value=param.default,
                 )
             else:
-                inp = dcc.Input(
+                inp = dbc.Input(
                     id=f"projection-{projection_cls.get_type().value}-{key}",
                     type=param.input_type,
                     value=param.value,
                     step=param.step if param.step != None else 0.1,
                     className="param-input",
+                    placeholder=param.placeholder,
                 )
 
             divs.append(
@@ -129,26 +139,26 @@ class Projection():
 #         self.add_params(dataset.adata)
 
 
-def parse_params(params: dict):
-    projection_type = params.pop("projection_type")
-    projection_color = params.pop("projection_color")
-    key = None
-    if projection_type == "UMAP":
-        key = "umap"
-    elif projection_type == "t-SNE":
-        key = "tsne"
-    elif projection_type == "SCVI-UMAP":
-        key = "scvi_umap"
-    else:
-        key = "trimap"
+# def parse_params(params: dict):
+#     projection_type = params.pop("projection_type")
+#     projection_color = params.pop("projection_color")
+#     key = None
+#     if projection_type == "UMAP":
+#         key = "umap"
+#     elif projection_type == "t-SNE":
+#         key = "tsne"
+#     elif projection_type == "SCVI-UMAP":
+#         key = "scvi_umap"
+#     else:
+#         key = "trimap"
 
-    projection_params = dict(
-        [
-            (param_key.replace(f"{key}_", ""), params[param_key])
-            for param_key in params.keys()
-            if param_key.startswith(f"{key}_")
-        ]
-    )
-    return projection_type, dict(color=projection_color, params=projection_params)
+#     projection_params = dict(
+#         [
+#             (param_key.replace(f"{key}_", ""), params[param_key])
+#             for param_key in params.keys()
+#             if param_key.startswith(f"{key}_")
+#         ]
+#     )
+#     return projection_type, dict(color=projection_color, params=projection_params)
     # elif projection_type == "PCA":
     #     return PCA(dataset=dataset, color=color, params=params)

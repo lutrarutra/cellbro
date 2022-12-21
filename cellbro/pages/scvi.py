@@ -10,6 +10,8 @@ from cellbro.util.DashPage import DashPage
 from cellbro.util.DashAction import DashAction
 from cellbro.plots.UMAP import SCVI_UMAP
 
+import scout
+
 class FitAction(DashAction):
     def apply(self, params: dict):
         setup_params = dict(
@@ -24,29 +26,31 @@ class FitAction(DashAction):
         scvi_plots.setup(self.dataset, setup_params)
         scvi_plots.fit(self.dataset, model_params, train_params)
 
-        return self.plot(params)
+    def apply_projection(self, params):
+        projection = SCVI_UMAP(self.dataset, SCVI_UMAP.parse_params(params))
+        return projection.apply()
 
-    def plot(self, params: dict):
-        if "neighbors_scvi" not in self.dataset.get_neighbors():
-            raise PreventUpdate
-        
-        _, kwargs = Projection.parse_params(params)
-        projection = SCVI_UMAP(dataset=self.dataset, **kwargs)
-        projection.apply()
+    def plot(self, color, obsm_layer):        
+        fig = scout.ply.projection(
+            self.dataset.adata, obsm_layer=obsm_layer, hue=color,
+            layout=Projection.projection_layout
+        )
 
-        return [projection.plot()]
+        return fig
 
     def setup_callbacks(self, app):
         output = [
             Output("scvi-projection-plot", "figure"),
+            Output("scvi-projection-plot-type", "options"),
+            Output(component_id="scvi-projection-plot-type", component_property="value"),
         ]
         inputs = {
             "submit": Input("fit-submit", "n_clicks"),
-            "projection_color": Input(
+            "color": Input(
                 component_id="scvi-projection-color", component_property="value"
             ),
-            "projection_type": Input(
-                component_id="scvi-projection-type", component_property="value"
+            "obsm_layer": Input(
+                component_id="scvi-projection-plot-type", component_property="value"
             ),
         }
         state = {
@@ -66,14 +70,20 @@ class FitAction(DashAction):
             )
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
-        def _(**kwargs):
-            _ = kwargs.pop("submit")
+        def _(submit, color, obsm_layer, **kwargs):
             if ctx.triggered_id == "fit-submit":
-                return self.apply(params=kwargs)
-            # if submit is None:
-            #     raise PreventUpdate
-            
-            return self.plot(params=kwargs)
+                self.apply(params=kwargs)
+                obsm_layer = self.apply_projection(params=kwargs)
+
+            layers = self.dataset.get_scvi_projections()
+            if len(layers) == 0:
+                raise PreventUpdate
+
+            if obsm_layer is None:
+                obsm_layer = layers[0]
+
+            fig = self.plot(color, obsm_layer)
+            return (fig, layers, obsm_layer)
 
 class SCVIPage(DashPage):
     def __init__(self, dataset, order):
@@ -142,15 +152,17 @@ class SCVIPage(DashPage):
             id="scvi-top-sidebar", class_name="top-sidebar",
             title="SCVI Settings",
             params_children=self._params_layout(),
-            btn_id="fit-submit", btn_text="Rune"
+            btn_id="fit-submit", btn_text="Fit SCVI"
         )
 
         bot_sidebar = Components.create_sidebar(
             id="scvi-bot-sidebar", class_name="bot-sidebar",
             title="Empty",
             params_children=[],
-            btn_id=None, btn_text="Rune"
+            btn_id=None, btn_text="Fit SCVI"
         )
+
+        projection_types = self.dataset.get_scvi_projections()
 
         main_figure = html.Div(
             children=[
@@ -160,8 +172,8 @@ class SCVIPage(DashPage):
                             children=[
                                 html.Label("Projection Type"),
                                 dcc.Dropdown(
-                                    ["SCVI-UMAP"], value="SCVI-UMAP",
-                                    id="scvi-projection-type", clearable=False,
+                                    projection_types, value=next(iter(projection_types), None),
+                                    id="scvi-projection-plot-type", clearable=False,
                                 ),
                             ],
                             className="param-column",

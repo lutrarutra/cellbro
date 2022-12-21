@@ -5,19 +5,20 @@ from cellbro.util.Param import Param, ParamsDict
 
 
 class TSNE(Projection):
-    def __init__(self, dataset, color, params):
-        super().__init__(dataset, color, TSNE._params.update(params))
+    def __init__(self, dataset, params):
+        super().__init__(dataset, TSNE._params.update(params))
 
-    def apply(self):
+    def apply(self) -> str:
         sc.tl.tsne(self.dataset.adata, **self.params.unravel())
+        return "X_tsne"
 
     @staticmethod
     def get_type() -> ProjectionType:
         return ProjectionType.TSNE
 
-    @staticmethod
-    def get_key() -> str:
-        return "X_tsne"
+    @classmethod
+    def get_key(cls) -> str:
+        return "tsne"
 
     @staticmethod
     def get_params() -> ParamsDict:
@@ -32,6 +33,8 @@ class TSNE(Projection):
                 type=int,
                 nullable=True,
                 description="",
+                placeholder="Optional",
+                step=1,
             ),
             # Param(key="n_components", name="3D Projection", default=False, type=bool, nullable=False, description=""),
         ]

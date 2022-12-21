@@ -61,6 +61,7 @@ h3 {
 h2 {
     /* font-family: 'Roboto', sans-serif; */
     /* font-size: 18px; */
+    font-size: 25px;
     color: #868686;
 }
 
@@ -299,6 +300,23 @@ h2 {
     justify-content: space-between;
 }
 
+.floating-box .title > h2 {
+    overflow-wrap: initial;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.floating-box .title > div {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+}
+
 .floating-box .list {
     padding: 10px;
     width: 100%;
@@ -308,6 +326,18 @@ h2 {
 .floating-box .list > div {
     border-bottom: solid 1px #5c5c5c;
     padding: 10px 0 10px 0;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px;
+}
+
+.modal-footer > div {
+    display: flex;
+    justify-content: flex-end;
+    gap: 20px;
 }
 
 .row {
@@ -352,6 +382,7 @@ h2 {
 .main-figure {
     width: 50vw;
     height: 100%;
+    background-color: white;
 }
 
 .main-figure > div {
@@ -371,6 +402,7 @@ h2 {
 .secondary-figure {
     width: 50vw;
     height: 100%;
+    background-color: white;
 }
 
 .secondary-figure > div {
@@ -408,6 +440,7 @@ h2 {
     overflow: hidden;
     height: 100%;
     width: 100vw;
+    background-color: white;
 }
 
 .bottom-left-plot {
@@ -464,12 +497,17 @@ h2 {
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    height: 50px;
+    min-height: 70px;
+    gap: 20px
 }
 
 .param-row-stacked {
     width: 100%;
     min-height: 70px;
+}
+
+.popup .param-label {
+    color: black;
 }
 
 .param-label {
@@ -488,3 +526,10 @@ h2 {
     text-align: right;
 }
 
+.filename-with-extension {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+}

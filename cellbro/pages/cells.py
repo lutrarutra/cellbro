@@ -2,7 +2,7 @@ import dash
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
-from dash import Input, Output, State, dcc, html
+from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
 from cellbro.plots.Heatmap import Heatmap, heatmap_params, AddGenesFromList
@@ -18,41 +18,44 @@ import cellbro.util.Components as Components
 import scout
 
 class PlotProjection(DashAction):
-    def plot(self, params):
-        color = params.pop("projection_color")
-        obsm_layer = params.pop("projection_type")
-
+    def plot(self, color, obsm_layer):
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
             layout=Projection.projection_layout
         )
+        return fig
 
-        return [fig]
-        
+    def apply(self, projection_type, params):
+        if projection_type == "UMAP":
+            projection = UMAP(self.dataset, UMAP.parse_params(params))
+        elif projection_type == "t-SNE":
+            projection = TSNE(self.dataset, TSNE.parse_params(params))
+        elif projection_type == "Trimap":
+            projection = Trimap(self.dataset, Trimap.parse_params(params))
+
+        return projection.apply()
 
     def setup_callbacks(self, app):
         outputs = [
             Output(component_id="projection-plot", component_property="figure"),
-            # Output(component_id="projection-umap", component_property="style"),
-            # Output(component_id="projection-tsne", component_property="style"),
-            # Output(component_id="projection-trimap", component_property="style"),
-            # Output(component_id="projection-scvi_umap", component_property="style"),
-            # Output(component_id="projection-pca", component_property="style"),
+            Output("projection-plot-type", "options"),
+            Output(component_id="projection-plot-type", component_property="value"),
         ]
 
         inputs = {
-            # "submit": Input(
-            #     component_id="projection-submit", component_property="n_clicks"
-            # ),
-            "projection_color": Input(
+            "projection_submit": Input(
+                component_id="projection-submit", component_property="n_clicks"
+            ),
+            "color": Input(
                 component_id="projection-color", component_property="value"
             ),
-            "projection_type": Input(
-                component_id="projection-type", component_property="value"
+            "obsm_layer": Input(
+                component_id="projection-plot-type", component_property="value"
             ),
         }
 
         states = {}
+        states["projection_type"] = State(component_id="projection-type-select", component_property="value")
         for key in UMAP._params.keys():
             states[f"umap_{key}"] = State(
                 component_id=f"projection-umap-{key}", component_property="value"
@@ -73,14 +76,14 @@ class PlotProjection(DashAction):
                 component_id=f"projection-trimap-{key}", component_property="value"
             )
 
-        # for key in pca_params.keys():
-        #     states[f"pca_{key}"] = State(
-        #         component_id=f"projection-pca-{key}", component_property="value"
-        #     )
-        # Projection
         @app.dash_app.callback(output=outputs, inputs=inputs, state=states)
-        def _(**kwargs):
-            return self.plot(params=kwargs)
+        def _(projection_submit, color, obsm_layer, projection_type, **kwargs):
+            if ctx.triggered_id == "projection-submit":
+                if projection_submit is not None:
+                    obsm_layer = self.apply(projection_type, params=kwargs)
+
+            return (self.plot(color=color, obsm_layer=obsm_layer),
+                    list(self.dataset.adata.obsm.keys()), obsm_layer)
 
 class PlotHeatmap(DashAction):
     def apply(self, params):
@@ -100,13 +103,7 @@ class PlotHeatmap(DashAction):
         }
 
         state = dict(
-            [
-                (
-                    key,
-                    State(component_id=f"heatmap-{key}", component_property="value"),
-                )
-                for key in heatmap_params.keys()
-            ]
+            [(key, State(component_id=f"heatmap-{key}", component_property="value")) for key in heatmap_params.keys()]
         )
         state["selected_genes"] = State("heatmap-selected-genes", "value")
         state["cluster_cells_by"] = State("heatmap-cluster-cells-by", "value")
@@ -128,27 +125,31 @@ class PlotViolin(DashAction):
             "feature": Input(component_id="violin-feature", component_property="value"),
             "groupby": Input(component_id="violin-groupby", component_property="value"),
         }
-        callbacks = dict(output=output, inputs=inputs)
 
-        @app.dash_app.callback(**callbacks)
+        @app.dash_app.callback(output=output, inputs=inputs)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
-
-class UpdateAvailableProjectionTypes(DashAction):
+class SelectProjectionType(DashAction):
     def setup_callbacks(self, app):
-        @app.dash_app.callback(
-            output=Output("projection-type", "options"),
-            inputs={"_": Input("projection-type", "value")}
-        )
-        def _(_):
-            # neighbors = self.dataset.get_neighbors()
-            # available_projections = ["UMAP", "Trimap", "t-SNE", "PCA"]
-            # if "neighbors_scvi" in neighbors:
-            #     available_projections.append("SCVI-UMAP")
-            available_projections = list(self.dataset.adata.obsm.keys())
+        output = [
+            Output(component_id="projection-umap", component_property="style"),
+            Output(component_id="projection-tsne", component_property="style"),
+            Output(component_id="projection-trimap", component_property="style"),
+        ]
+        inputs = [
+            Input(component_id="projection-type-select", component_property="value"),
+        ]
+        @app.dash_app.callback(output=output, inputs=inputs)
+        def _(projection_type):
+            if projection_type == "UMAP":
+                return {"display": "block"}, {"display": "none"}, {"display": "none"}
 
-            return available_projections
+            if projection_type == "t-SNE":
+                return {"display": "none"}, {"display": "block"}, {"display": "none"}
+
+            if projection_type == "Trimap":
+                return {"display": "none"}, {"display": "none"}, {"display": "block"}
 
 class CellsPage(DashPage):
     def __init__(self, dataset, order):
@@ -158,36 +159,49 @@ class CellsPage(DashPage):
             projection_action=PlotProjection(self.dataset),
             heatmap_action=PlotHeatmap(self.dataset),
             violin_action=PlotViolin(self.dataset),
-            update_projection_types=UpdateAvailableProjectionTypes(self.dataset),
             heatmap_add_genes=AddGenesFromList(self.dataset),
+            select_projection_type=SelectProjectionType(self.dataset),
         )
 
     def _params_layout(self):
         return [
+            html.Div([
+                html.Div(
+                    children=[
+                        html.Label(
+                            "Projection Type",
+                            className="param-label",
+                        ),
+                        dcc.Dropdown(
+                            id=f"projection-type-select",
+                            options=["UMAP", "t-SNE", "Trimap"],
+                            value="UMAP",
+                            clearable=False,
+                        )
+                    ],
+                    className="param-row-stacked",
+                )
+            ]),
             html.Div(
-                children=Projection.Projection.get_layout(
-                    UMAP),
+                children=Projection.Projection.get_layout(UMAP),
                 style={"display": "none"},
                 id=f"projection-{UMAP.get_type().value}",
                 className="param-class"
             ),
             html.Div(
-                children=Projection.Projection.get_layout(
-                    TSNE),
+                children=Projection.Projection.get_layout(TSNE),
                 style={"display": "none"},
                 id=f"projection-{TSNE.get_type().value}",
                 className="param-class"
             ),
             html.Div(
-                children=Projection.Projection.get_layout(
-                    Trimap),
+                children=Projection.Projection.get_layout(Trimap),
                 style={"display": "none"},
                 id=f"projection-{Trimap.get_type().value}",
                 className="param-class"
             ),
             html.Div(
-                children=Projection.Projection.get_layout(
-                    SCVI_UMAP),
+                children=Projection.Projection.get_layout(SCVI_UMAP),
                 style={"display": "none"},
                 id=f"projection-{SCVI_UMAP.get_type().value}",
                 className="param-class"
@@ -199,7 +213,7 @@ class CellsPage(DashPage):
             id="cells-top-sidebar", class_name="top-sidebar",
             title="Projection Settings",
             params_children=self._params_layout(),
-            btn_id="projection-submit", btn_text="Plot"
+            btn_id="projection-submit", btn_text="Apply Projection"
         )
 
         available_projections = list(self.dataset.adata.obsm.keys())
@@ -214,7 +228,7 @@ class CellsPage(DashPage):
                                 html.Label("Projection Type"),
                                 dcc.Dropdown(
                                     available_projections, value=available_projections[0],
-                                    id="projection-type", clearable=False,
+                                    id="projection-plot-type", clearable=False,
                                 ),
                             ],
                             className="param-column",

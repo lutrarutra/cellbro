@@ -2,15 +2,45 @@ import dash
 from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 
+import pandas as pd
+import numpy as np
+
 from cellbro.util.DashPage import DashPage
+from cellbro.util.DashAction import DashAction
 import cellbro.util.Components as Components
+
+import cellbro.io as io
 
 class HomePage(DashPage):
     def __init__(self, dataset, order):
         super().__init__("pages.home", "Home", "/", order)
         self.dataset = dataset
-        self.actions.update(
+        self.import_popups = dict(
         )
+        self.export_popups = dict(
+            # export_dataset=IO.ExportDataset(
+            #     dataset=self.dataset, id="export-dataset",
+            #     filename_ph="adata", formats=[ff.H5AD]
+            # ),
+            export_cell_features=io.ExportDF(
+                dataset=self.dataset, dataset_attr="adata.obs", id="export-cell-features",
+                filename_ph="cell_features"
+            ),
+            export_gene_features=io.ExportDF(
+                dataset=self.dataset, dataset_attr="adata.var", id="export-gene-features",
+                filename_ph="gene_features"
+            ),
+            export_layer=io.ExportLayer(
+                dataset=self.dataset, id="export-layer",
+                filename_ph="layer"
+            ),
+            export_projection=io.ExportProjection(
+                dataset=self.dataset, id="export-projection",
+                filename_ph="projection"
+            )
+        )
+        self.actions.update(self.import_popups)
+        self.actions.update(self.export_popups)
 
     def create_layout(self) -> list:
         top_sidebar = Components.create_sidebar(
@@ -41,9 +71,10 @@ class HomePage(DashPage):
             html.Div([
                 html.Div([
                     html.H2("Dataset"),
-                    dbc.Button(
-                        "Change", id="change-dataset-feature", color="primary"
-                    )
+                    html.Div([
+                        dbc.Button("Import", id="import-dataset-open", color="primary", disabled=True),
+                        dbc.Button("Export", id="export-dataset-open", color="primary", disabled=True),
+                    ])
                 ], className="title"),
                 html.Div([
                     html.Div([
@@ -64,9 +95,10 @@ class HomePage(DashPage):
             html.Div([
                 html.Div([
                     html.H2("Cell Features"),
-                    dbc.Button(
-                        "Add New", id="add-gene-feature", color="primary"
-                    )
+                    html.Div([
+                        dbc.Button("Import", id="import-cell-features-open", color="primary"),
+                        dbc.Button("Export", id="export-cell-features-open", color="primary"),
+                    ])
                 ], className="title"),
                 html.Div(obs_divs, className="list"),
             ], className="floating-box"),
@@ -74,9 +106,10 @@ class HomePage(DashPage):
             html.Div([
                 html.Div([
                     html.H2("Gene Features"),
-                    dbc.Button(
-                        "Add New", id="add-gene-feature", color="primary"
-                    )
+                    html.Div([
+                        dbc.Button("Import", id="import-gene-features-open", color="primary"),
+                        dbc.Button("Export", id="export-gene-features-open", color="primary"),
+                    ])
                 ], className="title"),
                 html.Div(var_divs, className="list"),
             ], className="floating-box"),
@@ -108,9 +141,10 @@ class HomePage(DashPage):
             html.Div([
                 html.Div([
                     html.H2("Gene Lists"),
-                    dbc.Button(
-                        "Add New", id="add-gene-feature", color="primary"
-                    )
+                    html.Div([
+                        dbc.Button("Import", id="import-gene-list-open", color="primary"),
+                        dbc.Button("Export", id="export-gene-list-open", color="primary"),
+                    ])
                 ], className="title"),
                 html.Div(genelist_divs, className="list"),
             ], className="floating-box"),
@@ -118,9 +152,10 @@ class HomePage(DashPage):
             html.Div([
                 html.Div([
                     html.H2("Layers"),
-                    dbc.Button(
-                        "Add New", id="add-gene-feature", color="primary"
-                    )
+                    html.Div([
+                        dbc.Button("Import", id="import-layer-open", color="primary"),
+                        dbc.Button("Export", id="export-layer-open", color="primary"),
+                    ])
                 ], className="title"),
                 html.Div(layer_divs, className="list"),
             ], className="floating-box"),
@@ -128,9 +163,10 @@ class HomePage(DashPage):
             html.Div([
                 html.Div([
                     html.H2("Projections"),
-                    dbc.Button(
-                        "Add New", id="add-gene-feature", color="primary"
-                    )
+                    html.Div([
+                        dbc.Button("Import", id="import-projection-open", color="primary"),
+                        dbc.Button("Export", id="export-projection-open", color="primary"),
+                    ])
                 ], className="title"),
                 html.Div(emb_divs, className="list"),
             ], className="floating-box"),
@@ -138,7 +174,7 @@ class HomePage(DashPage):
 
         ], className="home-bottom")
 
-        layout = [
+        layout =  [
             html.Div(
                 id="top",
                 className="top",
@@ -148,6 +184,12 @@ class HomePage(DashPage):
                 id="bottom", className="bottom", children=[bot_sidebar, bottom]
             ),
         ]
+
+        for popup in self.import_popups.values():
+            layout.append(popup.get_layout())
+
+        for popup in self.export_popups.values():
+            layout.append(popup.get_layout())
 
         return layout
 

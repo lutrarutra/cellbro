@@ -40,25 +40,25 @@ class App:
             "/home/lutrarutra/Documents/dev/bioinfo/cellbrowser/data/full.h5ad")
 
         home_page = home.HomePage(self.dataset, order=0)
-        home_page.create(self)
+        home_page.create()
 
         qc_page = qc.QCPage(self.dataset, order=1)
-        qc_page.create(self)
+        qc_page.create()
 
         cells_page = cells.CellsPage(self.dataset, order=2)
-        cells_page.create(self)
+        cells_page.create()
 
         de_page = de.DEPage(self.dataset, order=3)
-        de_page.create(self)
+        de_page.create()
 
         gsea_page = gsea.GSEAPage(self.dataset, order=4)
-        gsea_page.create(self)
+        gsea_page.create()
 
         pca_page = pca.PCAPage(self.dataset, order=5)
-        pca_page.create(self)
+        pca_page.create()
 
         scvi_page = scvi.SCVIPage(self.dataset, order=6)
-        scvi_page.create(self)
+        scvi_page.create()
 
         # create_genes_page(self.dash_app, self.dataset)
 
@@ -69,6 +69,8 @@ class App:
                     [
                         dcc.Store(id="genelist-store"),
                         dcc.Store(id="groupby-store"),
+                        dcc.Store(id="export-store"),
+                        dcc.Store(id="import-store"),
                         html.Div(
                             id="sidebar-btn-container",
                             children=[dbc.Switch(id="sidebar-btn", value=self.sidebar_open)]
@@ -96,6 +98,14 @@ class App:
                 ),
             ]
         )
+
+        home_page.setup_callbacks(self)
+        qc_page.setup_callbacks(self)
+        cells_page.setup_callbacks(self)
+        de_page.setup_callbacks(self)
+        gsea_page.setup_callbacks(self)
+        pca_page.setup_callbacks(self)
+        scvi_page.setup_callbacks(self)
 
         # TABS
         @self.dash_app.callback(

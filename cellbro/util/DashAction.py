@@ -30,3 +30,6 @@ class DashAction(ABC):
     @abstractmethod
     def setup_callbacks(self, app):
         ...
+
+    def get_dummies(self):
+        return []
