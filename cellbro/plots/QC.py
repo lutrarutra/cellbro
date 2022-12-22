@@ -33,15 +33,15 @@ qc_params = ParamsDict(
             default=200,
             type=int,
             description="",
-            step=100,
+            step=1,
         ),
         Param(
             key="min_cells",
             name="Min. Cells (per gene)",
-            default=10,
+            default=3,
             type=int,
             description="",
-            step=10,
+            step=1,
         ),
     ]
 )

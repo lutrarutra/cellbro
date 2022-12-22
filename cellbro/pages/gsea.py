@@ -21,12 +21,12 @@ gsea_volcano_layout = dict(
 class ListAvailableLRefs(DashAction):
     def setup_callbacks(self, app):
         output = [
-            Output(component_id="gsea-groupby", component_property="options"),
-            Output(component_id="gsea-reference", component_property="options"),
+            Output(component_id=f"{self.page_id_prefix}-groupby", component_property="options"),
+            Output(component_id=f"{self.page_id_prefix}-reference", component_property="options"),
         ]
         inputs = {
-            "groupby": Input(component_id="gsea-groupby", component_property="value"),
-            "store": Input(component_id="groupby-store", component_property="data"),
+            "groupby": Input(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
+            "store": Input(component_id=f"{self.page_id_prefix}-store", component_property="data"),
         }
 
         @app.dash_app.callback(output=output, inputs=inputs)
@@ -43,14 +43,14 @@ class ListAvailableLRefs(DashAction):
 class ApplyGSEA(DashAction):
     def setup_callbacks(self, app):
         output = [
-            Output(component_id="gsea-volcano-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-volcano-plot", component_property="figure"),
         ]
         inputs = {
-            "submit": Input(component_id="gsea-submit", component_property="n_clicks"),
+            "submit": Input(component_id=f"{self.page_id_prefix}-submit", component_property="n_clicks"),
         }
         state = {
-            "groupby": State(component_id="gsea-groupby", component_property="value"),
-            "reference": State(component_id="gsea-reference", component_property="value"),
+            "groupby": State(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
+            "reference": State(component_id=f"{self.page_id_prefix}-reference", component_property="value"),
         }
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
@@ -69,15 +69,17 @@ class GSEAPage(DashPage):
     def __init__(self, dataset, order):
         super().__init__("pages.gsea", "GSEA", "gsea", order)
         self.dataset = dataset
-        self.heatmap = Heatmap.Heatmap(dataset, self.id)
         self.actions.update(
             apply_de=ApplyGSEA(dataset=self.dataset, page_id_prefix=self.id),
             list_available_refs=ListAvailableLRefs(dataset=self.dataset, page_id_prefix=self.id),
         )
+        self.plots.update(
+            heatmap=Heatmap.Heatmap(dataset, self.id)
+        )
 
     def create_layout(self) -> list:
         top_sidebar = Components.create_sidebar(
-            id="gsea-top-sidebar", btn_id="gsea-submit",
+            id=f"{self.id}-top-sidebar", btn_id=f"{self.id}-submit",
             title="Gene Set Enrichment Settings",
             params_children=self._params_layout(),
             class_name="top-sidebar"
@@ -89,38 +91,30 @@ class GSEAPage(DashPage):
                     children=[
                         # Components.create_gene_card(None, self.dataset),
                     ],
-                    id="gsea-volcano-info",
+                    id=f"{self.id}-volcano-info",
                     className="main-select top-parameters",
                 ),
                 html.Div(
                     [
                         dcc.Loading(
-                            id="loading-gsea-volcano",
                             type="circle",
                             children=[
                                 html.Div(
                                     dcc.Graph(
-                                        id="gsea-volcano-plot", className="main-plot"
+                                        id=f"{self.id}-volcano-plot", className="main-plot"
                                     )
                                 )
                             ],
                         )
                     ],
-                    id="gsea-volcano-figure",
+                    id=f"{self.id}-volcano-figure",
                     className="main-figure",
                 ),
             ],
             className="main",
         )
 
-        bottom_left_sidebar, bottom_figure = self.heatmap.create_layout()
-
-        bot_sidebar = Components.create_sidebar(
-            id="gsea-bot-sidebar", btn_id=None,
-            title="Gene Set Enrichment Settings",
-            params_children=[],
-            class_name="bot-sidebar"
-        )
+        bot_sidebar, bot_figure = self.plots["heatmap"].create_layout()
 
         layout = [
             html.Div(
@@ -131,7 +125,7 @@ class GSEAPage(DashPage):
                 className="bottom",
                 children=[
                     # bottom_sidebar, bottom_figure
-                    bot_sidebar
+                    bot_sidebar, bot_figure
                 ],
             ),
         ]
@@ -153,7 +147,7 @@ class GSEAPage(DashPage):
                             dcc.Dropdown(
                                 options=rank_genes_groups,
                                 value=next(iter(rank_genes_groups), None),
-                                id="gsea-groupby", clearable=False,
+                                id=f"{self.id}-groupby", clearable=False,
                             ),
                          ],
                         className="param-select",
@@ -169,7 +163,7 @@ class GSEAPage(DashPage):
                             dcc.Dropdown(
                                 options=gsea_refs,
                                 value=next(iter(gsea_refs), None),
-                                id="gsea-reference", clearable=False,
+                                id=f"{self.id}-reference", clearable=False,
                             ),
                         ],
                         className="param-select",

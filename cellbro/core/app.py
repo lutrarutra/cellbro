@@ -70,6 +70,7 @@ class App:
                         dcc.Store(id="groupby-store"),
                         dcc.Store(id="export-store"),
                         dcc.Store(id="import-store"),
+                        dcc.Store(id="gsea-store"),
                         html.Div(
                             id="sidebar-btn-container",
                             children=[dbc.Switch(id="sidebar-btn", value=self.sidebar_open)]

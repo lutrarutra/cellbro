@@ -187,7 +187,6 @@ class DEPage(DashPage):
                 html.Div(
                     [
                         dcc.Loading(
-                            id=f"{self.id}-loading-de-secondary",
                             type="circle",
                             children=[
                                 html.Div(

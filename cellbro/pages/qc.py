@@ -10,58 +10,6 @@ from cellbro.util.DashPage import DashPage
 from cellbro.util.DashAction import DashAction
 import cellbro.util.Components as Components
 
-
-# class DispersionPlot(DashAction):
-#     def apply(self, params):
-#         fig = px.scatter(
-#             self.dataset.adata.var.reset_index(),
-#             x="mu",
-#             y="cv2",
-#             log_x=True,
-#             log_y=True,
-#             color_continuous_scale=px.colors.sequential.Viridis,
-#             hover_name="index",
-#         )
-#         fig.update_traces(
-#             marker=dict(size=5, line=dict(width=1, color="DarkSlateGrey"))
-#         )
-#         fig.update_layout(QC.figure_layout)
-#         fig.update_layout(xaxis_title="Log Mean Expression", yaxis_title="CV^2")
-#         return fig
-
-#     def setup_callbacks(self, dash_app):
-#         output = [Output(component_id="dispersion-plot", component_property="figure")]
-#         inputs = {}
-#         for param in QC.qc_params.values():
-#             inputs[param.key] = Input(
-#                 component_id=f"qc-{param.key}", component_property="value"
-#         )
-
-class PlotAction(DashAction):
-    def apply(self, params):
-        return QC.plot(self.dataset, params)
-
-    def setup_callbacks(self, app):
-        output = [
-            Output(component_id=f"{self.page_id_prefix}-mt-plot", component_property="figure"),
-            Output(component_id=f"{self.page_id_prefix}-dispersion-plot", component_property="figure"),
-            Output(component_id=f"{self.page_id_prefix}-violin-plot", component_property="figure"),
-        ]
-
-        inputs = {
-            "qc_store": Input(f"{self.page_id_prefix}-store", "data")
-        }
-        for param in QC.qc_params.values():
-            inputs[param.key] = Input(
-                component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
-            )
-        @app.dash_app.callback(output=output, inputs=inputs)
-        def _(qc_store, **kwargs):
-            if self.dataset.qc_done() or qc_store["qc_done"]:
-                return self.apply(params=kwargs)
-
-            raise PreventUpdate
-
 class FilterAction(DashAction):
     def apply(self, params):
         # Makes sure that filtering is not done on initial load
@@ -126,34 +74,44 @@ class PerformQC(DashAction):
         if not "cv2" in self.dataset.adata.var.columns or not "mu" in self.dataset.adata.var.columns:
             QC.apply_dispersion_qc(self.dataset)
 
-        return [{"display": "none"}, {"display": "block"}, {"qc_done": True}]
+        return [{"display": "none"}, {"display": "block"}]
+
+    def plot(self, params):
+        return QC.plot(self.dataset, params)
 
     def setup_callbacks(self, app):
+        state = {}
+        for param in QC.qc_params.values():
+            state[param.key] = State(
+                component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
+            )
+
         @app.dash_app.callback(
             output=[
                 Output(f"{self.page_id_prefix}-top-sidebar-temp", "style"),
                 Output(f"{self.page_id_prefix}-top-sidebar", "style"),
-                Output(f"{self.page_id_prefix}-store", "data")
+                Output(component_id=f"{self.page_id_prefix}-mt-plot", component_property="figure"),
+                Output(component_id=f"{self.page_id_prefix}-dispersion-plot", component_property="figure"),
+                Output(component_id=f"{self.page_id_prefix}-violin-plot", component_property="figure"),
             ],
-            inputs=[
-                Input(f"{self.page_id_prefix}-apply-btn", "n_clicks"),
-            ],
+            inputs=dict(submit=Input(f"{self.page_id_prefix}-apply-btn", "n_clicks")),
+            state=state,
         )
-        def _(submit):
+        def _(submit, **kwargs):
             if submit:
-                return self.apply()
+                return self.apply() + self.plot(params=kwargs)
 
             if self.dataset.qc_done():
-                return [{"display": "none"}, {"display": "block"}, {"qc_done": True}]
+                return [{"display": "none"}, {"display": "block"}] + self.plot(params=kwargs)
 
-            return [{"display": "block"}, {"display": "none"}, {"qc_done": False}]
+            raise PreventUpdate
+            # return [{"display": "block"}, {"display": "none"}, None, None, None]
 
 class QCPage(DashPage):
     def __init__(self, dataset, order):
         super().__init__("pages.qc", "QC", "qc", order)
         self.dataset = dataset
         self.actions.update(
-            plot=PlotAction(dataset, self.id),
             filter=FilterAction(dataset, self.id),
             click=ClickAction(dataset, self.id),
             top_sidebar_temp=Components.HideSidebar(page_id_prefix=self.id, id=f"{self.id}-top-sidebar-temp"),
@@ -188,7 +146,6 @@ class QCPage(DashPage):
                 html.Div(
                     [
                         dcc.Loading(
-                            id=f"{self.id}-loading-mt",
                             type="circle",
                             children=[
                                 html.Div(dcc.Graph(id=f"{self.id}-mt-plot", className="main-plot"))
@@ -247,7 +204,6 @@ class QCPage(DashPage):
         )
 
         layout = [
-            dcc.Store(id=f"{self.id}-store"),
             html.Div(
                 className="top",
                 children=[top_sidebar, temp_top_sidebar, main_figure, secondary_figure],
