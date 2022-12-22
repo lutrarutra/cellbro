@@ -1,20 +1,16 @@
 import scanpy as sc
 
-from cellbro.plots.Projection import Projection, ProjectionType
+from cellbro.plots.ProjectionType import ProjectionType
 from cellbro.util.Param import Param, ParamsDict
 
 
-class TSNE(Projection):
+class TSNE(ProjectionType):
     def __init__(self, dataset, params):
         super().__init__(dataset, TSNE._params.update(params))
 
     def apply(self) -> str:
         sc.tl.tsne(self.dataset.adata, **self.params.unravel())
         return "X_tsne"
-
-    @staticmethod
-    def get_type() -> ProjectionType:
-        return ProjectionType.TSNE
 
     @classmethod
     def get_key(cls) -> str:

@@ -1,11 +1,11 @@
 import plotly.express as px
 import scanpy as sc
 
-from cellbro.plots.Projection import Projection, ProjectionType
+from cellbro.plots.ProjectionType import ProjectionType
 from cellbro.util.Param import Param, ParamsDict
 
 
-class UMAP(Projection):
+class UMAP(ProjectionType):
     def __init__(self, dataset, params: ParamsDict):
         super().__init__(dataset, UMAP._params.update(params))
 
@@ -25,10 +25,6 @@ class UMAP(Projection):
     @classmethod
     def get_key(cls) -> str:
         return "umap"
-
-    @staticmethod
-    def get_type() -> ProjectionType:
-        return ProjectionType.UMAP
 
     @staticmethod
     def get_params() -> ParamsDict:
@@ -94,7 +90,3 @@ class SCVI_UMAP(UMAP):
     @classmethod
     def get_key(cls) -> str:
         return "scvi_umap"
-
-    @staticmethod
-    def get_type() -> ProjectionType:
-        return ProjectionType.SCVI_UMAP

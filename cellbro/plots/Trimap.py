@@ -1,10 +1,10 @@
 import scanpy as sc
 
-from cellbro.plots.Projection import Projection, ProjectionType
+from cellbro.plots.ProjectionType import ProjectionType
 from cellbro.util.Param import Param, ParamsDict
 
 
-class Trimap(Projection):
+class Trimap(ProjectionType):
     def __init__(self, dataset, params):
         super().__init__(dataset, Trimap._params.update(params))
 
@@ -25,10 +25,6 @@ class Trimap(Projection):
     @classmethod
     def get_key(cls) -> str:
         return "trimap"
-
-    @staticmethod
-    def get_type() -> ProjectionType:
-        return ProjectionType.TRIMAP
 
     @staticmethod
     def get_params() -> ParamsDict:

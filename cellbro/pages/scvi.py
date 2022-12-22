@@ -149,7 +149,7 @@ class SCVIPage(DashPage):
             page_id_prefix=self.id,
             id=f"{self.id}-param-collapse-scvi_umap",
             btn_id=f"{self.id}-btn-param-collapse-scvi_umap",
-            children=Projection.Projection.get_layout(SCVI_UMAP, self.id),
+            children=SCVI_UMAP.get_layout(self.id),
         )
 
         top_sidebar = Components.create_sidebar(
