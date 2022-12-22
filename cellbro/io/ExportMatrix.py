@@ -17,8 +17,8 @@ from cellbro.io.ExportData import ExportData
 import cellbro.io.FileFormat as ff
 
 class ExportMatrix(ExportData, ABC):
-    def __init__(self, dataset, id, filename_ph, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
-        ExportData.__init__(self, dataset, id, filename_ph, formats)
+    def __init__(self, dataset, id, filename_ph, page_id_prefix, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
+        ExportData.__init__(self, dataset, id, filename_ph, page_id_prefix, formats=formats)
 
     @property
     @abstractmethod
@@ -139,8 +139,8 @@ class ExportMatrix(ExportData, ABC):
         ]
 
 class ExportLayer(ExportMatrix):
-    def __init__(self, dataset, id, filename_ph, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
-        ExportMatrix.__init__(self, dataset, id, filename_ph, formats)
+    def __init__(self, dataset, id, filename_ph, page_id_prefix, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
+        ExportMatrix.__init__(self, dataset, id, filename_ph, page_id_prefix, formats=formats)
 
 
     @property
@@ -161,8 +161,8 @@ class ExportLayer(ExportMatrix):
 
 
 class ExportProjection(ExportMatrix):
-    def __init__(self, dataset, id, filename_ph, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
-        ExportMatrix.__init__(self, dataset, id, filename_ph, formats)
+    def __init__(self, dataset, id, filename_ph, page_id_prefix, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
+        ExportMatrix.__init__(self, dataset, id, filename_ph, page_id_prefix, formats=formats)
 
     @property
     def data(self):

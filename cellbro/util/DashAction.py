@@ -20,8 +20,9 @@ class DashAction(ABC):
     # callbacks: list
     # dataset: Dataset
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, page_id_prefix):
         self.dataset = dataset
+        self.page_id_prefix = page_id_prefix
 
     # @abstractmethod
     # def create_layout(self) -> list:

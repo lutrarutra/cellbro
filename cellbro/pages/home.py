@@ -13,30 +13,30 @@ import cellbro.io as io
 
 class HomePage(DashPage):
     def __init__(self, dataset, order):
-        super().__init__("pages.home", "Home", "/", order)
+        super().__init__("pages.home", "Home", "home", order, path="/")
         self.dataset = dataset
         self.import_popups = dict(
         )
         self.export_popups = dict(
             # export_dataset=IO.ExportDataset(
-            #     dataset=self.dataset, id="export-dataset",
+            #     dataset=self.dataset, id=f"{self.id}-export-dataset",
             #     filename_ph="adata", formats=[ff.H5AD]
             # ),
             export_cell_features=io.ExportDF(
-                dataset=self.dataset, dataset_attr="adata.obs", id="export-cell-features",
-                filename_ph="cell_features"
+                dataset=self.dataset, dataset_attr="adata.obs", id=f"{self.id}-export-cell-features",
+                filename_ph="cell_features", page_id_prefix=self.id
             ),
             export_gene_features=io.ExportDF(
-                dataset=self.dataset, dataset_attr="adata.var", id="export-gene-features",
-                filename_ph="gene_features"
+                dataset=self.dataset, dataset_attr="adata.var", id=f"{self.id}-export-gene-features",
+                filename_ph="gene_features", page_id_prefix=self.id
             ),
             export_layer=io.ExportLayer(
-                dataset=self.dataset, id="export-layer",
-                filename_ph="layer"
+                dataset=self.dataset, id=f"{self.id}-export-layer",
+                filename_ph="layer", page_id_prefix=self.id
             ),
             export_projection=io.ExportProjection(
-                dataset=self.dataset, id="export-projection",
-                filename_ph="projection"
+                dataset=self.dataset, id=f"{self.id}-export-projection",
+                filename_ph="projection", page_id_prefix=self.id
             )
         )
         self.actions.update(self.import_popups)
@@ -44,13 +44,13 @@ class HomePage(DashPage):
 
     def create_layout(self) -> list:
         top_sidebar = Components.create_sidebar(
-            id="home-top-sidebar", class_name="top-sidebar",
+            id=f"{self.id}-top-sidebar", class_name="top-sidebar",
             title="Home", params_children=[],
             btn_id=None, btn_text=""
         )
 
         bot_sidebar = Components.create_sidebar(
-            id="home-bot-sidebar", class_name="bot-sidebar",
+            id=f"{self.id}-bot-sidebar", class_name="bot-sidebar",
             title="Home", params_children=[],
             btn_id=None, btn_text=""
         )
@@ -72,21 +72,21 @@ class HomePage(DashPage):
                 html.Div([
                     html.H2("Dataset"),
                     html.Div([
-                        dbc.Button("Import", id="import-dataset-open", color="primary", disabled=True),
-                        dbc.Button("Export", id="export-dataset-open", color="primary", disabled=True),
+                        dbc.Button("Import", id=f"{self.id}-import-dataset-open", color="primary", disabled=True),
+                        dbc.Button("Export", id=f"{self.id}-export-dataset-open", color="primary", disabled=True),
                     ])
                 ], className="title"),
                 html.Div([
                     html.Div([
-                        html.H3("File:", className="param-label"),
+                        html.H3("File:", className=f"{self.id}-param-label"),
                         html.H4(self.dataset.path, className="value")
                     ], className="col"),
                     html.Div([
-                        html.H3("Cells:", className="param-label"),
+                        html.H3("Cells:", className=f"{self.id}-param-label"),
                         html.H4(self.dataset.adata.shape[0]),
                     ], className="col"),
                     html.Div([
-                        html.H3("Genes:", className="param-label"),
+                        html.H3("Genes:", className=f"{self.id}-param-label"),
                         html.H4(self.dataset.adata.shape[1]),
                     ], className="col"),
                 ], className="list")
@@ -96,8 +96,8 @@ class HomePage(DashPage):
                 html.Div([
                     html.H2("Cell Features"),
                     html.Div([
-                        dbc.Button("Import", id="import-cell-features-open", color="primary"),
-                        dbc.Button("Export", id="export-cell-features-open", color="primary"),
+                        dbc.Button("Import", id=f"{self.id}-import-cell-features-open", color="primary"),
+                        dbc.Button("Export", id=f"{self.id}-export-cell-features-open", color="primary"),
                     ])
                 ], className="title"),
                 html.Div(obs_divs, className="list"),
@@ -107,8 +107,8 @@ class HomePage(DashPage):
                 html.Div([
                     html.H2("Gene Features"),
                     html.Div([
-                        dbc.Button("Import", id="import-gene-features-open", color="primary"),
-                        dbc.Button("Export", id="export-gene-features-open", color="primary"),
+                        dbc.Button("Import", id=f"{self.id}-import-gene-features-open", color="primary"),
+                        dbc.Button("Export", id=f"{self.id}-export-gene-features-open", color="primary"),
                     ])
                 ], className="title"),
                 html.Div(var_divs, className="list"),
@@ -142,8 +142,8 @@ class HomePage(DashPage):
                 html.Div([
                     html.H2("Gene Lists"),
                     html.Div([
-                        dbc.Button("Import", id="import-gene-list-open", color="primary"),
-                        dbc.Button("Export", id="export-gene-list-open", color="primary"),
+                        dbc.Button("Import", id=f"{self.id}-import-gene-list-open", color="primary"),
+                        dbc.Button("Export", id=f"{self.id}-export-gene-list-open", color="primary"),
                     ])
                 ], className="title"),
                 html.Div(genelist_divs, className="list"),
@@ -153,8 +153,8 @@ class HomePage(DashPage):
                 html.Div([
                     html.H2("Layers"),
                     html.Div([
-                        dbc.Button("Import", id="import-layer-open", color="primary"),
-                        dbc.Button("Export", id="export-layer-open", color="primary"),
+                        dbc.Button("Import", id=f"{self.id}-import-layer-open", color="primary"),
+                        dbc.Button("Export", id=f"{self.id}-export-layer-open", color="primary"),
                     ])
                 ], className="title"),
                 html.Div(layer_divs, className="list"),
@@ -164,8 +164,8 @@ class HomePage(DashPage):
                 html.Div([
                     html.H2("Projections"),
                     html.Div([
-                        dbc.Button("Import", id="import-projection-open", color="primary"),
-                        dbc.Button("Export", id="export-projection-open", color="primary"),
+                        dbc.Button("Import", id=f"{self.id}-import-projection-open", color="primary"),
+                        dbc.Button("Export", id=f"{self.id}-export-projection-open", color="primary"),
                     ])
                 ], className="title"),
                 html.Div(emb_divs, className="list"),
@@ -176,12 +176,11 @@ class HomePage(DashPage):
 
         layout =  [
             html.Div(
-                id="top",
                 className="top",
                 children=[top_sidebar, main],
             ),
             html.Div(
-                id="bottom", className="bottom", children=[bot_sidebar, bottom]
+                className="bottom", children=[bot_sidebar, bottom]
             ),
         ]
 

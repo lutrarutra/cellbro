@@ -13,7 +13,6 @@ import cellbro.pages.qc as qc
 import cellbro.pages.pca as pca
 import cellbro.pages.scvi as scvi
 import cellbro.pages.gsea as gsea
-from cellbro.pages.genes import create_page as create_genes_page
 from cellbro.util.Dataset import Dataset
 
 # from cellbro.core.pages.home import create_page as create_home_page
@@ -155,14 +154,6 @@ class App:
 
             res = self.dataset.update_gene_lists(selected_gene, gene_list)
             return res, self.dataset.get_gene_lists(), {"new":False}
-
-        # NEW GENE LIST
-        @self.dash_app.callback(
-            output=Output("heatmap-selected-genelists", "options"),
-            inputs=[Input("genelist-store", "data")]
-        )
-        def _(genelist_store):
-            return self.dataset.get_gene_lists()
 
     def run(self):
         self.dash_app.run_server(debug=True, host="127.0.0.1")

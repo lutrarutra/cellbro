@@ -43,17 +43,17 @@ class PlotAction(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            Output(component_id="mt-plot", component_property="figure"),
-            Output(component_id="dispersion-plot", component_property="figure"),
-            Output(component_id="qc-violin-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-mt-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-dispersion-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-violin-plot", component_property="figure"),
         ]
 
         inputs = {
-            "qc_store": Input("qc-store", "data")
+            "qc_store": Input(f"{self.page_id_prefix}-store", "data")
         }
         for param in QC.qc_params.values():
             inputs[param.key] = Input(
-                component_id=f"qc-{param.key}", component_property="value"
+                component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
             )
         @app.dash_app.callback(output=output, inputs=inputs)
         def _(qc_store, **kwargs):
@@ -81,18 +81,18 @@ class FilterAction(DashAction):
         output = []
         for param in QC.qc_params.values():
             output.append(
-                Output(component_id=f"qc-{param.key}", component_property="value")
+                Output(component_id=f"{self.page_id_prefix}-{param.key}", component_property="value")
             )
 
         inputs = {
             "submit": Input(
-                component_id="filtering-submit", component_property="n_clicks"
+                component_id=f"{self.page_id_prefix}-filtering-submit", component_property="n_clicks"
             ),
         }
         state = {}
         for param in QC.qc_params.values():
             state[param.key] = State(
-                component_id=f"qc-{param.key}", component_property="value"
+                component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
             )
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
@@ -109,7 +109,7 @@ class ClickAction(DashAction):
 
     def setup_callbacks(self, app):
         @app.dash_app.callback(
-            [Output("dispersion-info", "children")], [Input("dispersion-plot", "clickData")]
+            [Output(f"{self.page_id_prefix}-dispersion-info", "children")], [Input(f"{self.page_id_prefix}-dispersion-plot", "clickData")]
         )
         def _(clickData):
             if clickData is None:
@@ -131,12 +131,12 @@ class PerformQC(DashAction):
     def setup_callbacks(self, app):
         @app.dash_app.callback(
             output=[
-                Output("qc-top-sidebar-temp", "style"),
-                Output("qc-top-sidebar", "style"),
-                Output("qc-store", "data")
+                Output(f"{self.page_id_prefix}-top-sidebar-temp", "style"),
+                Output(f"{self.page_id_prefix}-top-sidebar", "style"),
+                Output(f"{self.page_id_prefix}-store", "data")
             ],
             inputs=[
-                Input("perform-qc-btn", "n_clicks"),
+                Input(f"{self.page_id_prefix}-apply-btn", "n_clicks"),
             ],
         )
         def _(submit):
@@ -150,34 +150,34 @@ class PerformQC(DashAction):
 
 class QCPage(DashPage):
     def __init__(self, dataset, order):
-        super().__init__("pages.qc", "QC", "/qc", order)
+        super().__init__("pages.qc", "QC", "qc", order)
         self.dataset = dataset
         self.actions.update(
-            plot=PlotAction(dataset),
-            filter=FilterAction(dataset),
-            click=ClickAction(dataset),
-            top_sidebar_temp=Components.HideSidebar(id=f"qc-top-sidebar-temp"),
-            perform_qc=PerformQC(dataset),
+            plot=PlotAction(dataset, self.id),
+            filter=FilterAction(dataset, self.id),
+            click=ClickAction(dataset, self.id),
+            top_sidebar_temp=Components.HideSidebar(page_id_prefix=self.id, id=f"{self.id}-top-sidebar-temp"),
+            perform_qc=PerformQC(dataset, self.id),
         )
 
     def create_layout(self):
 
         top_sidebar = Components.create_sidebar(
-            id="qc-top-sidebar", class_name="top-sidebar",
+            id=f"{self.id}-top-sidebar", class_name="top-sidebar",
             title="Quality Control Parameters",
             params_children=self._filter_params_layout(),
-            btn_id="filtering-submit", btn_text="Filter"
+            btn_id=f"{self.id}-filtering-submit", btn_text="Filter"
         )
 
         temp_top_sidebar = Components.create_sidebar(
-            id="qc-top-sidebar-temp", class_name="top-sidebar",
+            id=f"{self.id}-top-sidebar-temp", class_name="top-sidebar",
             title="Perform Quality Control",
             params_children=self._qc_params_layout(),
-            btn_id="perform-qc-btn", btn_text="Quality Control"
+            btn_id=f"{self.id}-apply-btn", btn_text="Quality Control"
         )
 
         bot_sidebar = Components.create_sidebar(
-            id="qc-bot-sidebar", class_name="bot-sidebar",
+            id=f"{self.id}-bot-sidebar", class_name="bot-sidebar",
             title="Quality Control Violin Plots",
             params_children=[],
             btn_id=None, btn_text="Filter"
@@ -188,14 +188,14 @@ class QCPage(DashPage):
                 html.Div(
                     [
                         dcc.Loading(
-                            id="loading-mt",
+                            id=f"{self.id}-loading-mt",
                             type="circle",
                             children=[
-                                html.Div(dcc.Graph(id="mt-plot", className="main-plot"))
+                                html.Div(dcc.Graph(id=f"{self.id}-mt-plot", className="main-plot"))
                             ],
                         )
                     ],
-                    id="mt-figure",
+                    id=f"{self.id}-mt-figure",
                     className="main-figure",
                 )
             ],
@@ -205,7 +205,7 @@ class QCPage(DashPage):
         secondary_figure = html.Div(
             children=[
                 html.Div(
-                    id="dispersion-info",
+                    id=f"{self.id}-dispersion-info",
                     children=[
                         Components.create_gene_card(None, self.dataset),
                     ],
@@ -214,18 +214,17 @@ class QCPage(DashPage):
                 html.Div(
                     [
                         dcc.Loading(
-                            id="loading-dispersion",
                             type="circle",
                             children=[
                                 html.Div(
                                     dcc.Graph(
-                                        id="dispersion-plot", className="secondary-plot"
+                                        id=f"{self.id}-dispersion-plot", className="secondary-plot"
                                     )
                                 )
                             ],
                         )
                     ],
-                    id="dispersion-figure",
+                    id=f"{self.id}-dispersion-figure",
                     className="secondary-figure",
                 ),
             ],
@@ -235,29 +234,26 @@ class QCPage(DashPage):
         bottom_figure = html.Div(
             children=[
                 dcc.Loading(
-                    id="loading-qc-violin",
-                    className="loading-bottom",
                     type="circle",
                     children=[
                         html.Div(
-                            dcc.Graph(id="qc-violin-plot", className="bottom-plot")
+                            dcc.Graph(id=f"{self.id}-violin-plot", className="bottom-plot")
                         )
                     ],
                 )
             ],
-            id="qc-violin-figure",
+            id=f"{self.id}-violin-figure",
             className="bottom-figure",
         )
 
         layout = [
-            dcc.Store(id="qc-store"),
+            dcc.Store(id=f"{self.id}-store"),
             html.Div(
-                id="top",
                 className="top",
                 children=[top_sidebar, temp_top_sidebar, main_figure, secondary_figure],
             ),
             html.Div(
-                id="bottom", className="bottom", children=[bot_sidebar, bottom_figure]
+                className="bottom", children=[bot_sidebar, bottom_figure]
             ),
         ]
         return layout
@@ -269,7 +265,7 @@ class QCPage(DashPage):
                     param.name, className="param-label",
                 ),
                 dcc.Input(
-                    id=f"qc-{key}", type=param.input_type, value=param.value,
+                    id=f"{self.id}-{key}", type=param.input_type, value=param.value,
                     step=param.step if param.step != None else 0.1, className="param-input",
                 ),
             ], className="param-row") for key, param in QC.qc_params.items()

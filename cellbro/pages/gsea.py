@@ -6,6 +6,7 @@ from dash import Input, Output, State, dcc, html
 from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
 import cellbro.util.Components as Components
+import cellbro.plots.Heatmap as Heatmap
 
 import scout
 
@@ -66,11 +67,12 @@ class ApplyGSEA(DashAction):
 
 class GSEAPage(DashPage):
     def __init__(self, dataset, order):
-        super().__init__("pages.gsea", "GSEA", "/gsea", order)
+        super().__init__("pages.gsea", "GSEA", "gsea", order)
         self.dataset = dataset
+        self.heatmap = Heatmap.Heatmap(dataset, self.id)
         self.actions.update(
-            apply_de=ApplyGSEA(dataset=self.dataset),
-            list_available_refs=ListAvailableLRefs(dataset=self.dataset),
+            apply_de=ApplyGSEA(dataset=self.dataset, page_id_prefix=self.id),
+            list_available_refs=ListAvailableLRefs(dataset=self.dataset, page_id_prefix=self.id),
         )
 
     def create_layout(self) -> list:
@@ -110,6 +112,8 @@ class GSEAPage(DashPage):
             ],
             className="main",
         )
+
+        bottom_left_sidebar, bottom_figure = self.heatmap.create_layout()
 
         bot_sidebar = Components.create_sidebar(
             id="gsea-bot-sidebar", btn_id=None,

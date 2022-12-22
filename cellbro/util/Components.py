@@ -44,8 +44,8 @@ def create_sidebar(id, title, params_children, class_name="", btn_id=None, btn_t
 
 
 class HideSidebar(DashAction):
-    def __init__(self, id, btn_id="sidebar-btn"):
-        super().__init__(dataset=None)
+    def __init__(self, page_id_prefix, id, btn_id="sidebar-btn"):
+        super().__init__(dataset=None, page_id_prefix=page_id_prefix)
         self.id = id
         self.btn_id = btn_id
 
@@ -65,8 +65,8 @@ class HideSidebar(DashAction):
             raise PreventUpdate
 
 class CollapseDiv(DashAction):
-    def __init__(self, id, btn_id, children, collapsed=True):
-        super().__init__(dataset=None)
+    def __init__(self, page_id_prefix, id, btn_id, children, collapsed=True):
+        super().__init__(dataset=None, page_id_prefix=page_id_prefix)
         self.id = id
         self.btn_id = btn_id
         self.children = children

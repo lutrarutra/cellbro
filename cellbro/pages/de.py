@@ -17,23 +17,23 @@ class ApplyDE(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            Output(component_id="volcano-groupby", component_property="options"),
-            Output(component_id="volcano-groupby", component_property="value"),
-            Output(component_id="volcano-reference", component_property="options"),
-            Output(component_id="volcano-reference", component_property="value"),
+            Output(component_id=f"{self.page_id_prefix}-volcano-groupby", component_property="options"),
+            Output(component_id=f"{self.page_id_prefix}-volcano-groupby", component_property="value"),
+            Output(component_id=f"{self.page_id_prefix}-volcano-reference", component_property="options"),
+            Output(component_id=f"{self.page_id_prefix}-volcano-reference", component_property="value"),
             Output(
-                component_id="volcano-groupby-container", component_property="style"
+                component_id=f"{self.page_id_prefix}-volcano-groupby-container", component_property="style"
             ),
             Output(
-                component_id="volcano-reference-container", component_property="style"
+                component_id=f"{self.page_id_prefix}-volcano-reference-container", component_property="style"
             ),
             Output(component_id="groupby-store", component_property="data"),
         ]
         inputs = {
-            "submit": Input(component_id="de-submit", component_property="n_clicks"),
+            "submit": Input(component_id=f"{self.page_id_prefix}-submit", component_property="n_clicks"),
         }
         state = {
-            "groupby": State(component_id="de-groupby", component_property="value"),
+            "groupby": State(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
         }
         for param in DE.de_params.values():
             state[param.key] = State(
@@ -51,14 +51,14 @@ class PlotVolcano(DashAction):
 
     def setup_callbacks(self, app):
         outputs = [
-            Output(component_id="de-volcano-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-volcano-plot", component_property="figure"),
         ]
         inputs = {
             "groupby": Input(
-                component_id="volcano-groupby", component_property="value"
+                component_id=f"{self.page_id_prefix}-volcano-groupby", component_property="value"
             ),
             "reference": Input(
-                component_id="volcano-reference", component_property="value"
+                component_id=f"{self.page_id_prefix}-volcano-reference", component_property="value"
             ),
         }
 
@@ -75,14 +75,14 @@ class PlotPvalHistogram(DashAction):
 
     def setup_callbacks(self, app):
         outputs = [
-            Output(component_id="de-secondary-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-de-secondary-plot", component_property="figure"),
         ]
         inputs = {
             "groupby": Input(
-                component_id="volcano-groupby", component_property="value"
+                component_id=f"{self.page_id_prefix}-volcano-groupby", component_property="value"
             ),
             "reference": Input(
-                component_id="volcano-reference", component_property="value"
+                component_id=f"{self.page_id_prefix}-volcano-reference", component_property="value"
             ),
         }
 
@@ -100,9 +100,9 @@ class ClickAction(DashAction):
         return [element]
 
     def setup_callbacks(self, app):
-        outputs = [Output("de-volcano-info", "children")]
+        outputs = [Output(f"{self.page_id_prefix}-volcano-info", "children")]
         inputs = {
-            "click_data": Input("de-volcano-plot", "clickData"),
+            "click_data": Input(f"{self.page_id_prefix}-volcano-plot", "clickData"),
         }
 
         @app.dash_app.callback(output=outputs, inputs=inputs)
@@ -114,18 +114,18 @@ class ClickAction(DashAction):
 
 class DEPage(DashPage):
     def __init__(self, dataset, order):
-        super().__init__("pages.de", "DE", "/de", order)
+        super().__init__("pages.de", "DE", "de", order)
         self.dataset = dataset
         self.actions.update(
-            apply_de=ApplyDE(dataset=self.dataset),
-            plot_volcano=PlotVolcano(dataset=self.dataset),
-            plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset),
-            click_action=ClickAction(dataset=self.dataset),
+            apply_de=ApplyDE(dataset=self.dataset, page_id_prefix=self.id),
+            plot_volcano=PlotVolcano(dataset=self.dataset, page_id_prefix=self.id),
+            plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset, page_id_prefix=self.id),
+            click_action=ClickAction(dataset=self.dataset, page_id_prefix=self.id),
         )
 
     def create_layout(self):
         top_sidebar = Components.create_sidebar(
-            id="de-top-sidebar", btn_id="de-submit",
+            id=f"{self.id}-top-sidebar", btn_id=f"{self.id}-submit",
             title="Differential Expression Settings",
             params_children=self._params_layout(),
             class_name="top-sidebar"
@@ -137,24 +137,23 @@ class DEPage(DashPage):
                     children=[
                         Components.create_gene_card(None, self.dataset),
                     ],
-                    id="de-volcano-info",
+                    id=f"{self.id}-volcano-info",
                     className="main-select top-parameters",
                 ),
                 html.Div(
                     [
                         dcc.Loading(
-                            id="loading-de-volcano",
                             type="circle",
                             children=[
                                 html.Div(
                                     dcc.Graph(
-                                        id="de-volcano-plot", className="main-plot"
+                                        id=f"{self.id}-volcano-plot", className="main-plot"
                                     )
                                 )
                             ],
                         )
                     ],
-                    id="de-volcano-figure",
+                    id=f"{self.id}-volcano-figure",
                     className="main-figure",
                 ),
             ],
@@ -175,32 +174,32 @@ class DEPage(DashPage):
                                 dcc.Dropdown(
                                     options=secondary_options,
                                     value="pval_histogram",
-                                    id="secondary-type",
+                                    id=f"{self.id}-secondary-type",
                                     clearable=False,
                                 ),
                             ],
                             className="param-column",
                         ),
                     ],
-                    id="de-secondary-select",
+                    id=f"{self.id}-de-secondary-select",
                     className="main-select top-parameters",
                 ),
                 html.Div(
                     [
                         dcc.Loading(
-                            id="loading-de-secondary",
+                            id=f"{self.id}-loading-de-secondary",
                             type="circle",
                             children=[
                                 html.Div(
                                     dcc.Graph(
-                                        id="de-secondary-plot",
+                                        id=f"{self.id}-de-secondary-plot",
                                         className="secondary-plot",
                                     )
                                 )
                             ],
                         )
                     ],
-                    id="de-secondary-figure",
+                    id=f"{self.id}-de-secondary-figure",
                     className="secondary-figure",
                 ),
             ],
@@ -208,17 +207,16 @@ class DEPage(DashPage):
         )
 
         bot_sidebar = Components.create_sidebar(
-            id="de-bot-sidebar", class_name="bot-sidebar",
+            id=f"{self.id}-bot-sidebar", class_name="bot-sidebar",
             title="Empty", 
             params_children=[],
         )
 
         layout = [
             html.Div(
-                id="top", className="top", children=[top_sidebar, main, secondary]
+                className="top", children=[top_sidebar, main, secondary]
             ),
             html.Div(
-                id="bottom",
                 className="bottom",
                 children=[
                     # bottom_sidebar, bottom_figure
@@ -239,7 +237,7 @@ class DEPage(DashPage):
         # Volcano Group By Select
         divs.append(
             html.Div(
-                id="volcano-groupby-container",
+                id=f"{self.id}-volcano-groupby-container",
                 children=[
                     html.Label("Volcano GroupBy"),
                     html.Div(
@@ -247,7 +245,7 @@ class DEPage(DashPage):
                             dcc.Dropdown(
                                 options=groups,
                                 value=next(iter(groups), None),
-                                id="volcano-groupby",
+                                id=f"{self.id}-volcano-groupby",
                                 clearable=False,
                             ),
                         ],
@@ -262,7 +260,7 @@ class DEPage(DashPage):
         # Volcano Reference Select i.e. 'KO vs. Rest'
         divs.append(
             html.Div(
-                id="volcano-reference-container",
+                id=f"{self.id}-volcano-reference-container",
                 children=[
                     html.Label("Volcano Reference"),
                     html.Div(
@@ -270,7 +268,7 @@ class DEPage(DashPage):
                             dcc.Dropdown(
                                 options=refs,
                                 value=next(iter(refs), None),
-                                id="volcano-reference",
+                                id=f"{self.id}-volcano-reference",
                                 clearable=False,
                             ),
                         ],

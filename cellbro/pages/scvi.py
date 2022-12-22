@@ -40,38 +40,38 @@ class FitAction(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            Output("scvi-projection-plot", "figure"),
-            Output("scvi-projection-plot-type", "options"),
-            Output(component_id="scvi-projection-plot-type", component_property="value"),
+            Output(f"{self.page_id_prefix}-projection-plot", "figure"),
+            Output(f"{self.page_id_prefix}-projection-plot-type", "options"),
+            Output(component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"),
         ]
         inputs = {
-            "submit": Input("fit-submit", "n_clicks"),
+            "submit": Input(f"{self.page_id_prefix}-fit-submit", "n_clicks"),
             "color": Input(
-                component_id="scvi-projection-color", component_property="value"
+                component_id=f"{self.page_id_prefix}-projection-color", component_property="value"
             ),
             "obsm_layer": Input(
-                component_id="scvi-projection-plot-type", component_property="value"
+                component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"
             ),
         }
         state = {
-            "setup_continuous_covariate_keys": Input("continuous_covariate_keys", "value"),
-            "setup_categorical_covariate_keys": Input("categorical_covariate_keys", "value"),
-            "setup_batch_key": Input("batch_key", "value"),
+            "setup_continuous_covariate_keys": Input(f"{self.page_id_prefix}-continuous_covariate_keys", "value"),
+            "setup_categorical_covariate_keys": Input(f"{self.page_id_prefix}-categorical_covariate_keys", "value"),
+            "setup_batch_key": Input(f"{self.page_id_prefix}-batch_key", "value"),
         }
         for key, param in scvi_plots.scvi_model_params.items():
-            state[f"model_{param.key}"] = State(f"scvi-model-{param.key}", "value")
+            state[f"model_{param.key}"] = State(f"{self.page_id_prefix}-model-{param.key}", "value")
 
         for key, param in scvi_plots.scvi_train_params.items():
-            state[f"train_{param.key}"] = State(f"scvi-train-{param.key}", "value")
+            state[f"train_{param.key}"] = State(f"{self.page_id_prefix}-train-{param.key}", "value")
 
         for key in SCVI_UMAP._params.keys():
             state[f"scvi_umap_{key}"] = State(
-                component_id=f"projection-scvi_umap-{key}", component_property="value"
+                component_id=f"{self.page_id_prefix}-projection-scvi_umap-{key}", component_property="value"
             )
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, color, obsm_layer, **kwargs):
-            if ctx.triggered_id == "fit-submit":
+            if ctx.triggered_id == f"{self.page_id_prefix}-fit-submit":
                 self.apply(params=kwargs)
                 obsm_layer = self.apply_projection(params=kwargs)
 
@@ -87,24 +87,25 @@ class FitAction(DashAction):
 
 class SCVIPage(DashPage):
     def __init__(self, dataset, order):
-        super().__init__("pages.scvi", "SCVI", "/scvi", order)
+        super().__init__("pages.scvi", "SCVI", "scvi", order)
         self.dataset = dataset
         self.actions.update(
-            fit=FitAction(self.dataset),
+            fit=FitAction(self.dataset, self.id),
         )
 
     def create_layout(self) -> list:
         cats = self.dataset.get_categoric()
         conts = self.dataset.get_numeric()
 
-        self.actions["param-collapse-scvi-setup"] = Components.CollapseDiv(
-            id="param-collapse-scvi-setup",
-            btn_id="btn-param-collapse-scvi-setup",
+        self.actions["param-collapse-setup"] = Components.CollapseDiv(
+            page_id_prefix=self.id,
+            id=f"{self.id}-param-collapse-setup",
+            btn_id=f"{self.id}-btn-param-collapse-setup",
             children=[
                 html.Div([
                     html.Label("Batch Key"),
                     dcc.Dropdown(
-                        options=cats, value=None, id="batch_key", clearable=True,
+                        options=cats, value=None, id=f"{self.id}-batch_key", clearable=True,
                         placeholder="Select Variable (Optional)",
                         multi=False, style={"flex": "1"},
                     ),
@@ -112,7 +113,7 @@ class SCVIPage(DashPage):
                 html.Div([
                     html.Label("Continuous Covariates"),
                     dcc.Dropdown(
-                        options=conts, value=None, id="continuous_covariate_keys", clearable=True,
+                        options=conts, value=None, id=f"{self.id}-continuous_covariate_keys", clearable=True,
                         placeholder="Select Variable(s) (Optional)",
                         multi=True, style={"flex": "1"},
                     ),
@@ -120,7 +121,7 @@ class SCVIPage(DashPage):
                 html.Div([
                     html.Label("Categorical Covariates"),
                     dcc.Dropdown(
-                        options=cats, value=None, id="categorical_covariate_keys", clearable=True,
+                        options=cats, value=None, id=f"{self.id}-categorical_covariate_keys", clearable=True,
                         placeholder="Select Variable(s) (Optional)",
                         multi=True, style={"flex": "1"},
                     ),
@@ -129,34 +130,37 @@ class SCVIPage(DashPage):
         )
 
         self.actions["param-collapse-scvi_model"] = Components.CollapseDiv(
-            id="param-collapse-scvi_model",
-            btn_id="btn-param-collapse-scvi_model",
+            page_id_prefix=self.id,
+            id=f"{self.id}-param-collapse-scvi_model",
+            btn_id=f"{self.id}-btn-param-collapse-scvi_model",
             children=Components.params_layout(
-                scvi_plots.scvi_model_params, "scvi-model"),
+                scvi_plots.scvi_model_params, f"{self.id}-model"),
         )
         
         self.actions["param-collapse-scvi_train"] = Components.CollapseDiv(
-            id="param-collapse-scvi_train",
-            btn_id="btn-param-collapse-scvi_train",
+            page_id_prefix=self.id,
+            id=f"{self.id}-param-collapse-scvi_train",
+            btn_id=f"{self.id}-btn-param-collapse-scvi_train",
             children=Components.params_layout(
-                scvi_plots.scvi_train_params, "scvi-train"),
+                scvi_plots.scvi_train_params, f"{self.id}-train"),
         )
 
         self.actions["param-collapse-scvi_umap"] = Components.CollapseDiv(
-            id="param-collapse-scvi_umap",
-            btn_id="btn-param-collapse-scvi_umap",
-            children=Projection.Projection.get_layout(SCVI_UMAP),
+            page_id_prefix=self.id,
+            id=f"{self.id}-param-collapse-scvi_umap",
+            btn_id=f"{self.id}-btn-param-collapse-scvi_umap",
+            children=Projection.Projection.get_layout(SCVI_UMAP, self.id),
         )
 
         top_sidebar = Components.create_sidebar(
-            id="scvi-top-sidebar", class_name="top-sidebar",
+            id=f"{self.id}-top-sidebar", class_name="top-sidebar",
             title="SCVI Settings",
             params_children=self._params_layout(),
-            btn_id="fit-submit", btn_text="Fit SCVI"
+            btn_id=f"{self.id}-fit-submit", btn_text="Fit SCVI"
         )
 
         bot_sidebar = Components.create_sidebar(
-            id="scvi-bot-sidebar", class_name="bot-sidebar",
+            id=f"{self.id}-bot-sidebar", class_name="bot-sidebar",
             title="Empty",
             params_children=[],
             btn_id=None, btn_text="Fit SCVI"
@@ -173,7 +177,7 @@ class SCVIPage(DashPage):
                                 html.Label("Projection Type"),
                                 dcc.Dropdown(
                                     projection_types, value=next(iter(projection_types), None),
-                                    id="scvi-projection-plot-type", clearable=False,
+                                    id=f"{self.id}-projection-plot-type", clearable=False,
                                 ),
                             ],
                             className="param-column",
@@ -186,30 +190,29 @@ class SCVIPage(DashPage):
                                     self.dataset.adata.obs_keys()
                                     + list(self.dataset.adata.var_names),
                                     value=self.dataset.adata.obs_keys()[0],
-                                    id="scvi-projection-color",
+                                    id=f"{self.id}-projection-color",
                                     clearable=False,
                                 ),
                             ],
                             className="param-column",
                         ),
                     ],
-                    id="scvi-main-select",
+                    id=f"{self.id}-main-select",
                     className="top-parameters",
                 ),
                 html.Div(
                     [
                         dcc.Loading(
-                            id="loading-scvi-main",
                             type="circle",
                             children=[
                                 html.Div(
-                                    dcc.Graph(id="scvi-projection-plot",
+                                    dcc.Graph(id=f"{self.id}-projection-plot",
                                               className="main-plot")
                                 )
                             ],
                         )
                     ],
-                    id="scvi-main-figure",
+                    id=f"{self.id}-main-figure",
                     className="main-figure",
                 ),
             ],
@@ -221,25 +224,24 @@ class SCVIPage(DashPage):
                 html.Div(
                     children=[
                     ],
-                    id="scvi-secondary-select",
+                    id=f"{self.id}-secondary-select",
                     className="top-parameters",
                 ),
                 html.Div(
                     [
                         dcc.Loading(
-                            id="loading-scvi-secondary",
                             type="circle",
                             children=[
                                 html.Div(
                                     dcc.Graph(
-                                        id="scvi-secondary-plot",
+                                        id=f"{self.id}-secondary-plot",
                                         className="secondary-plot",
                                     )
                                 )
                             ],
                         )
                     ],
-                    id="scvi-secondary-figure",
+                    id=f"{self.id}-secondary-figure",
                     className="secondary-figure",
                 ),
             ],
@@ -248,18 +250,17 @@ class SCVIPage(DashPage):
 
         bottom_figure = html.Div(
             children=[],
-            id="scvi-bottom-figure",
+            id=f"{self.id}-bottom-figure",
             className="bottom-figure",
         )
 
         layout = [
             html.Div(
-                id="top",
                 className="top",
                 children=[top_sidebar, main_figure, secondary_figure],
             ),
             html.Div(
-                id="bottom", className="bottom", children=[bot_sidebar, bottom_figure]
+                className="bottom", children=[bot_sidebar, bottom_figure]
             ),
         ]
         return layout
@@ -268,28 +269,28 @@ class SCVIPage(DashPage):
         return [
             html.Div([
                 dbc.Button(
-                    "Setup Parameters", id="btn-param-collapse-scvi-setup", color="info", n_clicks=0
+                    "Setup Parameters", id=f"{self.id}-btn-param-collapse-setup", color="info", n_clicks=0
                 ),
-                self.actions["param-collapse-scvi-setup"].layout,
+                self.actions["param-collapse-setup"].layout,
             ], className="param-class"),
 
             html.Div([
                 dbc.Button(
-                    "Model Parameters", id="btn-param-collapse-scvi_model", color="info", n_clicks=0
+                    "Model Parameters", id=f"{self.id}-btn-param-collapse-scvi_model", color="info", n_clicks=0
                 ),
                 self.actions["param-collapse-scvi_model"].layout,
             ], className="param-class"),
 
             html.Div([
                 dbc.Button(
-                    "Train Parameters", id="btn-param-collapse-scvi_train", color="info", n_clicks=0
+                    "Train Parameters", id=f"{self.id}-btn-param-collapse-scvi_train", color="info", n_clicks=0
                 ),
                 self.actions["param-collapse-scvi_train"].layout,
             ], className="param-class"),
 
             html.Div([
                 dbc.Button(
-                    "Projection Parameters", id="btn-param-collapse-scvi_umap", color="info", n_clicks=0
+                    "Projection Parameters", id=f"{self.id}-btn-param-collapse-scvi_umap", color="info", n_clicks=0
                 ),
                 self.actions["param-collapse-scvi_umap"].layout,
             ], className="param-class"),

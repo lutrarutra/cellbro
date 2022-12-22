@@ -16,8 +16,8 @@ import cellbro.io.FileFormat as ff
 
 
 class ExportData(DashAction, ABC):
-    def __init__(self, dataset, id, filename_ph, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
-        DashAction.__init__(self, dataset)
+    def __init__(self, dataset, id, filename_ph, page_id_prefix, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
+        DashAction.__init__(self, dataset, page_id_prefix)
 
         self._id = id
         self.filename_ph = filename_ph

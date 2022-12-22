@@ -15,9 +15,9 @@ class ClickAction(DashAction):
         return [element]
 
     def setup_callbacks(self, app):
-        outputs = [Output("pca-secondary-select", "children")]
+        outputs = [Output(f"{self.page_id_prefix}-secondary-select", "children")]
         inputs = {
-            "click_data": Input("pca-secondary-plot", "clickData"),
+            "click_data": Input(f"{self.page_id_prefix}-secondary-plot", "clickData"),
         }
 
         @app.dash_app.callback(output=outputs, inputs=inputs)
@@ -32,22 +32,22 @@ class PlotAction(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            Output(component_id="pca-main-plot", component_property="figure"),
-            Output(component_id="pca-secondary-plot", component_property="figure"),
-            Output(component_id="pca-var-plot", component_property="figure"),
-            Output(component_id="pca-corr-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-main-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-secondary-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-var-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-corr-plot", component_property="figure"),
         ]
 
         # Inputs to Projection
         inputs = {
-            "color": Input(component_id="pca-color", component_property="value"),
-            "pc_x": Input(component_id="pca-x-component", component_property="value"),
-            "pc_y": Input(component_id="pca-y-component", component_property="value"),
+            "color": Input(component_id=f"{self.page_id_prefix}-projection-color", component_property="value"),
+            "pc_x": Input(component_id=f"{self.page_id_prefix}-projection-x-component", component_property="value"),
+            "pc_y": Input(component_id=f"{self.page_id_prefix}-projection-y-component", component_property="value"),
             "hist_type": Input(
-                component_id="pca-hist_type", component_property="value"
+                component_id=f"{self.page_id_prefix}-hist_type", component_property="value"
             ),
             "hist_n_pcs": Input(
-                component_id="pca-hist_n_pcs", component_property="value"
+                component_id=f"{self.page_id_prefix}-hist_n_pcs", component_property="value"
             ),
         }
 
@@ -58,23 +58,23 @@ class PlotAction(DashAction):
 
 class PCAPage(DashPage):
     def __init__(self, dataset, order):
-        super().__init__("pages.pca", "PCA", "/pca", order)
+        super().__init__("pages.pca", "PCA", "pca", order)
         self.dataset = dataset
         self.actions.update(
-            plot_action=PlotAction(self.dataset),
-            click_action=ClickAction(self.dataset)
+            plot_action=PlotAction(self.dataset, page_id_prefix=self.id),
+            click_action=ClickAction(self.dataset, page_id_prefix=self.id)
         )
 
     def create_layout(self) -> list:
         top_sidebar = Components.create_sidebar(
-            id="pca-top-sidebar", class_name="top-sidebar",
+            id=f"{self.id}-top-sidebar", class_name="top-sidebar",
             title="PCA Projection Settings",
             params_children=self._top_params_layout(),
             btn_id=None, btn_text="Plot"
         )
 
         bot_sidebar = Components.create_sidebar(
-            id="pca-bot-sidebar", class_name="bot-sidebar",
+            id=f"{self.id}-bot-sidebar", class_name="bot-sidebar",
             title="PCA Plots",
             params_children=self._bot_params_layout(),
             btn_id=None, btn_text="Plot"
@@ -91,7 +91,7 @@ class PCAPage(DashPage):
                                 dcc.Dropdown(
                                     self.dataset.adata.obs_keys() + list(self.dataset.adata.var_names),
                                     value=self.dataset.adata.obs_keys()[0],
-                                    id="pca-color", clearable=False,
+                                    id=f"{self.id}-projection-color", clearable=False,
                                 ),
                             ],
                             className="param-column",
@@ -101,7 +101,7 @@ class PCAPage(DashPage):
                             children=[
                                 html.Label("X Component"),
                                 dcc.Input(
-                                    id="pca-x-component", type="number", value=1, min=1, step=1,
+                                    id=f"{self.id}-projection-x-component", type="number", value=1, min=1, step=1,
                                     max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
                                     className="param-input",
                                 ),
@@ -113,7 +113,7 @@ class PCAPage(DashPage):
                             children=[
                                 html.Label("Y Component"),
                                 dcc.Input(
-                                    id="pca-y-component", type="number", value=2, min=1, step=1,
+                                    id=f"{self.id}-projection-y-component", type="number", value=2, min=1, step=1,
                                     max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
                                     className="param-input",
                                 ),
@@ -121,23 +121,22 @@ class PCAPage(DashPage):
                             className="param-column",
                         ),
                     ],
-                    id="pca-main-select",
+                    id=f"{self.id}-main-select",
                     className="top-parameters",
                 ),
                 html.Div(
                     [
                         dcc.Loading(
-                            id="loading-pca-main",
                             type="circle",
                             children=[
                                 html.Div(
-                                    dcc.Graph(id="pca-main-plot",
+                                    dcc.Graph(id=f"{self.id}-main-plot",
                                               className="main-plot")
                                 )
                             ],
                         )
                     ],
-                    id="pca-main-figure",
+                    id=f"{self.id}-main-figure",
                     className="main-figure",
                 ),
             ],
@@ -150,25 +149,24 @@ class PCAPage(DashPage):
                     children=[
                         Components.create_gene_card(None, self.dataset),
                     ],
-                    id="pca-secondary-select",
+                    id=f"{self.id}-secondary-select",
                     className="top-parameters",
                 ),
                 html.Div(
                     [
                         dcc.Loading(
-                            id="loading-pca-secondary",
                             type="circle",
                             children=[
                                 html.Div(
                                     dcc.Graph(
-                                        id="pca-secondary-plot",
+                                        id=f"{self.id}-secondary-plot",
                                         className="secondary-plot",
                                     )
                                 )
                             ],
                         )
                     ],
-                    id="pca-secondary-figure",
+                    id=f"{self.id}-secondary-figure",
                     className="secondary-figure",
                 ),
             ],
@@ -178,40 +176,33 @@ class PCAPage(DashPage):
         bottom_figure = html.Div(
             children=[
                 dcc.Loading(
-                    id="loading-var-bottom",
-                    className="loading-bottom",
                     type="circle",
                     children=[
                         html.Div(
-                            dcc.Graph(id="pca-var-plot",
-                                      className="bottom-left-plot")
+                            dcc.Graph(id=f"{self.id}-var-plot",className="bottom-left-plot")
                         )
                     ],
                 ),
                 dcc.Loading(
-                    id="loading-corr-bottom",
-                    className="loading-bottom",
                     type="circle",
                     children=[
                         html.Div(
-                            dcc.Graph(id="pca-corr-plot",
-                                      className="bottom-right-plot")
+                            dcc.Graph(id=f"{self.id}-corr-plot", className="bottom-right-plot")
                         )
                     ],
                 ),
             ],
-            id="pca-bottom-figure",
+            id=f"{self.id}-bottom-figure",
             className="bottom-figure",
         )
 
         layout = [
             html.Div(
-                id="top",
                 className="top",
                 children=[top_sidebar, main_figure, secondary_figure],
             ),
             html.Div(
-                id="bottom", className="bottom", children=[bot_sidebar, bottom_figure]
+                className="bottom", children=[bot_sidebar, bottom_figure]
             ),
         ]
         return layout
@@ -224,7 +215,7 @@ class PCAPage(DashPage):
                     dcc.Dropdown(
                         ["Bar", "Linefig", "Area", "Cumulative"],
                         value="Cumulative",
-                        id="pca-hist_type",
+                        id=f"{self.id}-hist_type",
                         clearable=False,
                     ),
                 ],
@@ -234,7 +225,7 @@ class PCAPage(DashPage):
                 children=[
                     html.Label("Num. Components"),
                     dcc.Input(
-                        id="pca-hist_n_pcs", type="number", value=30, min=2, step=1,
+                        id=f"{self.id}-hist_n_pcs", type="number", value=30, min=2, step=1,
                         max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
                         className="param-input",
                     ),
@@ -251,7 +242,7 @@ class PCAPage(DashPage):
                     children=[
                         html.Label(param.name, className="param-label",),
                         dcc.Input(
-                            id=f"pca-{key}", type=param.input_type, value=param.value,
+                            id=f"{self.id}-{key}", type=param.input_type, value=param.value,
                             step=param.step if param.step != None else 0.1,
                             className="param-input",
                         ),

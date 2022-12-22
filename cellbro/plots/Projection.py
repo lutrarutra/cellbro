@@ -93,17 +93,17 @@ class Projection():
         return rerun
 
     @staticmethod
-    def get_layout(projection_cls):
+    def get_layout(projection_cls, page_id_prefix):
         divs = []
         for key, param in projection_cls.get_params().items():
             if param.type == bool:
                 inp = dbc.Switch(
-                    id=f"projection-{projection_cls.get_type().value}-{key}",
+                    id=f"{page_id_prefix}-projection-{projection_cls.get_type().value}-{key}",
                     value=param.default,
                 )
             else:
                 inp = dbc.Input(
-                    id=f"projection-{projection_cls.get_type().value}-{key}",
+                    id=f"{page_id_prefix}-projection-{projection_cls.get_type().value}-{key}",
                     type=param.input_type,
                     value=param.value,
                     step=param.step if param.step != None else 0.1,
