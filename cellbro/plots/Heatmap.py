@@ -74,25 +74,6 @@ class AddGenesFromList(DashAction):
             return list(set(selected_genes))
 
 class PlotHeatmap(DashAction):
-    def plot(self, params):
-        self.params = params
-        selected_genes = params.pop("selected_genes")
-        if selected_genes and len(selected_genes) > 0:
-            self.selected_genes = selected_genes
-        else:
-            self.selected_genes = self.dataset.adata.var_names[:50].tolist()
-
-        fig = scout.ply.heatmap(
-            adata=self.dataset.adata, var_names=self.selected_genes,
-            categoricals=["leiden"], layer=self.params["layer"], cluster_cells_by=self.params["cluster_cells_by"], layout=dict()
-        )
-
-        style = {
-            # "width": f"{int(z.shape[0]/2)+100}px",
-            "height": fig.layout["height"],
-        }
-        return fig, style
-
     def setup_callbacks(self, app):
         output = [
             Output(component_id=f"{self.page_id_prefix}-heatmap-plot", component_property="figure"),
@@ -107,15 +88,18 @@ class PlotHeatmap(DashAction):
         }
 
         state = dict(
-            [(key, State(component_id=f"{self.page_id_prefix}-heatmap-{key}", component_property="value")) for key in heatmap_params.keys()]
+            selected_genes=State(f"{self.page_id_prefix}-heatmap-selected_genes", "value"),
+            cluster_cells_by=State(f"{self.page_id_prefix}-heatmap-cluster_cells_by", "value"),
+            categoricals=State(f"{self.page_id_prefix}-heatmap-selected_categoricals", "value"),
         )
-        state["selected_genes"] = State(f"{self.page_id_prefix}-heatmap-selected_genes", "value")
-        state["cluster_cells_by"] = State(f"{self.page_id_prefix}-heatmap-cluster_cells_by", "value")
+
+        for key in heatmap_params.keys():
+            state[key] = State(component_id=f"{self.page_id_prefix}-heatmap-{key}", component_property="value")
+            
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, **kwargs):
-            return self.plot(params=kwargs)
-
+            return Heatmap.plot(self.dataset, kwargs)
 
 class EditGeneList(DashAction):
     def setup_callbacks(self, app):
@@ -135,6 +119,26 @@ class Heatmap(DashFigure):
             add_genes_from_list=AddGenesFromList(dataset, self.page_id_prefix),
             edit_gene_list=EditGeneList(dataset, self.page_id_prefix),
         )
+
+    @staticmethod
+    def plot(dataset, params):
+        selected_genes = params.pop("selected_genes")
+
+        if selected_genes and len(selected_genes) > 0:
+            selected_genes = selected_genes
+        else:
+            selected_genes = dataset.adata.var_names[:50].tolist()
+
+        fig = scout.ply.heatmap(
+            adata=dataset.adata, var_names=selected_genes, categoricals=params["categoricals"],
+            layer=params["layer"], cluster_cells_by=params["cluster_cells_by"], layout=dict()
+        )
+
+        style = {
+            # "width": f"{int(z.shape[0]/2)+100}px",
+            "height": fig.layout["height"],
+        }
+        return fig, style
 
 
     def create_layout(self):
@@ -162,7 +166,7 @@ class Heatmap(DashFigure):
                             ],
                         )
                     ],
-                    id=f"{self.page_id_prefix}-heatmap-figure",
+                    id="heatmap-figure",
                     className="bottom-figure",
                 )
             ]
@@ -173,7 +177,7 @@ class Heatmap(DashFigure):
     def _params_layout(self):
         genes = sorted(self.dataset.adata.var_names.tolist())
         gene_lists = sorted(self.dataset.get_gene_lists())
-        categoricals = self.dataset.get_categoric() + ["barcode"]
+        categoricals = self.dataset.get_categoric()
 
         divs = [
             html.Div([
@@ -203,7 +207,7 @@ class Heatmap(DashFigure):
                     html.Div(
                         [
                             dcc.Dropdown(
-                                options=categoricals, value=None,
+                                options=categoricals + ["barcode"], value=None,
                                 id=f"{self.page_id_prefix}-heatmap-cluster_cells_by", clearable=True,
                                 placeholder="Select Categorical (Optional)",
                             )
@@ -212,7 +216,27 @@ class Heatmap(DashFigure):
                     ),
                 ],
                 className="param-row-stacked",
-            )
+            ),
+            html.Div(
+                children=[
+                    html.Label(
+                        "Show Categorical Feature(s)",
+                        className="param-label",
+                    ),
+                    html.Div(
+                        [
+                            dcc.Dropdown(
+                                options=categoricals, value=next(iter(categoricals), None),
+                                id=f"{self.page_id_prefix}-heatmap-selected_categoricals", 
+                                placeholder="Select Feature(s)", multi=True, clearable=True,
+                                style={"width": "100%"}
+                            ),
+                        ],
+                        className="param-select",
+                    ),
+                ],
+                className="param-row-stacked",
+            ),
         ]
         divs.extend(Components.params_layout(heatmap_params, f"{self.page_id_prefix}-heatmap"))
 

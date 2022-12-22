@@ -1,7 +1,7 @@
 import dash
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, dcc, html
+from dash import Input, Output, State, dcc, html, ctx
 
 from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
@@ -22,25 +22,39 @@ class ListAvailableLRefs(DashAction):
     def setup_callbacks(self, app):
         output = [
             Output(component_id=f"{self.page_id_prefix}-groupby", component_property="options"),
+            Output(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
             Output(component_id=f"{self.page_id_prefix}-reference", component_property="options"),
+            Output(component_id=f"{self.page_id_prefix}-reference", component_property="value"),
         ]
         inputs = {
             "groupby": Input(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
-            "store": Input(component_id=f"{self.page_id_prefix}-store", component_property="data"),
         }
 
         @app.dash_app.callback(output=output, inputs=inputs)
-        def _(groupby, store):
-            if groupby is None and store is None:
+        def _(groupby):
+            rank_genes_groups = self.dataset.get_rank_genes_groups()
+            if len(rank_genes_groups) == 0:
                 raise PreventUpdate
 
-            rgg = self.dataset.get_rank_genes_groups()
+            if groupby is None:
+                refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{rank_genes_groups[0]}"].keys()))
+            else:
+                refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{groupby}"].keys()))
+
             return [
-                rgg, sorted(list(self.dataset.adata.uns[f"rank_genes_{rgg[0]}"].keys()))
+                rank_genes_groups, rank_genes_groups[0],
+                refs, refs[0]
             ]
         
 
 class ApplyGSEA(DashAction):
+    def apply(self, groupby, reference):
+        gene_score_df = self.dataset.adata.uns[f"rank_genes_{groupby}"][reference]
+        res = scout.tl.GSEA(gene_score_df, score_of_interest="gene_score")
+        self.dataset.adata.uns[f"gsea_{groupby}_{reference}"] = res
+
+        return [scout.ply.gsea_volcano(res, layout=gsea_volcano_layout)]
+
     def setup_callbacks(self, app):
         output = [
             Output(component_id=f"{self.page_id_prefix}-volcano-plot", component_property="figure"),
@@ -58,12 +72,59 @@ class ApplyGSEA(DashAction):
             if submit is None:
                 raise PreventUpdate
 
-            gene_score_df = self.dataset.adata.uns[f"rank_genes_{groupby}"][reference]
-            res = scout.tl.GSEA(gene_score_df, score_of_interest="gene_score")
-            self.dataset.adata.uns[f"gsea_{groupby}_{reference}"] = res
-            
-            return [scout.ply.gsea_volcano(res, layout=gsea_volcano_layout)]
+            return self.apply(groupby, reference)
 
+
+class PlotHeatmap(DashAction):
+    def setup_callbacks(self, app):
+        output = [
+            Output(component_id=f"{self.page_id_prefix}-heatmap-selected_genes", component_property="value"),
+            Output(f"{self.page_id_prefix}-heatmap-cluster_cells_by", "value"),
+            Output(component_id=f"{self.page_id_prefix}-heatmap-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id_prefix}-heatmap-plot", component_property="style"),
+        ]
+
+        # Inputs to Projection
+        inputs = {
+            "submit": Input(
+                component_id=f"{self.page_id_prefix}-heatmap-submit", component_property="n_clicks"
+            ),
+            "click_data": Input(f"{self.page_id_prefix}-volcano-plot", "clickData"),
+        }
+
+        state = dict(
+            selected_genes=State(f"{self.page_id_prefix}-heatmap-selected_genes", "value"),
+            cluster_cells_by=State(f"{self.page_id_prefix}-heatmap-cluster_cells_by", "value"),
+            gsea_groupby=State(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
+            gsea_reference=State(component_id=f"{self.page_id_prefix}-reference", component_property="value"),
+            categoricals=State(f"{self.page_id_prefix}-heatmap-selected_categoricals", "value")
+
+        )
+        for key in Heatmap.heatmap_params.keys():
+            state[key] = State(component_id=f"{self.page_id_prefix}-heatmap-{key}", component_property="value")
+
+        @app.dash_app.callback(output=output, inputs=inputs, state=state)
+        def _(submit, click_data, **kwargs):
+            if click_data is None:
+                raise PreventUpdate
+            
+            selected_genes = kwargs["selected_genes"]
+            cluster_cells_by = kwargs["cluster_cells_by"]
+
+            if ctx.triggered_id == f"{self.page_id_prefix}-volcano-plot":
+                cluster_cells_by = kwargs["gsea_groupby"]
+                reference = kwargs["gsea_reference"]
+
+                term = click_data["points"][0]["hovertext"]
+                res = self.dataset.adata.uns[f"gsea_{cluster_cells_by}_{reference}"]
+                selected_genes = res[res["Term"] == term]["lead_genes"].values[0]
+                
+                kwargs["selected_genes"] = selected_genes
+                kwargs["cluster_cells_by"] = cluster_cells_by
+
+            fig, style = Heatmap.Heatmap.plot(self.dataset, kwargs)
+
+            return [selected_genes, cluster_cells_by, fig, style]
 
 class GSEAPage(DashPage):
     def __init__(self, dataset, order):
@@ -76,6 +137,10 @@ class GSEAPage(DashPage):
         self.plots.update(
             heatmap=Heatmap.Heatmap(dataset, self.id)
         )
+
+        self.plots["heatmap"].actions["plot_heatmap"] = PlotHeatmap(dataset, self.id)
+        # TODO: Fix this
+        self.plots["heatmap"].actions.pop("add_genes_from_list")
 
     def create_layout(self) -> list:
         top_sidebar = Components.create_sidebar(
@@ -141,7 +206,7 @@ class GSEAPage(DashPage):
         divs = [
             html.Div(
                 children=[
-                    html.Label("GSEA GroupBy"),
+                    html.Label("GSEA Group By"),
                     html.Div(
                          [
                             dcc.Dropdown(
