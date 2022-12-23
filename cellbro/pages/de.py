@@ -124,7 +124,7 @@ class DEPage(DashPage):
         )
 
     def create_layout(self):
-        self.sidebars["top_sidebar"] = Components.Sidebar(
+        self.components["top_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, apply_btn_id=f"{self.id}-submit",
             title="Differential Expression Settings",
             params_children=self._params_layout(),
@@ -205,7 +205,7 @@ class DEPage(DashPage):
             className="secondary",
         )
 
-        self.sidebars["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id,  row="bot", side="left",
             title="Empty",
             params_children=[], apply_btn_id=None
@@ -213,13 +213,13 @@ class DEPage(DashPage):
 
         layout = [
             html.Div(
-                className="top", children=[self.sidebars["top_sidebar"].create_layout(), main, secondary]
+                className="top", children=[self.components["top_sidebar"].create_layout(), main, secondary]
             ),
             html.Div(
                 className="bottom",
                 children=[
                     # bottom_sidebar, bottom_figure
-                    self.sidebars["bot_sidebar"].create_layout()
+                    self.components["bot_sidebar"].create_layout()
                 ],
             ),
         ]

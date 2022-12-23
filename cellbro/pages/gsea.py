@@ -135,17 +135,17 @@ class GSEAPage(DashPage):
             apply_de=ApplyGSEA(dataset=self.dataset, page_id_prefix=self.id),
             list_available_refs=ListAvailableLRefs(dataset=self.dataset, page_id_prefix=self.id),
         )
-        self.plots.update(
+        self.components.update(
             projection=Projection.Projection(dataset, self.id, loc_class="secondary"),
             heatmap=Heatmap.Heatmap(dataset, self.id, loc_class="bottom")
         )
 
-        self.plots["heatmap"].actions["plot_heatmap"] = PlotHeatmap(dataset, self.id)
+        self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(dataset, self.id)
         # TODO: Fix this
-        self.plots["heatmap"].actions.pop("add_genes_from_list")
+        self.components["heatmap"].actions.pop("add_genes_from_list")
 
     def create_layout(self) -> list:
-        self.sidebars["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, apply_btn_id=f"{self.id}-submit",
             title="Gene Set Enrichment Settings",
             params_children=self._params_layout(),
@@ -181,28 +181,28 @@ class GSEAPage(DashPage):
             className="main",
         )
 
-        self.sidebars["right_sidebar"] = Components.Sidebar(
+        self.components["right_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, apply_btn_id=f"{self.id}-projection-submit",
             title="Projection Settings",
-            params_children=self.plots["projection"].get_sidebar_params(),
+            params_children=self.components["projection"].get_sidebar_params(),
             row="top", side="right",
         )
-        secondary_figure = self.plots["projection"].create_layout()
+        secondary_figure = self.components["projection"].create_layout()
         
-        self.sidebars["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="Heatmap Settings",
-            params_children=self.plots["heatmap"].get_sidebar_params(),
+            params_children=self.components["heatmap"].get_sidebar_params(),
             apply_btn_id=f"{self.id}-heatmap-submit", btn_text="Plot"
         )
         
-        bot_figure = self.plots["heatmap"].create_layout()
+        bot_figure = self.components["heatmap"].create_layout()
 
         layout = [
             html.Div(
                 id="top", className="top", children=[
-                    self.sidebars["left_sidebar"].create_layout(), main,
-                    self.sidebars["right_sidebar"].create_layout(), secondary_figure
+                    self.components["left_sidebar"].create_layout(), main,
+                    self.components["right_sidebar"].create_layout(), secondary_figure
                 ]
             ),
             html.Div(
@@ -210,7 +210,7 @@ class GSEAPage(DashPage):
                 className="bottom",
                 children=[
                     # bottom_sidebar, bottom_figure
-                    self.sidebars["bot_sidebar"].create_layout(), bot_figure
+                    self.components["bot_sidebar"].create_layout(), bot_figure
                 ],
             ),
         ]

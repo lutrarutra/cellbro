@@ -97,10 +97,10 @@ class SCVIPage(DashPage):
         cats = self.dataset.get_categoric()
         conts = self.dataset.get_numeric()
 
-        self.actions["param-collapse-setup"] = Components.CollapseDiv(
+        self.components["param-collapse-setup"] = Components.CollapsibleDiv(
             page_id_prefix=self.id,
-            id=f"{self.id}-param-collapse-setup",
-            btn_id=f"{self.id}-btn-param-collapse-setup",
+            div_id=f"{self.id}-param-collapse-setup",
+            collapse_btn_id=f"{self.id}-btn-param-collapse-setup",
             children=[
                 html.Div([
                     html.Label("Batch Key"),
@@ -129,36 +129,36 @@ class SCVIPage(DashPage):
             ]
         )
 
-        self.actions["param-collapse-scvi_model"] = Components.CollapseDiv(
+        self.components["param-collapse-scvi_model"] = Components.CollapsibleDiv(
             page_id_prefix=self.id,
-            id=f"{self.id}-param-collapse-scvi_model",
-            btn_id=f"{self.id}-btn-param-collapse-scvi_model",
+            div_id=f"{self.id}-param-collapse-scvi_model",
+            collapse_btn_id=f"{self.id}-btn-param-collapse-scvi_model",
             children=Components.params_layout(
                 scvi_plots.scvi_model_params, f"{self.id}-model"),
         )
         
-        self.actions["param-collapse-scvi_train"] = Components.CollapseDiv(
+        self.components["param-collapse-scvi_train"] = Components.CollapsibleDiv(
             page_id_prefix=self.id,
-            id=f"{self.id}-param-collapse-scvi_train",
-            btn_id=f"{self.id}-btn-param-collapse-scvi_train",
+            div_id=f"{self.id}-param-collapse-scvi_train",
+            collapse_btn_id=f"{self.id}-btn-param-collapse-scvi_train",
             children=Components.params_layout(
                 scvi_plots.scvi_train_params, f"{self.id}-train"),
         )
 
-        self.actions["param-collapse-scvi_umap"] = Components.CollapseDiv(
+        self.components["param-collapse-scvi_umap"] = Components.CollapsibleDiv(
             page_id_prefix=self.id,
-            id=f"{self.id}-param-collapse-scvi_umap",
-            btn_id=f"{self.id}-btn-param-collapse-scvi_umap",
+            div_id=f"{self.id}-param-collapse-scvi_umap",
+            collapse_btn_id=f"{self.id}-btn-param-collapse-scvi_umap",
             children=SCVI_UMAP.get_layout(self.id),
         )
 
-        self.sidebars["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, row="top", side="left",
             title="SCVI Settings", params_children=self._params_layout(),
             apply_btn_id=f"{self.id}-fit-submit", btn_text="Fit SCVI"
         )
 
-        self.sidebars["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="Empty", params_children=[],
             apply_btn_id=None, btn_text="Fit SCVI"
@@ -255,10 +255,10 @@ class SCVIPage(DashPage):
         layout = [
             html.Div(
                 className="top",
-                children=[self.sidebars["left_sidebar"].create_layout(), main_figure, secondary_figure],
+                children=[self.components["left_sidebar"].create_layout(), main_figure, secondary_figure],
             ),
             html.Div(
-                className="bottom", children=[self.sidebars["bot_sidebar"].create_layout(), bottom_figure]
+                className="bottom", children=[self.components["bot_sidebar"].create_layout(), bottom_figure]
             ),
         ]
         return layout
@@ -269,27 +269,27 @@ class SCVIPage(DashPage):
                 dbc.Button(
                     "Setup Parameters", id=f"{self.id}-btn-param-collapse-setup", color="info", n_clicks=0
                 ),
-                self.actions["param-collapse-setup"].layout,
+                self.components["param-collapse-setup"].create_layout(),
             ], className="param-class"),
 
             html.Div([
                 dbc.Button(
                     "Model Parameters", id=f"{self.id}-btn-param-collapse-scvi_model", color="info", n_clicks=0
                 ),
-                self.actions["param-collapse-scvi_model"].layout,
+                self.components["param-collapse-scvi_model"].create_layout(),
             ], className="param-class"),
 
             html.Div([
                 dbc.Button(
                     "Train Parameters", id=f"{self.id}-btn-param-collapse-scvi_train", color="info", n_clicks=0
                 ),
-                self.actions["param-collapse-scvi_train"].layout,
+                self.components["param-collapse-scvi_train"].create_layout(),
             ], className="param-class"),
 
             html.Div([
                 dbc.Button(
                     "Projection Parameters", id=f"{self.id}-btn-param-collapse-scvi_umap", color="info", n_clicks=0
                 ),
-                self.actions["param-collapse-scvi_umap"].layout,
+                self.components["param-collapse-scvi_umap"].create_layout(),
             ], className="param-class"),
         ]

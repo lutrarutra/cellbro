@@ -66,14 +66,14 @@ class PCAPage(DashPage):
         )
 
     def create_layout(self) -> list:
-        self.sidebars["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, row="top", side="left",
             title="PCA Projection Settings",
             params_children=self._top_params_layout(),
             apply_btn_id=None, btn_text="Plot"
         )
 
-        self.sidebars["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="PCA Plots",
             params_children=self._bot_params_layout(),
@@ -199,10 +199,10 @@ class PCAPage(DashPage):
         layout = [
             html.Div(
                 className="top",
-                children=[self.sidebars["left_sidebar"].create_layout(), main_figure, secondary_figure],
+                children=[self.components["left_sidebar"].create_layout(), main_figure, secondary_figure],
             ),
             html.Div(
-                className="bottom", children=[self.sidebars["bot_sidebar"].create_layout(), bottom_figure]
+                className="bottom", children=[self.components["bot_sidebar"].create_layout(), bottom_figure]
             ),
         ]
         return layout

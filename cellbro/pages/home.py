@@ -43,13 +43,13 @@ class HomePage(DashPage):
         self.actions.update(self.export_popups)
 
     def create_layout(self) -> list:
-        self.sidebars["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, row="top", side="left",
             title="Home", params_children=[],
             apply_btn_id=None, btn_text=""
         )
 
-        self.sidebars["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="Home", params_children=[],
             apply_btn_id=None, btn_text=""
@@ -177,10 +177,10 @@ class HomePage(DashPage):
         layout =  [
             html.Div(
                 className="top",
-                children=[self.sidebars["left_sidebar"].create_layout(), main],
+                children=[self.components["left_sidebar"].create_layout(), main],
             ),
             html.Div(
-                className="bottom", children=[self.sidebars["bot_sidebar"].create_layout(), bottom]
+                className="bottom", children=[self.components["bot_sidebar"].create_layout(), bottom]
             ),
         ]
 

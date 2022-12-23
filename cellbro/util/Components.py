@@ -100,32 +100,40 @@ class Sidebar(DashComponent):
         )
 
 class CollapseDiv(DashAction):
-    def __init__(self, page_id_prefix, id, btn_id, children, collapsed=True):
+    def __init__(self, page_id_prefix, div_id, btn_id):
         super().__init__(dataset=None, page_id_prefix=page_id_prefix)
-        self.id = id
+        self.div_id = div_id
         self.btn_id = btn_id
-        self.children = children
-        self.collapsed = collapsed
-        self.layout = self.create_layout()
-
-    def create_layout(self):
-        return dbc.Collapse(
-            children=self.children,
-            id=self.id,
-            is_open=not self.collapsed,
-        )
-
 
     def setup_callbacks(self, app):
         @app.dash_app.callback(
-            output=Output(self.id, "is_open"),
+            output=Output(self.div_id, "is_open"),
             inputs=[Input(self.btn_id, "n_clicks")],
-            state=[State(self.id, "is_open")],
+            state=[State(self.div_id, "is_open")],
         )
         def _(n, is_open):
             if n:
                 return not is_open
             return is_open
+
+class CollapsibleDiv(DashComponent):
+    def __init__(self, page_id_prefix, div_id, children, collapse_btn_id, collapsed=True):
+        super().__init__(page_id_prefix)
+        self.div_id = div_id
+        self.children = children
+        self.collapse_btn_id = collapse_btn_id
+        self.children = children
+        self.collapsed = collapsed
+        self.actions = dict(
+            collapse_div=CollapseDiv(self.page_id_prefix, self.div_id, self.collapse_btn_id)
+        )
+
+    def create_layout(self):
+        return dbc.Collapse(
+            children=self.children,
+            id=self.div_id,
+            is_open=not self.collapsed,
+        )
 
 
 def create_gene_card(gene, dataset):

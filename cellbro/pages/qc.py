@@ -91,7 +91,7 @@ class PlotQC(DashAction):
                 Output(component_id=f"{self.page_id_prefix}-violin-plot", component_property="figure"),
             ],
             inputs=dict(submit=Input(f"{self.page_id_prefix}-apply-btn", "n_clicks")),
-            state=state,
+            state=state
         )
         def _(submit, **kwargs):
             if submit:
@@ -116,21 +116,22 @@ class QCPage(DashPage):
 
     def create_layout(self):
 
-        self.sidebars["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, row="top", side="left",
             title="Quality Control Parameters",
             params_children=self._filter_params_layout(),
             apply_btn_id=f"{self.id}-filtering-submit", btn_text="Filter"
         )
 
-        # self.sidebars["temp_sidebar"] = Components.Sidebar(
-        #     page_id_prefix=self.id, class_name="left-sidebar",
-        #     title="Perform Quality Control", side="left",
-        #     params_children=self._qc_params_layout(),
-        #     btn_id=f"{self.id}-apply-btn", btn_text="Quality Control"
-        # )
+        # Something smarter
+        self.components["right_sidebar"] = Components.Sidebar(
+            page_id_prefix=self.id, row="top", side="right",
+            title="Quality Control Parameters",
+            params_children=self._qc_params_layout(),
+            apply_btn_id=f"{self.id}-apply-btn", btn_text="Filter"
+        )
 
-        self.sidebars["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = Components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="Quality Control Violin Plots",
             params_children=[],
@@ -202,10 +203,13 @@ class QCPage(DashPage):
         layout = [
             html.Div(
                 className="top",
-                children=[self.sidebars["left_sidebar"].create_layout(), main_figure, secondary_figure],
+                children=[
+                    self.components["left_sidebar"].create_layout(), main_figure, secondary_figure,
+                    self.components["right_sidebar"].create_layout()
+                ],
             ),
             html.Div(
-                className="bottom", children=[self.sidebars["bot_sidebar"].create_layout(), bottom_figure]
+                className="bottom", children=[self.components["bot_sidebar"].create_layout(), bottom_figure]
             ),
         ]
         return layout
