@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import dash
 
 import cellbro.util.Components as Components
+import cellbro.plots.DashFigure as DashFigure
 
 class DashPage(ABC):
     def __init__(self, module: str, title: str, id: str, order: int, path=None):
@@ -17,11 +18,13 @@ class DashPage(ABC):
             self.path = path
 
         self.actions = dict(
-            top_sidebar=Components.HideSidebar(page_id_prefix=self.id, id=f"{self.id}-top-sidebar"),
-            bot_sidebar=Components.HideSidebar(page_id_prefix=self.id, id=f"{self.id}-bot-sidebar"),
+            # left_sidebar=Components.HideSidebar(page_id_prefix=self.id, id=f"{self.id}-left-sidebar", btn_id="left-sidebar-btn"),
+            # right_sidebar=Components.HideSidebar(page_id_prefix=self.id, id=f"{self.id}-right-sidebar", btn_id="right-sidebar-btn"),
+            # bot_sidebar=Components.HideSidebar(page_id_prefix=self.id, id=f"{self.id}-bot-sidebar", btn_id="left-sidebar-btn"),
         )
 
-        self.plots = {}
+        self.plots:dict[str, DashFigure.DashFigure] = {}
+        self.sidebars:dict[str, Components.Sidebar] = {}
 
     @abstractmethod
     def create_layout(self) -> list:
@@ -33,6 +36,9 @@ class DashPage(ABC):
 
         for key, plot in self.plots.items():
             plot.setup_callbacks(app)
+
+        for key, sidebar in self.sidebars.items():
+            sidebar.setup_callbacks(app)
 
     def create(self):
         dash.register_page(

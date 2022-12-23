@@ -22,24 +22,38 @@ class CellsPage(DashPage):
         super().__init__("pages.cells", "Cells", "cells", order)
         self.dataset = dataset
         self.plots.update(
-            projection=Projection.Projection(self.dataset, self.id),
-            violin=Violin.Violin(self.dataset, self.id),
-            heatmap=Heatmap.Heatmap(self.dataset, self.id),
+            projection=Projection.Projection(self.dataset, self.id, "main"),
+            violin=Violin.Violin(self.dataset, self.id, "secondary"),
+            heatmap=Heatmap.Heatmap(self.dataset, self.id, "bottom"),
         )
 
     def create_layout(self) -> list:
-        top_sidebar, main_figure = self.plots["projection"].create_layout()
+        self.sidebars["left_sidebar"] = Components.Sidebar(
+            page_id_prefix=self.id, row="top", side="left",
+            title="Projection Settings",
+            params_children=self.plots["projection"].get_sidebar_params(),
+            apply_btn_id=f"{self.id}-projection-submit", btn_text="Apply Projection"
+        )
 
-        bottom_left_sidebar, bottom_figure = self.plots["heatmap"].create_layout()
+        main_figure = self.plots["projection"].create_layout()
+
+        self.sidebars["bot_sidebar"] = Components.Sidebar(
+            page_id_prefix=self.id, row="bot", side="left",
+            title="Heatmap Settings",
+            params_children=self.plots["heatmap"].get_sidebar_params(),
+            apply_btn_id=f"{self.id}-heatmap-submit", btn_text="Plot"
+        )
+
+        bottom_figure = self.plots["heatmap"].create_layout()
         violin_layout = self.plots["violin"].create_layout()
 
         return [
             html.Div(
                 className="top",
-                children=[top_sidebar, main_figure, violin_layout],
+                children=[self.sidebars["left_sidebar"].create_layout(), main_figure, violin_layout],
             ),
             html.Div(
                 className="bottom",
-                children=[bottom_left_sidebar, bottom_figure],
+                children=[self.sidebars["bot_sidebar"].create_layout(), bottom_figure],
             ),
         ]

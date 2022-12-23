@@ -41,13 +41,13 @@ class PlotViolin(DashAction):
 
 
 class Violin(DashFigure):
-    def __init__(self, dataset, page_id_prefix):
-        super().__init__(dataset, page_id_prefix)
+    def __init__(self, dataset, page_id_prefix, loc_class):
+        super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
             plot_violin=PlotViolin(dataset, self.page_id_prefix)
         )
 
-    def create_layout(self):
+    def create_layout(self) -> list:
         var_names = [(f, f) for f in sorted(list(self.dataset.adata.var_names))]
 
         other = [
@@ -118,3 +118,6 @@ class Violin(DashFigure):
         )
 
         return figure
+
+    def get_sidebar_params(self) -> list:
+        return []

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import scanpy as sc
 import pandas as pd
+import scipy
 
 import scout
 
@@ -27,6 +28,20 @@ class Dataset:
 
         if "log1p" in self.adata.uns.keys():
             self.adata.uns["log1p"] = {"base": None}
+
+        if not "pct_counts_mt" in self.adata.obs.columns:
+            ncounts = self.adata.layers["ncounts"]
+            if isinstance(ncounts, scipy.sparse.csr_matrix):
+                ncounts = ncounts.toarray()
+
+            self.adata.var["cv2"] = (ncounts.std(0) / ncounts.mean(0)) ** 2
+            self.adata.var["mu"] = ncounts.mean(0)
+
+        if not "cv2" in self.adata.var.columns or not "mu" in self.adata.var.columns:
+            self.adata.var["mt"] = self.adata.var_names.str.startswith("MT-")
+            sc.pp.calculate_qc_metrics(
+                self.adata, qc_vars=["mt"], percent_top=False, log1p=False, inplace=True
+            )
         
         print("Dataset Ready!")
 

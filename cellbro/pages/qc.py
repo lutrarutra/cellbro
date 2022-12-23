@@ -66,15 +66,13 @@ class ClickAction(DashAction):
             return self.apply(params=dict(clickData=clickData))
 
 
-class PerformQC(DashAction):
+class PlotQC(DashAction):
     def apply(self):
         if not "pct_counts_mt" in self.dataset.adata.obs.columns:
             QC.apply_mt_qc(self.dataset)
 
         if not "cv2" in self.dataset.adata.var.columns or not "mu" in self.dataset.adata.var.columns:
             QC.apply_dispersion_qc(self.dataset)
-
-        return [{"display": "none"}, {"display": "block"}]
 
     def plot(self, params):
         return QC.plot(self.dataset, params)
@@ -88,8 +86,6 @@ class PerformQC(DashAction):
 
         @app.dash_app.callback(
             output=[
-                Output(f"{self.page_id_prefix}-top-sidebar-temp", "style"),
-                Output(f"{self.page_id_prefix}-top-sidebar", "style"),
                 Output(component_id=f"{self.page_id_prefix}-mt-plot", component_property="figure"),
                 Output(component_id=f"{self.page_id_prefix}-dispersion-plot", component_property="figure"),
                 Output(component_id=f"{self.page_id_prefix}-violin-plot", component_property="figure"),
@@ -99,10 +95,11 @@ class PerformQC(DashAction):
         )
         def _(submit, **kwargs):
             if submit:
-                return self.apply() + self.plot(params=kwargs)
+                self.apply()
+                return self.plot(params=kwargs)
 
             if self.dataset.qc_done():
-                return [{"display": "none"}, {"display": "block"}] + self.plot(params=kwargs)
+                return self.plot(params=kwargs)
 
             raise PreventUpdate
             # return [{"display": "block"}, {"display": "none"}, None, None, None]
@@ -114,31 +111,30 @@ class QCPage(DashPage):
         self.actions.update(
             filter=FilterAction(dataset, self.id),
             click=ClickAction(dataset, self.id),
-            top_sidebar_temp=Components.HideSidebar(page_id_prefix=self.id, id=f"{self.id}-top-sidebar-temp"),
-            perform_qc=PerformQC(dataset, self.id),
+            perform_qc=PlotQC(dataset, self.id),
         )
 
     def create_layout(self):
 
-        top_sidebar = Components.create_sidebar(
-            id=f"{self.id}-top-sidebar", class_name="top-sidebar",
+        self.sidebars["left_sidebar"] = Components.Sidebar(
+            page_id_prefix=self.id, row="top", side="left",
             title="Quality Control Parameters",
             params_children=self._filter_params_layout(),
-            btn_id=f"{self.id}-filtering-submit", btn_text="Filter"
+            apply_btn_id=f"{self.id}-filtering-submit", btn_text="Filter"
         )
 
-        temp_top_sidebar = Components.create_sidebar(
-            id=f"{self.id}-top-sidebar-temp", class_name="top-sidebar",
-            title="Perform Quality Control",
-            params_children=self._qc_params_layout(),
-            btn_id=f"{self.id}-apply-btn", btn_text="Quality Control"
-        )
+        # self.sidebars["temp_sidebar"] = Components.Sidebar(
+        #     page_id_prefix=self.id, class_name="left-sidebar",
+        #     title="Perform Quality Control", side="left",
+        #     params_children=self._qc_params_layout(),
+        #     btn_id=f"{self.id}-apply-btn", btn_text="Quality Control"
+        # )
 
-        bot_sidebar = Components.create_sidebar(
-            id=f"{self.id}-bot-sidebar", class_name="bot-sidebar",
+        self.sidebars["bot_sidebar"] = Components.Sidebar(
+            page_id_prefix=self.id, row="bot", side="left",
             title="Quality Control Violin Plots",
             params_children=[],
-            btn_id=None, btn_text="Filter"
+            apply_btn_id=None, btn_text="Filter"
         )
 
         main_figure = html.Div(
@@ -206,10 +202,10 @@ class QCPage(DashPage):
         layout = [
             html.Div(
                 className="top",
-                children=[top_sidebar, temp_top_sidebar, main_figure, secondary_figure],
+                children=[self.sidebars["left_sidebar"].create_layout(), main_figure, secondary_figure],
             ),
             html.Div(
-                className="bottom", children=[bot_sidebar, bottom_figure]
+                className="bottom", children=[self.sidebars["bot_sidebar"].create_layout(), bottom_figure]
             ),
         ]
         return layout

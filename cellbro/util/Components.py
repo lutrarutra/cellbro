@@ -1,53 +1,31 @@
+from abc import ABC, abstractmethod
+from typing import Literal
+
 from dash import html, dcc, Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 
 from cellbro.util.DashAction import DashAction
 
+class DashComponent(ABC):
+    def __init__(self, page_id_prefix):
+        self.actions = {}
+        self.page_id_prefix = page_id_prefix
 
-def create_sidebar(id, title, params_children, class_name="", btn_id=None, btn_text="Apply"):
-    if btn_id is not None:
-        btn_container = [
-            dbc.Button(
-                btn_text,
-                color="primary",
-                className="mr-1",
-                id=btn_id
-            ),
-        ]
-    else: btn_container = []
-    
-    return html.Div(
-        children=[
-            html.Div(
-                [
-                    html.H3(title),
-                ],
-                className="sidebar-header",
-            ),
-            dcc.Loading(
-                type="circle", parent_className="sidebar-container", 
-                children=[
-                    html.Div(
-                        children=params_children,
-                        className="sidebar-parameters",
-                    ),
-                    html.Div(
-                        children=btn_container,
-                        className="sidebar-footer",
-                    ),
-                ],
-            ),
-        ],
-        className=f"sidebar {class_name}", id=id
-    )
+    @abstractmethod
+    def create_layout(self):
+        ...
 
+    def setup_callbacks(self, app):
+        for action in self.actions.values():
+            action.setup_callbacks(app)
 
 class HideSidebar(DashAction):
-    def __init__(self, page_id_prefix, id, btn_id="sidebar-btn"):
+    def __init__(self, page_id_prefix, id, btn_id, side: Literal["left", "right"]):
         super().__init__(dataset=None, page_id_prefix=page_id_prefix)
         self.id = id
         self.btn_id = btn_id
+        self.side = side
 
     def setup_callbacks(self, app):
         @app.dash_app.callback(
@@ -58,11 +36,68 @@ class HideSidebar(DashAction):
         def _(value, cls):
             if value != None:
                 if value:
-                    return cls + " open"
+                    return cls + f" {self.side}-open"
                 else:
-                    return cls.replace("open", "")
+                    return cls.replace(f"{self.side}-open", "")
 
             raise PreventUpdate
+
+class Sidebar(DashComponent):
+    def __init__(
+        self, page_id_prefix, title, params_children, apply_btn_id,
+        side: Literal["left", "right"], row: Literal["top", "bot"], btn_text = "Apply"
+    ):
+        super().__init__(page_id_prefix)
+        self.id = f"{page_id_prefix}-{side}-{row}-sidebar"
+        self.apply_btn_id = apply_btn_id
+        self.title = title
+        self.params_children = params_children
+        self.row = row
+        self.side = side
+        self.btn_text = btn_text
+        self.actions = dict(
+            hide_sidebar=HideSidebar(
+                page_id_prefix=self.page_id_prefix, id=self.id,
+                btn_id=f"{self.side}-sidebar-btn", side=self.side
+            ),
+        )
+
+    def create_layout(self):
+        if self.apply_btn_id is not None:
+            btn_container = [
+                dbc.Button(
+                    self.btn_text,
+                    color="primary",
+                    className="mr-1",
+                    id=self.apply_btn_id,
+                ),
+            ]
+        else: btn_container = []
+        
+        return html.Div(
+            children=[
+                html.Div(
+                    [
+                        html.H3(self.title),
+                    ],
+                    className="sidebar-header",
+                ),
+                dcc.Loading(
+                    type="circle", parent_className=f"sidebar-container",
+                    children=[
+                        html.Div(
+                            children=self.params_children,
+                            className=f"sidebar-parameters",
+                        ),
+                        html.Div(
+                            children=btn_container,
+                            className=f"sidebar-footer",
+                        ),
+                    ],
+                ),
+            ],
+            className=f"{self.side}-sidebar sidebar {self.row}-sidebar", id=self.id
+        )
 
 class CollapseDiv(DashAction):
     def __init__(self, page_id_prefix, id, btn_id, children, collapsed=True):

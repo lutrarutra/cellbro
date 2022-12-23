@@ -135,7 +135,7 @@ h2 {
     width: 100vw;
 }
 
-#sidebar-btn-container {
+#left-sidebar-btn-container {
     position: absolute;
     cursor: pointer;
     top: 15px;
@@ -143,7 +143,16 @@ h2 {
     z-index: 11;
 }
 
-.sidebar {
+#right-sidebar-btn-container {
+    position: absolute;
+    cursor: pointer;
+    top: 15px;
+    right: 20px;
+    z-index: 11;
+    transform: rotate(180deg);
+}
+
+.left-sidebar {
     position: absolute;
     left: -500px;
     width: 500px;
@@ -154,7 +163,22 @@ h2 {
     padding: 0 10px 0 10px;
 }
 
-.top-sidebar {
+.right-sidebar {
+    position: absolute;
+    right: -500px;
+    width: 500px;
+    height: 100%;
+    background-color: #0E1117;
+    z-index: 10;
+    transition: all 0.4s ease;
+    padding: 0 10px 0 10px;
+}
+
+.right-sidebar {
+    height: 60vh;
+}
+
+.left-sidebar {
     height: 60vh;
 }
 
@@ -162,8 +186,12 @@ h2 {
     height: calc(100vh - 60vh - 50px);
 }
 
-.open {
+.left-open {
     transform: translate(500px, 0px);
+}
+
+.right-open {
+    transform: translate(-500px, 0px);
 }
 
 .resizer {
@@ -471,7 +499,11 @@ h2 {
     height: 80px;
 }
 
-.top-sidebar .sidebar-container {
+.left-sidebar .sidebar-container {
+    height: calc(60vh - 80px);
+}
+
+.right-sidebar .sidebar-container {
     height: calc(60vh - 80px);
 }
 
@@ -524,12 +556,4 @@ h2 {
     width: 50%;
     border-radius: 5px;
     text-align: right;
-}
-
-.filename-with-extension {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    height: 100%;
 }

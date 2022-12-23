@@ -123,14 +123,14 @@ class SelectProjectionType(DashAction):
                 return {"display": "none"}, {"display": "none"}, {"display": "block"}
 
 class Projection(DashFigure):
-    def __init__(self, dataset, page_id_prefix):
-        super().__init__(dataset, page_id_prefix)
+    def __init__(self, dataset, page_id_prefix, loc_class):
+        super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
             projection_action=PlotProjection(self.dataset, self.page_id_prefix),
             select_projection_type=SelectProjectionType(self.dataset, self.page_id_prefix),
         )
 
-    def _params_layout(self):
+    def get_sidebar_params(self):
         return [
             html.Div([
                 html.Div(
@@ -176,16 +176,9 @@ class Projection(DashFigure):
         ]
 
     def create_layout(self) -> list:
-        top_sidebar = Components.create_sidebar(
-            id=f"{self.page_id_prefix}-top-sidebar", class_name="top-sidebar",
-            title="Projection Settings",
-            params_children=self._params_layout(),
-            btn_id=f"{self.page_id_prefix}-projection-submit", btn_text="Apply Projection"
-        )
-
         available_projections = list(self.dataset.adata.obsm.keys())
 
-        main_figure = html.Div(
+        figure_layout = html.Div(
             children=[
                 html.Div(
                     children=[
@@ -215,7 +208,7 @@ class Projection(DashFigure):
                         ),
                     ],
                     id=f"{self.page_id_prefix}-projection-select",
-                    className="main-select top-parameters",
+                    className=f"{self.loc_class}-select top-parameters",
                 ),
                 html.Div(
                     [
@@ -224,19 +217,18 @@ class Projection(DashFigure):
                             children=[
                                 html.Div(
                                     dcc.Graph(
-                                        id=f"{self.page_id_prefix}-projection-plot", className="main-plot"
+                                        id=f"{self.page_id_prefix}-projection-plot", className=f"{self.loc_class}-plot"
                                     )
                                 )
                             ],
                         )
                     ],
                     id=f"{self.page_id_prefix}-projection-figure",
-                    className="main-figure",
+                    className=f"{self.loc_class}-figure",
                 ),
             ],
-            className="main",
+            className=f"{self.loc_class}",
         )
 
-        return top_sidebar, main_figure
-
+        return figure_layout
 

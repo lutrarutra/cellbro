@@ -112,8 +112,8 @@ class EditGeneList(DashAction):
 
 
 class Heatmap(DashFigure):
-    def __init__(self, dataset, page_id_prefix):
-        super().__init__(dataset, page_id_prefix)
+    def __init__(self, dataset, page_id_prefix, loc_class):
+        super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
             plot_heatmap=PlotHeatmap(dataset, self.page_id_prefix),
             add_genes_from_list=AddGenesFromList(dataset, self.page_id_prefix),
@@ -140,41 +140,7 @@ class Heatmap(DashFigure):
         }
         return fig, style
 
-
-    def create_layout(self):
-        sidebar = Components.create_sidebar(
-            id=f"{self.page_id_prefix}-bot-sidebar", class_name="bot-sidebar",
-            title="Heatmap Settings",
-            params_children=self._params_layout(),
-            btn_id=f"{self.page_id_prefix}-heatmap-submit", btn_text="Plot"
-        )
-
-        figure = html.Div(
-            children=[
-                html.Div(
-                    [
-                        dcc.Loading(
-                            type="circle",
-                            children=[
-                                html.Div(
-                                    [
-                                        dcc.Graph(
-                                            id=f"{self.page_id_prefix}-heatmap-plot", className="bottom-plot"
-                                        )
-                                    ],
-                                )
-                            ],
-                        )
-                    ],
-                    id="heatmap-figure",
-                    className="bottom-figure",
-                )
-            ]
-        )
-
-        return sidebar, figure
-
-    def _params_layout(self):
+    def get_sidebar_params(self) -> list:
         genes = sorted(self.dataset.adata.var_names.tolist())
         gene_lists = sorted(self.dataset.get_gene_lists())
         categoricals = self.dataset.get_categoric()
@@ -184,19 +150,19 @@ class Heatmap(DashFigure):
                 html.Label(
                     "Show Genes",
                     className="param-label",
-                ),
+                    ),
                 html.Div([
                     dcc.Dropdown(
                         options=genes, value=None, id=f"{self.page_id_prefix}-heatmap-selected_genes", clearable=True,
                         placeholder="Select Genes", multi=True,
                         style={"width": "100%"}
-                    ),
+                        ),
                     dcc.Dropdown(
                         options=gene_lists, value=None, id=f"{self.page_id_prefix}-heatmap-selected_genelists", clearable=True,
                         placeholder="Select Gene Lists", multi=True,
                         style={"width": "100%"}
                     ),
-                ], style={"display":"flex", "gap":"10px"})
+                ], style={"display": "flex", "gap": "10px"})
             ], className="param-row-stacked"),
             html.Div(
                 children=[
@@ -227,7 +193,7 @@ class Heatmap(DashFigure):
                         [
                             dcc.Dropdown(
                                 options=categoricals, value=next(iter(categoricals), None),
-                                id=f"{self.page_id_prefix}-heatmap-selected_categoricals", 
+                                id=f"{self.page_id_prefix}-heatmap-selected_categoricals",
                                 placeholder="Select Feature(s)", multi=True, clearable=True,
                                 style={"width": "100%"}
                             ),
@@ -242,3 +208,28 @@ class Heatmap(DashFigure):
 
         return divs
 
+    def create_layout(self):
+        figure_layout = html.Div(
+            children=[
+                html.Div(
+                    [
+                        dcc.Loading(
+                            type="circle",
+                            children=[
+                                html.Div(
+                                    [
+                                        dcc.Graph(
+                                            id=f"{self.page_id_prefix}-heatmap-plot", className=f"{self.loc_class}-plot"
+                                        )
+                                    ],
+                                )
+                            ],
+                        )
+                    ],
+                    id="heatmap-figure",
+                    className=f"{self.loc_class}-figure",
+                )
+            ]
+        )
+
+        return figure_layout

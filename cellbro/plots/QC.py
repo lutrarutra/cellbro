@@ -46,19 +46,6 @@ qc_params = ParamsDict(
     ]
 )
 
-def apply_dispersion_qc(dataset):
-        ncounts = dataset.adata.layers["ncounts"]
-        if isinstance(ncounts, scipy.sparse.csr_matrix):
-            ncounts = ncounts.toarray()
-        dataset.adata.var["cv2"] = (ncounts.std(0) / ncounts.mean(0)) ** 2
-        dataset.adata.var["mu"] = ncounts.mean(0)
-
-def apply_mt_qc(dataset):
-    dataset.adata.var["mt"] = dataset.adata.var_names.str.startswith("MT-")
-    sc.pp.calculate_qc_metrics(
-        dataset.adata, qc_vars=["mt"], percent_top=False, log1p=False, inplace=True
-    )
-
 def filter(self, submit):
     # Makes sure that filtering is not done on initial load
     if submit is None:

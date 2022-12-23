@@ -21,7 +21,8 @@ class App:
     def __init__(self):
         # self.conn = redis_conn
         # self.queue = queue
-        self.sidebar_open = False
+        self.left_sidebar_open = False
+        self.right_sidebar_open = False
         
         self.server = flask.Flask(__name__)
 
@@ -72,8 +73,14 @@ class App:
                         dcc.Store(id="import-store"),
                         dcc.Store(id="gsea-store"),
                         html.Div(
-                            id="sidebar-btn-container",
-                            children=[dbc.Switch(id="sidebar-btn", value=self.sidebar_open)]
+                            id="left-sidebar-btn-container",
+                            children=[dbc.Switch(id="left-sidebar-btn", value=self.left_sidebar_open)]
+                        ),
+                        html.Div(
+                            id="right-sidebar-btn-container",
+                            children=[dbc.Switch(
+                                id="right-sidebar-btn", value=self.right_sidebar_open,
+                            )]
                         ),
                         html.Div(
                             [

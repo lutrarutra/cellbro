@@ -7,6 +7,7 @@ from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
 import cellbro.util.Components as Components
 import cellbro.plots.Heatmap as Heatmap
+import cellbro.plots.Projection as Projection
 
 import scout
 
@@ -135,7 +136,8 @@ class GSEAPage(DashPage):
             list_available_refs=ListAvailableLRefs(dataset=self.dataset, page_id_prefix=self.id),
         )
         self.plots.update(
-            heatmap=Heatmap.Heatmap(dataset, self.id)
+            projection=Projection.Projection(dataset, self.id, loc_class="secondary"),
+            heatmap=Heatmap.Heatmap(dataset, self.id, loc_class="bottom")
         )
 
         self.plots["heatmap"].actions["plot_heatmap"] = PlotHeatmap(dataset, self.id)
@@ -143,11 +145,11 @@ class GSEAPage(DashPage):
         self.plots["heatmap"].actions.pop("add_genes_from_list")
 
     def create_layout(self) -> list:
-        top_sidebar = Components.create_sidebar(
-            id=f"{self.id}-top-sidebar", btn_id=f"{self.id}-submit",
+        self.sidebars["left_sidebar"] = Components.Sidebar(
+            page_id_prefix=self.id, apply_btn_id=f"{self.id}-submit",
             title="Gene Set Enrichment Settings",
             params_children=self._params_layout(),
-            class_name="top-sidebar"
+            row="top", side="left",
         )
 
         main = html.Div(
@@ -179,18 +181,36 @@ class GSEAPage(DashPage):
             className="main",
         )
 
-        bot_sidebar, bot_figure = self.plots["heatmap"].create_layout()
+        self.sidebars["right_sidebar"] = Components.Sidebar(
+            page_id_prefix=self.id, apply_btn_id=f"{self.id}-projection-submit",
+            title="Projection Settings",
+            params_children=self.plots["projection"].get_sidebar_params(),
+            row="top", side="right",
+        )
+        secondary_figure = self.plots["projection"].create_layout()
+        
+        self.sidebars["bot_sidebar"] = Components.Sidebar(
+            page_id_prefix=self.id, row="bot", side="left",
+            title="Heatmap Settings",
+            params_children=self.plots["heatmap"].get_sidebar_params(),
+            apply_btn_id=f"{self.id}-heatmap-submit", btn_text="Plot"
+        )
+        
+        bot_figure = self.plots["heatmap"].create_layout()
 
         layout = [
             html.Div(
-                id="top", className="top", children=[top_sidebar, main]
+                id="top", className="top", children=[
+                    self.sidebars["left_sidebar"].create_layout(), main,
+                    self.sidebars["right_sidebar"].create_layout(), secondary_figure
+                ]
             ),
             html.Div(
                 id="bottom",
                 className="bottom",
                 children=[
                     # bottom_sidebar, bottom_figure
-                    bot_sidebar, bot_figure
+                    self.sidebars["bot_sidebar"].create_layout(), bot_figure
                 ],
             ),
         ]
