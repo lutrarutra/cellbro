@@ -140,15 +140,13 @@ class QCPage(DashPage):
 
         main_figure = html.Div(
             children=[
-                html.Div(
-                    [
-                        dcc.Loading(
-                            type="circle",
-                            children=[
-                                html.Div(dcc.Graph(id=f"{self.id}-mt-plot", className="main-plot"))
-                            ],
-                        )
-                    ],
+                html.Div([
+                    dcc.Loading(
+                        type="circle",
+                        children=[
+                            html.Div(dcc.Graph(id=f"{self.id}-mt-plot", className="main-plot"))
+                        ],
+                    )],
                     id=f"{self.id}-mt-figure",
                     className="main-figure",
                 )
