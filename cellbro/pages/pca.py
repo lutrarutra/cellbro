@@ -1,4 +1,5 @@
 import dash
+import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
@@ -80,49 +81,52 @@ class PCAPage(DashPage):
             apply_btn_id=None, btn_text="Plot"
         )
 
+        type_params = Components.FigureParamTab(self.id, tab_label="Type", children=[
+            html.Div(
+                # Projection Color
+                children=[
+                    html.Label("Color"),
+                    dcc.Dropdown(
+                        self.dataset.adata.obs_keys() + list(self.dataset.adata.var_names),
+                        value=self.dataset.adata.obs_keys()[0],
+                        id=f"{self.id}-projection-color", clearable=False,
+                    ),
+                ],
+                className="param-row-stacked",
+            ),
+            # X-axis component
+            html.Div(
+                children=[
+                    html.Label("X Component"),
+                    dbc.Input(
+                        id=f"{self.id}-projection-x-component", type="number", value=1, min=1, step=1,
+                        max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
+                        className="param-input",
+                    ),
+                ],
+                className="param-row-stacked",
+            ),
+            # X-axis component
+            html.Div(
+                children=[
+                    html.Label("Y Component"),
+                    dbc.Input(
+                        id=f"{self.id}-projection-y-component", type="number", value=2, min=1, step=1,
+                        max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
+                        className="param-input",
+                    ),
+                ],
+                className="param-row-stacked",
+            ),
+        ])
+
+        figure_params = Components.FigureParams(self.id, tabs=[type_params])
+
         main_figure = html.Div(
             children=[
                 html.Div(
-                    children=[
-                        # Projection Color
-                        html.Div(
-                            children=[
-                                html.Label("Color"),
-                                dcc.Dropdown(
-                                    self.dataset.adata.obs_keys() + list(self.dataset.adata.var_names),
-                                    value=self.dataset.adata.obs_keys()[0],
-                                    id=f"{self.id}-projection-color", clearable=False,
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                        # X-axis component
-                        html.Div(
-                            children=[
-                                html.Label("X Component"),
-                                dcc.Input(
-                                    id=f"{self.id}-projection-x-component", type="number", value=1, min=1, step=1,
-                                    max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
-                                    className="param-input",
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                        # X-axis component
-                        html.Div(
-                            children=[
-                                html.Label("Y Component"),
-                                dcc.Input(
-                                    id=f"{self.id}-projection-y-component", type="number", value=2, min=1, step=1,
-                                    max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
-                                    className="param-input",
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                    ],
-                    id=f"{self.id}-main-select",
-                    className="top-parameters",
+                    children=figure_params.create_layout(),
+                    className="fig-params",
                 ),
                 html.Div(
                     [
@@ -150,7 +154,7 @@ class PCAPage(DashPage):
                         Components.create_gene_card(None, self.dataset),
                     ],
                     id=f"{self.id}-secondary-select",
-                    className="top-parameters",
+                    className="fig-params",
                 ),
                 html.Div(
                     [

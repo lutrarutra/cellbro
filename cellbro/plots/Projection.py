@@ -126,7 +126,7 @@ class Projection(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
-            projection_action=PlotProjection(self.dataset, self.page_id_prefix),
+            plot_projection=PlotProjection(self.dataset, self.page_id_prefix),
             select_projection_type=SelectProjectionType(self.dataset, self.page_id_prefix),
         )
 
@@ -178,38 +178,34 @@ class Projection(DashFigure):
     def create_layout(self) -> list:
         available_projections = list(self.dataset.adata.obsm.keys())
 
+
+        projection_type_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Type", children=[
+            # Projection type celect
+            html.Div([
+                html.Label("Projection Type"),
+                dcc.Dropdown(
+                    available_projections, value=available_projections[0],
+                    id=f"{self.page_id_prefix}-projection-plot-type", clearable=False,
+                ),
+            ], className="param-row-stacked"),
+            # Projection Hue celect
+            html.Div([
+                html.Label("Color"),
+                dcc.Dropdown(
+                    self.dataset.get_obs_features(),
+                    value=self.dataset.adata.obs_keys()[0],
+                    id=f"{self.page_id_prefix}-projection-color",
+                    clearable=False,
+                )
+            ], className="param-row-stacked")
+        ])
+
+        fig_params = Components.FigureParams(self.page_id_prefix, tabs=[projection_type_tab])
+
         figure_layout = html.Div(
             children=[
-                html.Div(
-                    children=[
-                        # Projection type celect
-                        html.Div(
-                            children=[
-                                html.Label("Projection Type"),
-                                dcc.Dropdown(
-                                    available_projections, value=available_projections[0],
-                                    id=f"{self.page_id_prefix}-projection-plot-type", clearable=False,
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                        # Projection Hue celect
-                        html.Div(
-                            children=[
-                                html.Label("Color"),
-                                dcc.Dropdown(
-                                    self.dataset.get_obs_features(),
-                                    value=self.dataset.adata.obs_keys()[0],
-                                    id=f"{self.page_id_prefix}-projection-color",
-                                    clearable=False,
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                    ],
-                    id=f"{self.page_id_prefix}-projection-select",
-                    className=f"{self.loc_class}-select top-parameters",
-                ),
+                html.Div(children=fig_params.create_layout(), className="fig-params"),
+
                 html.Div(
                     [
                         dcc.Loading(

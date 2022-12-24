@@ -163,7 +163,7 @@ class QCPage(DashPage):
                     children=[
                         Components.create_gene_card(None, self.dataset),
                     ],
-                    className="secondary-select top-parameters",
+                    className="fig-params",
                 ),
                 html.Div(
                     [

@@ -8,6 +8,9 @@ from cellbro.util.DashPage import DashPage
 import cellbro.util.Components as Components
 import cellbro.plots.Heatmap as Heatmap
 import cellbro.plots.Projection as Projection
+from cellbro.plots.UMAP import UMAP, SCVI_UMAP
+from cellbro.plots.TSNE import TSNE
+from cellbro.plots.Trimap import Trimap
 
 import scout
 
@@ -127,6 +130,87 @@ class PlotHeatmap(DashAction):
 
             return [selected_genes, cluster_cells_by, fig, style]
 
+class PlotProjection(DashAction):
+    def plot(self, color, obsm_layer, **kwargs):
+        fig = scout.ply.projection(
+            self.dataset.adata, obsm_layer=obsm_layer, hue=color,
+            layout=Projection.projection_layout, **kwargs
+        )
+        return fig
+
+    def apply(self, projection_type, params):
+        if projection_type == "UMAP":
+            projection = UMAP(self.dataset, UMAP.parse_params(params))
+        elif projection_type == "t-SNE":
+            projection = TSNE(self.dataset, TSNE.parse_params(params))
+        elif projection_type == "Trimap":
+            projection = Trimap(self.dataset, Trimap.parse_params(params))
+
+        return projection.apply()
+
+    def setup_callbacks(self, app):
+        outputs = [
+            Output(component_id=f"{self.page_id_prefix}-projection-plot", component_property="figure"),
+            Output(f"{self.page_id_prefix}-projection-plot-type", "options"),
+            Output(component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"),
+        ]
+
+        inputs = {
+            "projection_submit": Input(
+                component_id=f"{self.page_id_prefix}-projection-submit", component_property="n_clicks"
+            ),
+            "color": Input(
+                component_id=f"{self.page_id_prefix}-projection-color", component_property="value"
+            ),
+            "obsm_layer": Input(
+                component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"
+            ),
+            "click_data": Input(f"{self.page_id_prefix}-volcano-plot", "clickData"),
+        }
+
+        state = dict(
+            projection_type=State(component_id=f"{self.page_id_prefix}-projection-type-select", component_property="value"),
+            gsea_groupby=State(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
+            gsea_reference=State(component_id=f"{self.page_id_prefix}-reference", component_property="value"),
+        )
+        for key in UMAP._params.keys():
+            state[f"umap_{key}"] = State(
+                component_id=f"{self.page_id_prefix}-projection-umap-{key}", component_property="value"
+            )
+
+        for key in SCVI_UMAP._params.keys():
+            state[f"scvi_umap_{key}"] = State(
+                component_id=f"{self.page_id_prefix}-projection-scvi_umap-{key}", component_property="value"
+            )
+
+        for key in TSNE._params.keys():
+            state[f"tsne_{key}"] = State(
+                component_id=f"{self.page_id_prefix}-projection-tsne-{key}", component_property="value"
+            )
+
+        for key in Trimap._params.keys():
+            state[f"trimap_{key}"] = State(
+                component_id=f"{self.page_id_prefix}-projection-trimap-{key}", component_property="value"
+            )
+
+        @app.dash_app.callback(output=outputs, inputs=inputs, state=state)
+        def _(projection_submit, color, obsm_layer, projection_type, click_data, **kwargs):
+            if ctx.triggered_id == f"{self.page_id_prefix}-projection-submit":
+                if projection_submit is not None:
+                    obsm_layer = self.apply(projection_type, params=kwargs)
+
+            if click_data is not None:
+                cluster_cells_by = kwargs["gsea_groupby"]
+                reference = kwargs["gsea_reference"]
+                term = click_data["points"][0]["hovertext"]
+                res = self.dataset.adata.uns[f"gsea_{cluster_cells_by}_{reference}"]
+                selected_genes = res[res["Term"] == term]["lead_genes"].values[0]
+                fig = self.plot(color=selected_genes, obsm_layer=obsm_layer, hue_aggregate=None)
+            else:
+                fig = self.plot(color=color, obsm_layer=obsm_layer)
+
+            return (fig, list(self.dataset.adata.obsm.keys()), obsm_layer)
+
 class GSEAPage(DashPage):
     def __init__(self, dataset, order):
         super().__init__("pages.gsea", "GSEA", "gsea", order)
@@ -143,6 +227,7 @@ class GSEAPage(DashPage):
         self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(dataset, self.id)
         # TODO: Fix this
         self.components["heatmap"].actions.pop("add_genes_from_list")
+        self.components["projection"].actions["plot_projection"] = PlotProjection(dataset, self.id)
 
     def create_layout(self) -> list:
         self.components["left_sidebar"] = Components.Sidebar(
@@ -159,7 +244,7 @@ class GSEAPage(DashPage):
                         # Components.create_gene_card(None, self.dataset),
                     ],
                     id=f"{self.id}-volcano-info",
-                    className="main-select top-parameters",
+                    className="fig-params",
                 ),
                 html.Div(
                     [

@@ -8,6 +8,7 @@ from dash import Input, Output, State, dcc, html
 
 from cellbro.plots.DashFigure import DashFigure
 from cellbro.util.DashAction import DashAction
+import cellbro.util.Components as Components
 from cellbro.util.Param import *
 
 import scout
@@ -63,39 +64,37 @@ class Violin(DashFigure):
                 for k in self.dataset.get_categoric()
             ]
         )
+
+        type_params = Components.FigureParamTab(self.page_id_prefix, tab_label="Type", children=[
+            # Features
+            html.Div([
+                html.Label("Feature"),
+                dcc.Dropdown(
+                    features,
+                    value=list(features.keys())[0],
+                    id=f"{self.page_id_prefix}-violin-feature",
+                    clearable=False,
+                )
+            ], className="param-row-stacked"),
+            # Groupby select
+            html.Div([
+                html.Label("Group By"),
+                dcc.Dropdown(
+                    groupbys,
+                    value=None,
+                    id=f"{self.page_id_prefix}-violin-groupby",
+                    clearable=True,
+                ),
+            ], className="param-row-stacked")
+        ])
+
+        figure_params = Components.FigureParams(self.page_id_prefix, tabs=[type_params])
+
+
         figure = html.Div(
             children=[
                 html.Div(
-                    children=[
-                        # Features
-                        html.Div(
-                            children=[
-                                html.Label("Feature"),
-                                dcc.Dropdown(
-                                    features,
-                                    value=list(features.keys())[0],
-                                    id=f"{self.page_id_prefix}-violin-feature",
-                                    clearable=False,
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                        # Groupby select
-                        html.Div(
-                            children=[
-                                html.Label("Group By"),
-                                dcc.Dropdown(
-                                    groupbys,
-                                    value=None,
-                                    id=f"{self.page_id_prefix}-violin-groupby",
-                                    clearable=True,
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                    ],
-                    id="violin-select",
-                    className="secondary-select top-parameters",
+                    children=figure_params.create_layout(), className="fig-params"
                 ),
                 html.Div(
                     [

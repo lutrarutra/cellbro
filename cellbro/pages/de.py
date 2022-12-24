@@ -134,11 +134,9 @@ class DEPage(DashPage):
         main = html.Div(
             children=[
                 html.Div(
-                    children=[
-                        Components.create_gene_card(None, self.dataset),
-                    ],
+                    # children=Components.create_gene_card(None, self.dataset),
                     id=f"{self.id}-volcano-info",
-                    className="main-select top-parameters",
+                    className="fig-params",
                 ),
                 html.Div(
                     [
@@ -160,30 +158,24 @@ class DEPage(DashPage):
             className="main",
         )
 
-        secondary_options = {"pval_histogram": "P-Value Histogram"}
+        plot_type_params = Components.FigureParamTab(self.id, tab_label="Type", children=[
+            # Volcano Group By Select
+            html.Div([
+                html.Label("Plot Type"),
+                dcc.Dropdown(
+                    options={"pval_histogram": "P-Value Histogram"},
+                    value="pval_histogram",
+                    id=f"{self.id}-secondary-type",
+                    clearable=False,
+                ),
+            ], className="param-row-stacked")
+        ])
+
+        figure_params = Components.FigureParams(self.id, tabs=[plot_type_params])
 
         secondary = html.Div(
             children=[
-                html.Div(
-                    children=[
-                        # Volcano Group By Select
-                        dcc.Loading(
-                            type="circle",
-                            children=[
-                                html.Label("Plot Type"),
-                                dcc.Dropdown(
-                                    options=secondary_options,
-                                    value="pval_histogram",
-                                    id=f"{self.id}-secondary-type",
-                                    clearable=False,
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                    ],
-                    id=f"{self.id}-de-secondary-select",
-                    className="main-select top-parameters",
-                ),
+                html.Div(figure_params.create_layout(), className="fig-params"),
                 html.Div(
                     [
                         dcc.Loading(
@@ -211,6 +203,8 @@ class DEPage(DashPage):
             params_children=[], apply_btn_id=None
         )
 
+        bot_figure = html.Div()
+
         layout = [
             html.Div(
                 className="top", children=[self.components["top_sidebar"].create_layout(), main, secondary]
@@ -218,7 +212,6 @@ class DEPage(DashPage):
             html.Div(
                 className="bottom",
                 children=[
-                    # bottom_sidebar, bottom_figure
                     self.components["bot_sidebar"].create_layout()
                 ],
             ),

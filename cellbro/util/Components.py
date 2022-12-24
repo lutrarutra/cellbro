@@ -7,6 +7,7 @@ import dash_bootstrap_components as dbc
 
 from cellbro.util.DashAction import DashAction
 
+
 class DashComponent(ABC):
     def __init__(self, page_id_prefix):
         self.actions = {}
@@ -19,6 +20,30 @@ class DashComponent(ABC):
     def setup_callbacks(self, app):
         for action in self.actions.values():
             action.setup_callbacks(app)
+
+class FigureParamTab(DashComponent):
+    def __init__(self, page_id_prefix, children, tab_label):
+        super().__init__(page_id_prefix)
+        self.children = children
+        self.tab_label = tab_label
+
+    def create_layout(self):
+        return dbc.Card(dbc.CardBody(self.children, className="param-row-stacked"))
+
+class FigureParams(DashComponent):
+    def __init__(self, page_id_prefix, tabs: list[FigureParamTab]):
+        super().__init__(page_id_prefix)
+        self.tabs = tabs
+
+    def create_layout(self):
+        if len(self.tabs) == 1:
+            return self.tabs[0].create_layout()
+
+        tabs = []
+        for tab in self.tabs:
+            tabs.append(dbc.Tab(tab.create_layout(), tab.tab_label))
+
+        return dbc.Tabs(tabs, className="row-tabs")
 
 class HideSidebar(DashAction):
     def __init__(self, page_id_prefix, id, btn_id, side: Literal["left", "right"]):
@@ -144,10 +169,12 @@ def create_gene_card(gene, dataset):
     
     gl_chosen = dataset.get_gene_lists(gene=gene)
 
-    element = html.Div([
+    element = dbc.Card(dbc.CardBody([
         html.Div([
-            html.Label("Gene:", className="hover-title"),
-            html.H3(gene, id="selected-gene", className="hover-title"),
+            html.Label("Gene:"),
+            html.H3(gene, id="selected-gene"),
+        ], className="hover-header"),
+        html.Div([
             html.Div([
                 html.A(
                     href=f"https://www.genecards.org/cgi-bin/carddisp.pl?gene={gene}", role="button", target="_blank",
@@ -157,8 +184,8 @@ def create_gene_card(gene, dataset):
                     href=f"https://scholar.google.com/scholar?q={gene}", role="button", target="_blank",
                     children=[html.Img(src="assets/logos/google_scholar_logo.png", style={"height": "20px"})]
                 ),
-            ], className="hover-row"),
-        ], className="hover-header"),
+            ], className="")
+        ]),
         html.Div([
             html.Div([
                 html.Label("Gene List(s)"),
@@ -176,11 +203,11 @@ def create_gene_card(gene, dataset):
                 html.Label("Create New Gene List"),
                 html.Div([
                     dbc.Input(placeholder="Gene List Name", id="new-gene-list-input", type="text"),
-                    dbc.Button("Create", id="new-gene-list-button", color="primary", className="mr-1")
+                    dbc.Button("Create", id="new-gene-list-button", color="primary")
                 ], className="hover-row"),
             ], className="hover-col"),
         ], className="hover-info")
-    ], className="hover-container", style={"display": "none" if gene == None else "flex"})
+    ]), className="hover-container", style={"display": "none" if gene == None else "flex"})
 
     return element
 

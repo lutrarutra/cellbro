@@ -166,37 +166,39 @@ class SCVIPage(DashPage):
 
         projection_types = self.dataset.get_scvi_projections()
 
+        type_params = Components.FigureParamTab(self.id, tab_label="Type", children=[
+            html.Div(
+                children=[
+                    html.Label("Projection Type"),
+                    dcc.Dropdown(
+                        projection_types, value=next(iter(projection_types), None),
+                        id=f"{self.id}-projection-plot-type", clearable=False,
+                    ),
+                ],
+                className="param-row-stacked",
+            ),
+            # Projection Hue celect
+            html.Div(
+                children=[
+                    html.Label("Color"),
+                    dcc.Dropdown(
+                        self.dataset.adata.obs_keys()
+                        + list(self.dataset.adata.var_names),
+                        value=self.dataset.adata.obs_keys()[0],
+                        id=f"{self.id}-projection-color",
+                        clearable=False,
+                    ),
+                ],
+                className="param-row-stacked",
+            ),
+        ])
+
+        figure_params = Components.FigureParams(self.id, tabs=[type_params])
+
         main_figure = html.Div(
             children=[
                 html.Div(
-                    children=[
-                        html.Div(
-                            children=[
-                                html.Label("Projection Type"),
-                                dcc.Dropdown(
-                                    projection_types, value=next(iter(projection_types), None),
-                                    id=f"{self.id}-projection-plot-type", clearable=False,
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                        # Projection Hue celect
-                        html.Div(
-                            children=[
-                                html.Label("Color"),
-                                dcc.Dropdown(
-                                    self.dataset.adata.obs_keys()
-                                    + list(self.dataset.adata.var_names),
-                                    value=self.dataset.adata.obs_keys()[0],
-                                    id=f"{self.id}-projection-color",
-                                    clearable=False,
-                                ),
-                            ],
-                            className="param-column",
-                        ),
-                    ],
-                    id=f"{self.id}-main-select",
-                    className="top-parameters",
+                    children= figure_params.create_layout(), className="fig-params",
                 ),
                 html.Div(
                     [
@@ -223,7 +225,7 @@ class SCVIPage(DashPage):
                     children=[
                     ],
                     id=f"{self.id}-secondary-select",
-                    className="top-parameters",
+                    className="fig-params",
                 ),
                 html.Div(
                     [

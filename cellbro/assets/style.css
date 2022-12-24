@@ -28,23 +28,16 @@ body {
     background: #555;
 }
 
-#page {
-    display: flex;
-    flex-flow: column;
-    height: 100vh;
-}
-
 #content {
     display: flex;
     flex-flow: column;
     height: 100%;
-    background-color: aquamarine;
 }
 
 label {
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
-    color: #ffffff;
+    color: black;
 }
 
 h4 {
@@ -53,9 +46,14 @@ h4 {
 }
 
 h3 {
+    margin: 0;
     font-family: 'Roboto', sans-serif;
     font-size: 18px;
     color: #ffffff;
+}
+
+.hover-container h3 {
+    color: black;
 }
 
 h2 {
@@ -118,7 +116,6 @@ h2 {
 #page {
     height: 100vh;
     overflow: hidden;
-    /* background-color: pink; */
 }
 
 
@@ -133,6 +130,9 @@ h2 {
     display: flex;
     overflow-y: hidden;
     width: 100vw;
+    height: calc(100vh - 60vh - 50px);
+    background-color: white;
+    overflow-x: hidden;
 }
 
 #left-sidebar-btn-container {
@@ -215,6 +215,7 @@ h2 {
     align-items: center;
     width: 50vw;
     height: 60vh;
+    background-color: white;
 }
 
 .secondary {
@@ -223,36 +224,75 @@ h2 {
     align-items: center;
     width: 50vw;
     height: 60vh;
+    background-color: white;
 }
 
-.top-parameters {
-    width: 50vw;
-    height: 100px;
+.row {
     display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-    background-color: #020409;
+    flex-direction: row;
+}
+
+.col {
     display: flex;
-    gap: 10px;
-    padding: 0 10px 0 10px;
+    flex-direction: column;
 }
 
-.top-parameters > div {
+.fig-params {
+    display: flex;
     width: 100%;
-    height: 100%;
+    height: 80px;
+    margin: 0;
+    padding: 0;
 }
 
-/* .top-parameters > div {
+.row-tabs {
+    width: 100px;
+}
+
+.row-tabs .nav-item a {
+    color: black;
+    border: none;
+    margin: 0;
+    padding: 5px;
+}
+
+.row-tabs .nav-item .active {
+    color: #0275d8;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.tab-content {
     width: 100%;
-} */
+}
+
+
+.fig-params .card {
+    border-top: none;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    width: 100%;
+    margin: 0;
+    padding: 5px;
+}
+
+.fig-params .card-body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 20px;
+}
 
 .param-column {
     width: 100%;
 }
 
 .hover-container {
+    width: 100%;
+    height: 100%;
     display: flex;
-    height: 100px;
+    overflow-y: scroll;
 }
 
 .hover-info {
@@ -265,7 +305,6 @@ h2 {
     height: 100%;
 }
 
-
 #gene-list-dropdown {
     display: flex;
     flex-direction: column;
@@ -275,7 +314,8 @@ h2 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 0 5px 0px 5px;
+    justify-content: center;
+    /* padding: 0 5px 0px 5px; */
     width: 120px;
     text-align: center;
 }
@@ -368,19 +408,18 @@ h2 {
     gap: 20px;
 }
 
-.row {
+/* .row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    /* justify-content: space-between; */
     width: 100%;
-}
+} */
 
-.col {
+/* .col {
     display: flex;
     flex-direction: column;
     width: 100%;
-}
+} */
 
 .value {
     overflow-wrap: break-word;
@@ -408,9 +447,9 @@ h2 {
 }
 
 .main-figure {
-    width: 50vw;
-    height: 100%;
     background-color: white;
+    width: 50vw;
+    height: calc(100% - 0px);
 }
 
 .main-figure > div {
@@ -463,7 +502,6 @@ h2 {
 }
 
 .bottom-figure {
-    background-color: white;
     display: flex;
     overflow: hidden;
     height: 100%;

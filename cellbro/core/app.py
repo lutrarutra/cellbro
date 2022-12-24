@@ -36,8 +36,7 @@ class App:
             external_stylesheets=[dbc.themes.BOOTSTRAP],
         )
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
-        self.dataset = Dataset(
-            "/home/lutrarutra/Documents/dev/bioinfo/cellbrowser/data/full.h5ad")
+        self.dataset = Dataset("./data/full.h5ad")
 
         home_page = home.HomePage(self.dataset, order=0)
         home_page.create()
