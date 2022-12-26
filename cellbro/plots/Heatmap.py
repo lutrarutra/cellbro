@@ -42,15 +42,7 @@ heatmap_params = ParamsDict(
             default="seismic",
             type=list,
             description="",
-            allowed_values={
-                "seismic": "Seismic (for centered)",
-                "RdBu_r": "B-W-R",
-                "viridis": "Viridis",
-                "plasma": "Plasma",
-                "inferno": "Inferno",
-                "magma": "Magma",
-                "cividis": "Cividis",
-            },
+            allowed_values=Components.continuous_colormaps,
         ),
     ]
 )

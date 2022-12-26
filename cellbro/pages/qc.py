@@ -159,7 +159,7 @@ class QCPage(DashPage):
                 html.Div(
                     id=f"{self.id}-dispersion-info",
                     children=[
-                        Components.create_gene_card(None, self.dataset),
+                        Components.create_gene_card(self.id, "secondary", None, self.dataset),
                     ],
                     className="fig-params",
                 ),

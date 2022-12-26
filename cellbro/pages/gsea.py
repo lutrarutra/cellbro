@@ -131,10 +131,12 @@ class PlotHeatmap(DashAction):
             return [selected_genes, cluster_cells_by, fig, style]
 
 class PlotProjection(DashAction):
-    def plot(self, color, obsm_layer, **kwargs):
+    def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap, **kwargs):
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
-            layout=Projection.projection_layout, **kwargs
+            layout=Projection.projection_layout, 
+            continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap,
+            **kwargs
         )
         return fig
 
@@ -165,6 +167,12 @@ class PlotProjection(DashAction):
             "obsm_layer": Input(
                 component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"
             ),
+            "continuous_cmap": Input(
+                component_id=f"{self.page_id_prefix}-projection-continuous_cmap", component_property="value"
+            ),
+            "discrete_cmap": Input(
+                component_id=f"{self.page_id_prefix}-projection-discrete_cmap", component_property="value"
+            ),
             "click_data": Input(f"{self.page_id_prefix}-volcano-plot", "clickData"),
         }
 
@@ -194,7 +202,7 @@ class PlotProjection(DashAction):
             )
 
         @app.dash_app.callback(output=outputs, inputs=inputs, state=state)
-        def _(projection_submit, color, obsm_layer, projection_type, click_data, **kwargs):
+        def _(projection_submit, color, obsm_layer, projection_type, continuous_cmap, discrete_cmap, click_data, **kwargs):
             if ctx.triggered_id == f"{self.page_id_prefix}-projection-submit":
                 if projection_submit is not None:
                     obsm_layer = self.apply(projection_type, params=kwargs)
@@ -205,9 +213,15 @@ class PlotProjection(DashAction):
                 term = click_data["points"][0]["hovertext"]
                 res = self.dataset.adata.uns[f"gsea_{cluster_cells_by}_{reference}"]
                 selected_genes = res[res["Term"] == term]["lead_genes"].values[0]
-                fig = self.plot(color=selected_genes, obsm_layer=obsm_layer, hue_aggregate=None)
+                fig = self.plot(
+                    color=selected_genes, obsm_layer=obsm_layer, hue_aggregate=None,
+                    continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
+                )
             else:
-                fig = self.plot(color=color, obsm_layer=obsm_layer)
+                fig = self.plot(
+                    color=color, obsm_layer=obsm_layer,
+                    continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
+                )
 
             return (fig, list(self.dataset.adata.obsm.keys()), obsm_layer)
 

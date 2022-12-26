@@ -16,13 +16,6 @@ figure_layout = go.Layout(
     margin=dict(t=0, b=0, l=0, r=0),
 )
 
-pca_params = ParamsDict(
-    [
-        #     Param(key="pc_1", name="PC 1", default=1, type=int, description="", step=1, _min=0),
-        #     Param(key="pc_2", name="PC 2", default=2, type=int, description="", step=1, _min=0),
-    ]
-)
-
 
 class PCA:
     def __init__(self, dataset, color, pc_x, pc_y, hist_n_pcs, hist_type):

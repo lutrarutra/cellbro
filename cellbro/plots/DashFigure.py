@@ -13,7 +13,6 @@ class DashFigure(DashComponent, ABC):
     def create_layout(self) -> list:
         ...
 
-    @abstractmethod
     def get_sidebar_params(self) -> list:
-        ...
+        return []
 

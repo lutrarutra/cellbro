@@ -32,10 +32,10 @@ projection_layout = go.Layout(
     # PCA = "PCA"
 
 class PlotProjection(DashAction):
-    def plot(self, color, obsm_layer):
+    def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap):
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
-            layout=projection_layout
+            layout=projection_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
         )
         return fig
 
@@ -66,6 +66,12 @@ class PlotProjection(DashAction):
             "obsm_layer": Input(
                 component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"
             ),
+            "continuous_cmap": Input(
+                component_id=f"{self.page_id_prefix}-projection-continuous_cmap", component_property="value"
+            ),
+            "discrete_cmap": Input(
+                component_id=f"{self.page_id_prefix}-projection-discrete_cmap", component_property="value"
+            )
         }
 
         states = {}
@@ -91,12 +97,12 @@ class PlotProjection(DashAction):
             )
 
         @app.dash_app.callback(output=outputs, inputs=inputs, state=states)
-        def _(projection_submit, color, obsm_layer, projection_type, **kwargs):
+        def _(projection_submit, color, obsm_layer, continuous_cmap, discrete_cmap, projection_type, **kwargs):
             if ctx.triggered_id == f"{self.page_id_prefix}-projection-submit":
                 if projection_submit is not None:
                     obsm_layer = self.apply(projection_type, params=kwargs)
 
-            return (self.plot(color=color, obsm_layer=obsm_layer),
+            return (self.plot(color=color, obsm_layer=obsm_layer, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap),
                     list(self.dataset.adata.obsm.keys()), obsm_layer)
 
 
@@ -200,7 +206,26 @@ class Projection(DashFigure):
             ], className="param-row-stacked")
         ])
 
-        fig_params = Components.FigureParams(self.page_id_prefix, tabs=[projection_type_tab])
+        colormap_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Colormap", children=[
+            html.Div([
+                html.Label("Continuous Color Map"),
+                Components.create_colormap_selector(
+                    id=f"{self.page_id_prefix}-projection-continuous_cmap",
+                    options=Components.continuous_colormaps,
+                    default="viridis",
+                )
+            ], className="param-row-stacked"),
+            html.Div([
+                html.Label("Discrete Color Map"),
+                Components.create_colormap_selector(
+                    id=f"{self.page_id_prefix}-projection-discrete_cmap",
+                    options=Components.discrete_colormaps,
+                    default="scanpy_default",
+                )
+            ], className="param-row-stacked")
+        ])
+
+        fig_params = Components.FigureParams(self.page_id_prefix, tabs=[projection_type_tab, colormap_tab])
 
         figure_layout = html.Div(
             children=[

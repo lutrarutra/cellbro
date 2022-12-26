@@ -4,9 +4,52 @@ from typing import Literal
 from dash import html, dcc, Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+import plotly
+import plotly.express as px
+import scanpy as sc
+
+import scout
 
 from cellbro.util.DashAction import DashAction
 
+continuous_colormaps = [
+    {"value" : "seismic", "label": "Seismic (for centered)"},
+    {"value" : "RdBu_r", "label": "B-W-R"},
+    {"value" : "viridis", "label": "Viridis"},
+    {"value" : "plasma", "label": "Plasma"},
+    {"value" : "inferno", "label": "Inferno"},
+    {"value" : "magma", "label": "Magma"},
+    {"value" : "cividis", "label": "Cividis"},
+]
+
+discrete_colormaps = [
+    {"value" : value, "label" : value.replace("_", " ").title()} for value in scout.ply._discrete_cmap_mapping.keys()
+]
+
+class SelectGene(DashAction):
+    def __init__(self, dataset, page_id_prefix, loc_class):
+        super().__init__(dataset, page_id_prefix)
+        self.loc_class = loc_class
+
+    def apply(self, click_data):
+        gene = click_data["points"][0]["hovertext"]
+        element = create_gene_card(self.page_id_prefix, self.loc_class, gene, self.dataset)
+        return element
+
+    def setup_callbacks(self, app):
+        outputs = Output(f"{self.page_id_prefix}-{self.loc_class}-genecard", "children")
+        inputs = {
+            "click_data": Input(f"{self.page_id_prefix}-{self.loc_class}-plot", "clickData"),
+        }
+        state = {
+            "kids":State(f"{self.page_id_prefix}-{self.loc_class}-genecard", "children")
+        }
+
+        @app.dash_app.callback(output=outputs, inputs=inputs, state=state)
+        def _(click_data, kids):
+            if click_data is None:
+                raise PreventUpdate
+            return self.apply(click_data)
 
 class DashComponent(ABC):
     def __init__(self, page_id_prefix):
@@ -21,14 +64,27 @@ class DashComponent(ABC):
         for action in self.actions.values():
             action.setup_callbacks(app)
 
+
+def create_colormap_selector(id, options, default=None):
+    if default is None:
+        default = list(options.keys())[0]
+
+    return dcc.Dropdown(
+        id=id,
+        options=options,
+        value=default,
+        clearable=False,
+    )
+
 class FigureParamTab(DashComponent):
-    def __init__(self, page_id_prefix, children, tab_label):
+    def __init__(self, page_id_prefix, children, tab_label, id=None):
         super().__init__(page_id_prefix)
         self.children = children
         self.tab_label = tab_label
+        self.id = id if id is not None else ""
 
     def create_layout(self):
-        return dbc.Card(dbc.CardBody(self.children, className="param-row-stacked"))
+        return dbc.Card(dbc.CardBody(self.children, className="param-row-stacked", id=self.id))
 
 class FigureParams(DashComponent):
     def __init__(self, page_id_prefix, tabs: list[FigureParamTab]):
@@ -41,7 +97,7 @@ class FigureParams(DashComponent):
 
         tabs = []
         for tab in self.tabs:
-            tabs.append(dbc.Tab(tab.create_layout(), tab.tab_label))
+            tabs.append(dbc.Tab(tab.create_layout(), label=tab.tab_label))
 
         return dbc.Tabs(tabs, className="row-tabs")
 
@@ -161,7 +217,7 @@ class CollapsibleDiv(DashComponent):
         )
 
 
-def create_gene_card(gene, dataset):
+def create_gene_card(page_id_prefix, loc_class, gene, dataset):
     gl_options = dataset.get_gene_lists()
     gl_elements = []
     for gl in gl_options:
@@ -169,7 +225,7 @@ def create_gene_card(gene, dataset):
     
     gl_chosen = dataset.get_gene_lists(gene=gene)
 
-    element = dbc.Card(dbc.CardBody([
+    element = html.Div([
         html.Div([
             html.Label("Gene:"),
             html.H3(gene, id="selected-gene"),
@@ -207,7 +263,8 @@ def create_gene_card(gene, dataset):
                 ], className="hover-row"),
             ], className="hover-col"),
         ], className="hover-info")
-    ]), className="hover-container", style={"display": "none" if gene == None else "flex"})
+    ], className="hover-container",
+    style={"display": "none" if gene == None else "flex"})
 
     return element
 
