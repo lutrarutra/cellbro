@@ -12,9 +12,9 @@
 //     const secondary_plot = document.querySelector('.secondary-plot');
 //     const bottom_plot = document.querySelector('.bottom-plot');
 
-//     const main_figure = document.querySelector('.main-figure');
-//     const secondary_figure = document.querySelector('.secondary-figure');
-//     const bottom_figure = document.querySelector('.bottom-figure');
+//     const main_figure = document.querySelector('.main-body');
+//     const secondary_figure = document.querySelector('.secondary-body');
+//     const bottom_figure = document.querySelector('.bottom-body');
 
 //     const body = document.querySelector('body');
 

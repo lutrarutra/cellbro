@@ -94,7 +94,7 @@ class Violin(DashFigure):
         figure = html.Div(
             children=[
                 html.Div(
-                    children=figure_params.create_layout(), className="fig-params"
+                    children=figure_params.create_layout(), className="fig-header"
                 ),
                 html.Div(
                     [
@@ -109,8 +109,7 @@ class Violin(DashFigure):
                             ],
                         )
                     ],
-                    id=f"{self.page_id_prefix}-violin-figure",
-                    className="secondary-figure",
+                    className="secondary-body",
                 ),
             ],
             className="secondary",

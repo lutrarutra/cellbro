@@ -240,7 +240,7 @@ h2 {
     flex-direction: column;
 }
 
-.fig-params {
+.fig-header {
     display: flex;
     width: 100%;
     height: 80px;
@@ -281,7 +281,7 @@ h2 {
 }
 
 
-.fig-params .card {
+.fig-header .card {
     border-top: none;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
@@ -291,7 +291,7 @@ h2 {
     padding: 5px;
 }
 
-.fig-params .card-body {
+.fig-header .card-body {
     width: 100%;
     margin: 0;
     padding: 0;
@@ -461,18 +461,18 @@ h2 {
     flex-grow: 1;
 }
 
-.main-figure {
+.main-body {
     background-color: white;
     width: 50vw;
     /* min-height: calc(100% - 80px); */
     flex: 1 1 auto;
 }
 
-.main-figure > div {
+.main-body > div {
     height: 100%;
 }
 
-.main-figure > div > div {
+.main-body > div > div {
     height: 100%;
 }
 
@@ -482,17 +482,17 @@ h2 {
     height: 100%;
 }
 
-.secondary-figure {
+.secondary-body {
     width: 50vw;
     flex: 1 1 auto;
     background-color: white;
 }
 
-.secondary-figure > div {
+.secondary-body > div {
     height: 100%;
 }
 
-.secondary-figure > div > div {
+.secondary-body > div > div {
     height: 100%;
 }
 
@@ -517,7 +517,7 @@ h2 {
     width: 100%;
 }
 
-.bottom-figure {
+.bottom-body {
     display: flex;
     overflow: hidden;
     height: 100%;

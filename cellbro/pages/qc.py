@@ -86,9 +86,9 @@ class PlotQC(DashAction):
 
         @app.dash_app.callback(
             output=[
-                Output(component_id=f"{self.page_id_prefix}-mt-plot", component_property="figure"),
-                Output(component_id=f"{self.page_id_prefix}-dispersion-plot", component_property="figure"),
-                Output(component_id=f"{self.page_id_prefix}-violin-plot", component_property="figure"),
+                Output(component_id=f"{self.page_id_prefix}-main-plot", component_property="figure"),
+                Output(component_id=f"{self.page_id_prefix}-secondary-plot", component_property="figure"),
+                Output(component_id=f"{self.page_id_prefix}-bottom-plot", component_property="figure"),
             ],
             inputs=dict(submit=Input(f"{self.page_id_prefix}-apply-btn", "n_clicks")),
             state=state
@@ -110,7 +110,7 @@ class QCPage(DashPage):
         self.dataset = dataset
         self.actions.update(
             filter=FilterAction(dataset, self.id),
-            click=ClickAction(dataset, self.id),
+            click=Components.SelectGene(dataset, self.id, "secondary"),
             perform_qc=PlotQC(dataset, self.id),
         )
 
@@ -144,40 +144,40 @@ class QCPage(DashPage):
                     dcc.Loading(
                         type="circle",
                         children=[
-                            html.Div(dcc.Graph(id=f"{self.id}-mt-plot", className="main-plot"))
+                            html.Div(dcc.Graph(id=f"{self.id}-main-plot", className="main-plot"))
                         ],
                     )],
-                    id=f"{self.id}-mt-figure",
-                    className="main-figure",
+                    className="main-body",
                 )
             ],
             className="main",
         )
 
+        select_gene_tab = Components.FigureParamTab(
+            self.id, tab_label="Gene", id=f"{self.id}-secondary-genecard",
+            children=[
+                Components.create_gene_card(self.id, "secondary", None, self.dataset)
+            ]
+        )
+
+        secondary_header = Components.FigureParams(
+            self.id, [select_gene_tab]
+        )
+
         secondary_figure = html.Div(
             children=[
-                html.Div(
-                    id=f"{self.id}-dispersion-info",
-                    children=[
-                        Components.create_gene_card(self.id, "secondary", None, self.dataset),
-                    ],
-                    className="fig-params",
-                ),
-                html.Div(
-                    [
-                        dcc.Loading(
-                            type="circle",
-                            children=[
-                                html.Div(
-                                    dcc.Graph(
-                                        id=f"{self.id}-dispersion-plot", className="secondary-plot"
-                                    )
+                html.Div(children=secondary_header.create_layout(), className="fig-header"),
+                html.Div([
+                    dcc.Loading(
+                        type="circle",
+                        children=[
+                            html.Div(
+                                dcc.Graph(
+                                    id=f"{self.id}-secondary-plot", className="secondary-plot"
                                 )
-                            ],
-                        )
-                    ],
-                    id=f"{self.id}-dispersion-figure",
-                    className="secondary-figure",
+                            )
+                        ],
+                    )], className="secondary-body",
                 ),
             ],
             className="secondary",
@@ -189,13 +189,13 @@ class QCPage(DashPage):
                     type="circle",
                     children=[
                         html.Div(
-                            dcc.Graph(id=f"{self.id}-violin-plot", className="bottom-plot")
+                            dcc.Graph(id=f"{self.id}-bottom-plot", className="bottom-plot")
                         )
                     ],
                 )
             ],
-            id=f"{self.id}-violin-figure",
-            className="bottom-figure",
+            id=f"{self.id}-bottom-body",
+            className="bottom-body",
         )
 
         layout = [

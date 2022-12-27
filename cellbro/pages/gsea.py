@@ -258,7 +258,7 @@ class GSEAPage(DashPage):
                         # Components.create_gene_card(None, self.dataset),
                     ],
                     id=f"{self.id}-volcano-info",
-                    className="fig-params",
+                    className="fig-header",
                 ),
                 html.Div(
                     [
@@ -273,8 +273,7 @@ class GSEAPage(DashPage):
                             ],
                         )
                     ],
-                    id=f"{self.id}-volcano-figure",
-                    className="main-figure",
+                    className="main-body",
                 ),
             ],
             className="main",

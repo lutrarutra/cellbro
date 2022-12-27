@@ -229,7 +229,7 @@ class Projection(DashFigure):
 
         figure_layout = html.Div(
             children=[
-                html.Div(children=fig_params.create_layout(), className="fig-params"),
+                html.Div(children=fig_params.create_layout(), className="fig-header"),
 
                 html.Div(
                     [
@@ -244,8 +244,7 @@ class Projection(DashFigure):
                             ],
                         )
                     ],
-                    id=f"{self.page_id_prefix}-projection-figure",
-                    className=f"{self.loc_class}-figure",
+                    className=f"{self.loc_class}-body",
                 ),
             ],
             className=f"{self.loc_class}",

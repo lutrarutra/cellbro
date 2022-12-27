@@ -218,8 +218,7 @@ class Heatmap(DashFigure):
                             ],
                         )
                     ],
-                    id="heatmap-figure",
-                    className=f"{self.loc_class}-figure",
+                    className=f"{self.loc_class}-body",
                 )
             ]
         )

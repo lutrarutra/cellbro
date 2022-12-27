@@ -136,7 +136,7 @@ class DEPage(DashPage):
                 html.Div(
                     # children=Components.create_gene_card(None, self.dataset),
                     id=f"{self.id}-volcano-info",
-                    className="fig-params",
+                    className="fig-header",
                 ),
                 html.Div(
                     [
@@ -151,8 +151,7 @@ class DEPage(DashPage):
                             ],
                         )
                     ],
-                    id=f"{self.id}-volcano-figure",
-                    className="main-figure",
+                    className="main-body",
                 ),
             ],
             className="main",
@@ -175,7 +174,7 @@ class DEPage(DashPage):
 
         secondary = html.Div(
             children=[
-                html.Div(figure_params.create_layout(), className="fig-params"),
+                html.Div(figure_params.create_layout(), className="fig-header"),
                 html.Div(
                     [
                         dcc.Loading(
@@ -190,8 +189,8 @@ class DEPage(DashPage):
                             ],
                         )
                     ],
-                    id=f"{self.id}-de-secondary-figure",
-                    className="secondary-figure",
+                    id=f"{self.id}-de-secondary-body",
+                    className="secondary-body",
                 ),
             ],
             className="secondary",

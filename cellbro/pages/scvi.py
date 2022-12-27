@@ -198,7 +198,7 @@ class SCVIPage(DashPage):
         main_figure = html.Div(
             children=[
                 html.Div(
-                    children= figure_params.create_layout(), className="fig-params",
+                    children= figure_params.create_layout(), className="fig-header",
                 ),
                 html.Div(
                     [
@@ -212,8 +212,8 @@ class SCVIPage(DashPage):
                             ],
                         )
                     ],
-                    id=f"{self.id}-main-figure",
-                    className="main-figure",
+                    id=f"{self.id}-main-body",
+                    className="main-body",
                 ),
             ],
             className="main",
@@ -225,7 +225,7 @@ class SCVIPage(DashPage):
                     children=[
                     ],
                     id=f"{self.id}-secondary-select",
-                    className="fig-params",
+                    className="fig-header",
                 ),
                 html.Div(
                     [
@@ -241,8 +241,8 @@ class SCVIPage(DashPage):
                             ],
                         )
                     ],
-                    id=f"{self.id}-secondary-figure",
-                    className="secondary-figure",
+                    id=f"{self.id}-secondary-body",
+                    className="secondary-body",
                 ),
             ],
             className="secondary",
@@ -250,8 +250,8 @@ class SCVIPage(DashPage):
 
         bottom_figure = html.Div(
             children=[],
-            id=f"{self.id}-bottom-figure",
-            className="bottom-figure",
+            id=f"{self.id}-bottom-body",
+            className="bottom-body",
         )
 
         layout = [

@@ -170,7 +170,7 @@ class ExplainVarExplainCorrFigures(DashFigure):
                     ],
                 ),
             ],
-            className=f"{self.loc_class}-figure",
+            className=f"{self.loc_class}-body",
         )
 
         return figure
@@ -211,7 +211,7 @@ class CorrelationCircleFigure(DashFigure):
 
         figure = html.Div(
             children=[
-                html.Div(children=fig_params.create_layout(), className="fig-params"),
+                html.Div(children=fig_params.create_layout(), className="fig-header"),
                 html.Div(
                     [
                         dcc.Loading(
@@ -226,7 +226,7 @@ class CorrelationCircleFigure(DashFigure):
                             ],
                         )
                     ],
-                    className=f"{self.loc_class}-figure",
+                    className=f"{self.loc_class}-body",
                 ),
             ],
             className=f"{self.loc_class}",
@@ -299,7 +299,7 @@ class PCAProjectionFigure(DashFigure):
             children=[
                 html.Div(
                     children=figure_params.create_layout(),
-                    className="fig-params",
+                    className="fig-header",
                 ),
                 html.Div(
                     [
@@ -315,7 +315,7 @@ class PCAProjectionFigure(DashFigure):
                             ],
                         )
                     ],
-                    className=f"{self.loc_class}-figure",
+                    className=f"{self.loc_class}-body",
                 ),
             ],
             className="main",
