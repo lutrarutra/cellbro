@@ -13,7 +13,7 @@ figure_layout = go.Layout(
     plot_bgcolor="white",
     xaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=True),
     yaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=True),
-    margin=dict(t=0, b=0, l=0, r=0),
+    margin=dict(t=5, b=5, l=5, r=5),
 )
 
 
@@ -181,9 +181,6 @@ class PCA:
                 zeroline=False, visible=True, showticklabels=True,
             ),
             legend_title="Feature",
-            paper_bgcolor="white",
-            plot_bgcolor="white",
-            margin=dict(t=0, b=0, l=0, r=0),
         )
         return fig
 

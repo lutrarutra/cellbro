@@ -191,6 +191,14 @@ class CollapsibleDiv(DashComponent):
 
 
 def create_gene_card(gene, dataset):
+    if gene is None:
+        return html.Div([
+            html.H4("Select Gene by Clicking on a Point"),
+        ], style={
+            "display": "flex", "justify-content": "center",
+            "align-items": "center", "height": "100%", "width": "100%"
+        })
+
     gl_options = dataset.get_gene_lists()
     gl_elements = []
     for gl in gl_options:

@@ -50,26 +50,7 @@ class CorrCircleFig(DashFigure):
             Components.create_gene_card(None, self.dataset)
         ])
 
-        colormap_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Appearance", children=[
-            html.Div([
-                html.Label("Continuous Color Map"),
-                Components.create_colormap_selector(
-                    id=f"{self.page_id_prefix}-projection-continuous_cmap",
-                    options=Components.continuous_colormaps,
-                    default="viridis",
-                )
-            ], className="param-row-stacked"),
-            html.Div([
-                html.Label("Discrete Color Map"),
-                Components.create_colormap_selector(
-                    id=f"{self.page_id_prefix}-projection-discrete_cmap",
-                    options=Components.discrete_colormaps,
-                    default="scanpy_default",
-                )
-            ], className="param-row-stacked")
-        ])
-
-        fig_header = Components.FigureParams(self.page_id_prefix, tabs=[select_gene_tab, colormap_tab])
+        fig_header = Components.FigureParams(self.page_id_prefix, tabs=[select_gene_tab])
 
         figure = html.Div(
             children=[

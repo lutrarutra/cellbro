@@ -7,8 +7,8 @@ from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
 import cellbro.util.Components as Components
 import cellbro.plots.Heatmap as Heatmap
-import cellbro.plots.projection.Projection as Projection
-import cellbro.plots.projection as prj
+
+from ..plots import projection as prj
 
 import scout
 
@@ -132,7 +132,7 @@ class PlotProjection(DashAction):
     def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap, **kwargs):
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
-            layout=Projection.projection_layout, 
+            layout=prj.projection_layout, 
             continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap,
             **kwargs
         )

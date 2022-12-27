@@ -17,7 +17,7 @@ heatmap_layout = go.Layout(
     plot_bgcolor="white",
     xaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=False),
     yaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=True),
-    margin=dict(t=10, b=10, l=10, r=10),
+    margin=dict(t=5, b=5, l=5, r=5),
 )
 
 heatmap_params = ParamsDict(
@@ -218,7 +218,7 @@ class Heatmap(DashFigure):
                             ],
                         )
                     ],
-                    className=f"{self.loc_class}-body",
+                    className=f"{self.loc_class}-body", id=f"heatmap-figure"
                 )
             ]
         )
