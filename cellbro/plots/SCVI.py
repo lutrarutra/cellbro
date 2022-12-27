@@ -17,8 +17,6 @@ with warnings.catch_warnings():
     import scvi
 
 from cellbro.util.Param import *
-from cellbro.plots.UMAP import SCVI_UMAP
-import cellbro.plots.Projection as Projection
 
 
 scvi_model_params = ParamsDict([

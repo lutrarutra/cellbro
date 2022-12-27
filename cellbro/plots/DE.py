@@ -52,7 +52,7 @@ def apply(dataset, params):
     if params["submit"] is None:
         groupby_options = get_groupby_options(dataset=dataset)
         if len(groupby_options) == 0:
-            return [[], None, [], None, {"display": "none"}, {"display": "none"}]
+            return [[], None, [], None]
 
         groupby_selected = groupby_options[0]
         refs_options = get_reference_options(dataset=dataset, groupby=groupby_selected)
@@ -64,8 +64,6 @@ def apply(dataset, params):
             groupby_selected,
             refs_options,
             refs_selected,
-            {"display": "block"},
-            {"display": "block"},
         ]
 
     key = f"rank_genes_{params['groupby']}"
@@ -84,8 +82,6 @@ def apply(dataset, params):
         groupby_selected,
         refs_options,
         refs_selected,
-        {"display": "block"},
-        {"display": "block"},
     ]
 
 
@@ -95,17 +91,6 @@ def plot_pval_histogram(dataset, params):
         dataset.adata.uns[key][params["reference"]], layout=figure_layout
     )
     return fig
-
-
-def plot_de_volcano(dataset, params):
-    key = f"rank_genes_{params['groupby']}"
-    if params["reference"] is None:
-        params["reference"] = list(dataset.adata.uns[key].keys())[0]
-    fig = scout.ply.marker_volcano(
-        dataset.adata.uns[key][params["reference"]], layout=figure_layout
-    )
-    return fig
-
 
 def get_groupby_options(dataset):
     return [x[11:] for x in dataset.adata.uns.keys() if x.startswith("rank_genes_")]

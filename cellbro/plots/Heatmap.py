@@ -8,7 +8,7 @@ from dash.exceptions import PreventUpdate
 from cellbro.util.Param import *
 import cellbro.util.Components as Components
 from cellbro.util.DashAction import DashAction
-from cellbro.plots.DashFigure import DashFigure
+from cellbro.util.DashFigure import DashFigure
 
 import scout
 

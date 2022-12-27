@@ -8,10 +8,7 @@ from dash.exceptions import PreventUpdate
 
 import cellbro.plots.Heatmap as Heatmap
 import cellbro.plots.Violin as Violin
-import cellbro.plots.Projection as Projection
-from cellbro.plots.Trimap import Trimap
-from cellbro.plots.TSNE import TSNE
-from cellbro.plots.UMAP import UMAP, SCVI_UMAP
+import cellbro.plots.projection as prj
 from cellbro.util.DashPage import DashPage
 import cellbro.util.Components as Components
 
@@ -22,7 +19,7 @@ class CellsPage(DashPage):
         super().__init__("pages.cells", "Cells", "cells", order)
         self.dataset = dataset
         self.components.update(
-            projection=Projection.Projection(self.dataset, self.id, "main"),
+            projection=prj.Projection(self.dataset, self.id, "main"),
             violin=Violin.Violin(self.dataset, self.id, "secondary"),
             heatmap=Heatmap.Heatmap(self.dataset, self.id, "bottom"),
         )

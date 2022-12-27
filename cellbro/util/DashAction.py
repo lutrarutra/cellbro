@@ -16,10 +16,6 @@ from cellbro.util.Param import *
 
 
 class DashAction(ABC):
-    # params: ParamsDict
-    # callbacks: list
-    # dataset: Dataset
-
     def __init__(self, dataset, page_id_prefix):
         self.dataset = dataset
         self.page_id_prefix = page_id_prefix
@@ -32,5 +28,7 @@ class DashAction(ABC):
     def setup_callbacks(self, app):
         ...
 
-    def get_dummies(self):
-        return []
+class PlotAction(DashAction, ABC):
+    def __init__(self, dataset, page_id_prefix, loc_class):
+        super().__init__(dataset, page_id_prefix)
+        self.loc_class = loc_class

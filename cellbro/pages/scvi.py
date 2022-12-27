@@ -5,11 +5,10 @@ import dash_bootstrap_components as dbc
 
 import cellbro.plots.SCVI as scvi_plots
 import cellbro.util.Components as Components
-import cellbro.plots.Projection as Projection
+import cellbro.plots.projection.Projection as Projection
 from cellbro.util.DashPage import DashPage
 from cellbro.util.DashAction import DashAction
-from cellbro.plots.UMAP import SCVI_UMAP
-
+from cellbro.plots.projection.UMAP import SCVI_UMAP
 import scout
 
 class FitAction(DashAction):

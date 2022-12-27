@@ -10,7 +10,7 @@ class DashFigure(DashComponent, ABC):
         self.loc_class = loc_class
 
     @abstractmethod
-    def create_layout(self) -> list:
+    def create_layout(self):
         ...
 
     def get_sidebar_params(self) -> list:

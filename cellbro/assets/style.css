@@ -248,6 +248,10 @@ h2 {
     padding: 0;
 }
 
+.dash-dropdown {
+    overflow-y: visible;
+}
+
 .row-tabs {
     width: 100px;
     display: flex;
@@ -307,7 +311,7 @@ h2 {
     width: 100%;
     height: 100%;
     display: flex;
-    overflow-y: scroll;
+    /* overflow-y: scroll; */
 }
 
 .hover-info {

@@ -7,10 +7,8 @@ from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
 import cellbro.util.Components as Components
 import cellbro.plots.Heatmap as Heatmap
-import cellbro.plots.Projection as Projection
-from cellbro.plots.UMAP import UMAP, SCVI_UMAP
-from cellbro.plots.TSNE import TSNE
-from cellbro.plots.Trimap import Trimap
+import cellbro.plots.projection.Projection as Projection
+import cellbro.plots.projection as prj
 
 import scout
 
@@ -142,11 +140,11 @@ class PlotProjection(DashAction):
 
     def apply(self, projection_type, params):
         if projection_type == "UMAP":
-            projection = UMAP(self.dataset, UMAP.parse_params(params))
+            projection = prj.UMAP(self.dataset, prj.UMAP.parse_params(params))
         elif projection_type == "t-SNE":
-            projection = TSNE(self.dataset, TSNE.parse_params(params))
+            projection = prj.TSNE(self.dataset, prj.TSNE.parse_params(params))
         elif projection_type == "Trimap":
-            projection = Trimap(self.dataset, Trimap.parse_params(params))
+            projection = prj.Trimap(self.dataset, prj.Trimap.parse_params(params))
 
         return projection.apply()
 
@@ -181,22 +179,22 @@ class PlotProjection(DashAction):
             gsea_groupby=State(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
             gsea_reference=State(component_id=f"{self.page_id_prefix}-reference", component_property="value"),
         )
-        for key in UMAP._params.keys():
+        for key in prj.UMAP._params.keys():
             state[f"umap_{key}"] = State(
                 component_id=f"{self.page_id_prefix}-projection-umap-{key}", component_property="value"
             )
 
-        for key in SCVI_UMAP._params.keys():
+        for key in prj.SCVI_UMAP._params.keys():
             state[f"scvi_umap_{key}"] = State(
                 component_id=f"{self.page_id_prefix}-projection-scvi_umap-{key}", component_property="value"
             )
 
-        for key in TSNE._params.keys():
+        for key in prj.TSNE._params.keys():
             state[f"tsne_{key}"] = State(
                 component_id=f"{self.page_id_prefix}-projection-tsne-{key}", component_property="value"
             )
 
-        for key in Trimap._params.keys():
+        for key in prj.Trimap._params.keys():
             state[f"trimap_{key}"] = State(
                 component_id=f"{self.page_id_prefix}-projection-trimap-{key}", component_property="value"
             )
@@ -234,7 +232,7 @@ class GSEAPage(DashPage):
             list_available_refs=ListAvailableLRefs(dataset=self.dataset, page_id_prefix=self.id),
         )
         self.components.update(
-            projection=Projection.Projection(dataset, self.id, loc_class="secondary"),
+            projection=prj.Projection(dataset, self.id, loc_class="secondary"),
             heatmap=Heatmap.Heatmap(dataset, self.id, loc_class="bottom")
         )
 

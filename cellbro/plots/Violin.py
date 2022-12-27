@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import scanpy as sc
 from dash import Input, Output, State, dcc, html
 
-from cellbro.plots.DashFigure import DashFigure
+from cellbro.util.DashFigure import DashFigure
 from cellbro.util.DashAction import DashAction
 import cellbro.util.Components as Components
 from cellbro.util.Param import *

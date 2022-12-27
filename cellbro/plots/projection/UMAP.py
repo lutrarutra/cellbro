@@ -1,7 +1,7 @@
 import plotly.express as px
 import scanpy as sc
 
-from cellbro.plots.ProjectionType import ProjectionType
+from cellbro.plots.projection.ProjectionType import ProjectionType
 from cellbro.util.Param import Param, ParamsDict
 
 

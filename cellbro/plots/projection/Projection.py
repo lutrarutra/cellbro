@@ -4,15 +4,15 @@ import plotly.graph_objects as go
 import scanpy as sc
 from dash import Input, Output, State, dcc, html, ctx
 
-from cellbro.plots.DashFigure import DashFigure
+from cellbro.util.DashFigure import DashFigure
 from cellbro.util.DashAction import DashAction
-from cellbro.plots.UMAP import UMAP, SCVI_UMAP
-from cellbro.plots.TSNE import TSNE
-from cellbro.plots.Trimap import Trimap
 import cellbro.util.Components as Components
 
-import scout
+from .UMAP import UMAP, SCVI_UMAP
+from .TSNE import TSNE
+from .Trimap import Trimap
 
+import scout
 
 projection_layout = go.Layout(
     paper_bgcolor="white",
@@ -127,6 +127,7 @@ class SelectProjectionType(DashAction):
 
             if projection_type == "Trimap":
                 return {"display": "none"}, {"display": "none"}, {"display": "block"}
+
 
 class Projection(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
