@@ -7,6 +7,7 @@ from ..util.DashFigure import DashFigure
 from ..util.DashAction import DashAction
 from ..util import Components
 from ..plots import DE
+from ..util.GeneListComponents import SelectGene
 
 import scout
 
@@ -75,7 +76,7 @@ class DEVolcanoFig(DashFigure):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
             plot_projection=PlotVolcano(self.dataset, self.page_id_prefix, self.loc_class),
-            click_action=Components.SelectGene(dataset=self.dataset, page_id_prefix=self.page_id_prefix, loc_class=self.loc_class),
+            click_action=SelectGene(dataset=self.dataset, page_id_prefix=self.page_id_prefix, loc_class=self.loc_class),
         )
 
     def create_layout(self):

@@ -7,6 +7,7 @@ from ..util import Components
 from ..util.DashFigure import DashFigure
 from ..util.DashAction import DashAction
 from . import PCA
+from ..util.GeneListComponents import SelectGene
 
 import scout
 
@@ -40,7 +41,7 @@ class CorrCircleFig(DashFigure):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
             plot_correlation_circle=PlotCorrelationCircle(self.dataset, self.page_id_prefix),
-            select_gene=Components.SelectGene(self.dataset, self.page_id_prefix, self.loc_class),
+            select_gene=SelectGene(self.dataset, self.page_id_prefix, self.loc_class),
         )
 
     def create_layout(self) -> list:

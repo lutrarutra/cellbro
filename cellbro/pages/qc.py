@@ -9,6 +9,7 @@ import cellbro.plots.QC as QC
 from cellbro.util.DashPage import DashPage
 from cellbro.util.DashAction import DashAction
 import cellbro.util.Components as Components
+from ..util.GeneListComponents import SelectGene
 
 class FilterAction(DashAction):
     def apply(self, params):
@@ -110,7 +111,7 @@ class QCPage(DashPage):
         self.dataset = dataset
         self.actions.update(
             filter=FilterAction(dataset, self.id),
-            click=Components.SelectGene(dataset, self.id, "secondary"),
+            click=SelectGene(dataset, self.id, "secondary"),
             perform_qc=PlotQC(dataset, self.id),
         )
 
