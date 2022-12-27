@@ -46,7 +46,7 @@ class CorrCircleFig(DashFigure):
     def create_layout(self) -> list:
         select_gene_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Gene",
             id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
-            Components.create_gene_card(self.page_id_prefix, self.loc_class, None, self.dataset)
+            Components.create_gene_card(None, self.dataset)
         ])
 
         colormap_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Appearance", children=[

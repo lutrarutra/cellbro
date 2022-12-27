@@ -14,6 +14,7 @@ import cellbro.pages.pca as pca
 import cellbro.pages.scvi as scvi
 import cellbro.pages.gsea as gsea
 from cellbro.util.Dataset import Dataset
+from ..util.Components import CreateGeneListPopup
 
 # from cellbro.core.pages.home import create_page as create_home_page
 
@@ -59,6 +60,8 @@ class App:
         scvi_page = scvi.SCVIPage(self.dataset, order=6)
         scvi_page.create()
 
+        genelist_popup = CreateGeneListPopup(page_id_prefix=None, dataset=self.dataset)
+
         # create_genes_page(self.dash_app, self.dataset)
 
         self.dash_app.layout = html.Div(
@@ -71,6 +74,7 @@ class App:
                         dcc.Store(id="export-store"),
                         dcc.Store(id="import-store"),
                         dcc.Store(id="gsea-store"),
+                        genelist_popup.create_layout(),
                         html.Div(
                             id="left-sidebar-btn-container",
                             children=[dbc.Switch(id="left-sidebar-btn", value=self.left_sidebar_open)]
@@ -112,6 +116,8 @@ class App:
         gsea_page.setup_callbacks(self)
         pca_page.setup_callbacks(self)
         scvi_page.setup_callbacks(self)
+        genelist_popup.setup_callbacks(self)
+
 
         # TABS
         @self.dash_app.callback(
@@ -131,36 +137,36 @@ class App:
             ]
 
         # GENE CARD
-        @self.dash_app.callback(
-            output=[
-                Output("gene-list-dropdown", "value"),
-                Output("gene-list-dropdown", "options"),
-                Output("genelist-store", "data")
-            ],
-            inputs=[
-                Input("gene-list-dropdown", "value"),
-                Input("new-gene-list-button", "n_clicks"),
-            ],
-            state=[
-                State("selected-gene", "children"),
-                State("new-gene-list-input", "value"),
-            ],
-        )
-        def _(gene_list, create_new_list, selected_gene, new_gene_list_name):
-            if ctx.triggered_id == "new-gene-list-button":
-                if create_new_list is None:
-                    raise PreventUpdate
-                if new_gene_list_name is None:
-                    raise PreventUpdate
-                if new_gene_list_name in self.dataset.get_gene_lists():
-                    raise PreventUpdate
+        # @self.dash_app.callback(
+        #     output=[
+        #         Output("gene-list-dropdown", "value"),
+        #         Output("gene-list-dropdown", "options"),
+        #         Output("genelist-store", "data")
+        #     ],
+        #     inputs=[
+        #         Input("gene-list-dropdown", "value"),
+        #         Input("new-gene-list-button", "n_clicks"),
+        #     ],
+        #     state=[
+        #         State("selected-gene", "children"),
+        #         # State("new-gene-list-input", "value"),
+        #     ],
+        # )
+        # def _(gene_list, create_new_list, selected_gene, new_gene_list_name=None):
+        #     if ctx.triggered_id == "new-gene-list-button":
+        #         if create_new_list is None:
+        #             raise PreventUpdate
+        #         if new_gene_list_name is None:
+        #             raise PreventUpdate
+        #         if new_gene_list_name in self.dataset.get_gene_lists():
+        #             raise PreventUpdate
 
-                self.dataset.adata.uns["gene_lists"][new_gene_list_name] = [selected_gene]
+        #         self.dataset.adata.uns["gene_lists"][new_gene_list_name] = [selected_gene]
 
-                return self.dataset.get_gene_lists(selected_gene), self.dataset.get_gene_lists(), {"new": True}
+        #         return self.dataset.get_gene_lists(selected_gene), self.dataset.get_gene_lists(), {"new": True}
 
-            res = self.dataset.update_gene_lists(selected_gene, gene_list)
-            return res, self.dataset.get_gene_lists(), {"new":False}
+        #     res = self.dataset.update_gene_lists(selected_gene, gene_list)
+        #     return res, self.dataset.get_gene_lists(), {"new":False}
 
     def run(self):
         self.dash_app.run_server(debug=True, host="127.0.0.1")

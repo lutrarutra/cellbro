@@ -156,7 +156,7 @@ class QCPage(DashPage):
         select_gene_tab = Components.FigureParamTab(
             self.id, tab_label="Gene", id=f"{self.id}-secondary-genecard",
             children=[
-                Components.create_gene_card(self.id, "secondary", None, self.dataset)
+                Components.create_gene_card(None, self.dataset)
             ]
         )
 
