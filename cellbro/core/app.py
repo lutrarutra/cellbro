@@ -67,7 +67,7 @@ class App:
                 html.Div(
                     [
                         dcc.Store(id="genelist-store"),
-                        dcc.Store(id="groupby-store"),
+                        dcc.Store(id="de-store"),
                         dcc.Store(id="export-store"),
                         dcc.Store(id="import-store"),
                         dcc.Store(id="gsea-store"),

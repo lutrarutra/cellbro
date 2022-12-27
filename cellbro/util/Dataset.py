@@ -107,7 +107,10 @@ class Dataset:
         return self.get_gene_lists(gene)
 
     def get_rank_genes_groups(self):
-        return [key[11:] for key in self.adata.uns_keys() if "rank_genes_" in key]
+        return sorted([key[11:] for key in self.adata.uns_keys() if "rank_genes_" in key])
+
+    def get_available_refs(self, groupby):
+        return sorted(list(self.adata.uns["rank_genes_" + groupby].keys()))
 
     def get_scvi_projections(self):
         return [x for x in list(self.adata.obsm.keys()) if "X_umap_scvi" in x]

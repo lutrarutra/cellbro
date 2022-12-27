@@ -11,34 +11,6 @@ from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
 from ..plots.DEVolcanoFig import DEVolcanoFig
 
-
-class ApplyDE(DashAction):
-    def apply(self, params):
-        return DE.apply(self.dataset, params=params)
-
-    def setup_callbacks(self, app):
-        output = [
-            Output(component_id=f"{self.page_id_prefix}-main-volcano-groupby", component_property="options"),
-            Output(component_id=f"{self.page_id_prefix}-main-volcano-groupby", component_property="value"),
-            Output(component_id=f"{self.page_id_prefix}-main-volcano-reference", component_property="options"),
-            Output(component_id=f"{self.page_id_prefix}-main-volcano-reference", component_property="value"),
-        ]
-        inputs = {
-            "submit": Input(component_id=f"{self.page_id_prefix}-submit", component_property="n_clicks"),
-        }
-        state = {
-            "groupby": State(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
-        }
-        for param in DE.de_params.values():
-            state[param.key] = State(
-                component_id=f"de-{param.key}", component_property="value"
-            )
-
-        @app.dash_app.callback(output=output, inputs=inputs, state=state)
-        def _(**kwargs):
-            return self.apply(params=kwargs)
-
-
 class PlotPvalHistogram(DashAction):
     def apply(self, params):
         return [DE.plot_pval_histogram(dataset=self.dataset, params=params)]
@@ -63,23 +35,34 @@ class PlotPvalHistogram(DashAction):
             return self.apply(params=kwargs)
 
 
-# class ClickAction(DashAction):
-#     def apply(self, params):
-#         gene = params["click_data"]["points"][0]["hovertext"]
-#         element = Components.create_gene_card(gene, self.dataset)
-#         return [element]
+class ApplyDE(DashAction):
+    def apply(self, params):
+        groupby = params["groupby"]
 
-#     def setup_callbacks(self, app):
-#         outputs = [Output(f"{self.page_id_prefix}-volcano-info", "children")]
-#         inputs = {
-#             "click_data": Input(f"{self.page_id_prefix}-volcano-plot", "clickData"),
-#         }
+        scout.tl.rank_marker_genes(self.dataset.adata, groupby=groupby)
 
-#         @app.dash_app.callback(output=outputs, inputs=inputs)
-#         def _(**kwargs):
-#             if kwargs["click_data"] is None:
-#                 raise PreventUpdate
-#             return self.apply(params=kwargs)
+        return dict(update=True, groupby=groupby)
+
+    def setup_callbacks(self, app):
+        output = Output("de-store", "data")
+
+        inputs = dict(submit=Input(component_id=f"{self.page_id_prefix}-submit", component_property="n_clicks"))
+
+        state = {
+            "groupby": State(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
+        }
+
+        for param in DE.de_params.values():
+            state[param.key] = State(
+                component_id=f"de-{param.key}", component_property="value"
+            )
+
+        @app.dash_app.callback(output=output, inputs=inputs, state=state)
+        def _(submit, **kwargs):
+            if submit is None:
+                raise PreventUpdate
+
+            return self.apply(params=kwargs)
 
 
 class DEPage(DashPage):
@@ -87,7 +70,7 @@ class DEPage(DashPage):
         super().__init__("pages.de", "DE", "de", order)
         self.dataset = dataset
         self.actions.update(
-            apply_de=ApplyDE(dataset=self.dataset, page_id_prefix=self.id),
+            de_apply=ApplyDE(dataset=self.dataset, page_id_prefix=self.id),
             plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset, page_id_prefix=self.id),
         )
         self.components.update(

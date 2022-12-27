@@ -48,41 +48,32 @@ de_params = ParamsDict(
 )
 
 
-def apply(dataset, params):
-    if params["submit"] is None:
-        groupby_options = get_groupby_options(dataset=dataset)
-        if len(groupby_options) == 0:
-            return [[], None, [], None]
+# def apply(dataset, params):
+#     if params["submit"] is None:
+#         groupby_options = get_groupby_options(dataset=dataset)
+#         if len(groupby_options) == 0:
+#             return dict(update=False)
 
-        groupby_selected = groupby_options[0]
-        refs_options = get_reference_options(dataset=dataset, groupby=groupby_selected)
-        refs_selected = next(
-            iter(dataset.adata.uns[f"rank_genes_{groupby_selected}"].keys())
-        )
-        return [
-            groupby_options,
-            groupby_selected,
-            refs_options,
-            refs_selected,
-        ]
+#         groupby_selected = groupby_options[0]
+#         refs_options = get_reference_options(dataset=dataset, groupby=groupby_selected)
+#         refs_selected = next(
+#             iter(dataset.adata.uns[f"rank_genes_{groupby_selected}"].keys())
+#         )
+        
+#         return dict(update=True)
 
-    key = f"rank_genes_{params['groupby']}"
+#     key = f"rank_genes_{params['groupby']}"
 
-    if key not in dataset.adata.uns.keys():
-        scout.tl.rank_marker_genes(dataset.adata, groupby=params["groupby"])
+#     if key not in dataset.adata.uns.keys():
+#         scout.tl.rank_marker_genes(dataset.adata, groupby=params["groupby"])
 
-    groupby_options = get_groupby_options(dataset=dataset)
-    refs_options = get_reference_options(dataset, params["groupby"])
+#     groupby_options = get_groupby_options(dataset=dataset)
+#     refs_options = get_reference_options(dataset, params["groupby"])
 
-    groupby_selected = params["groupby"]
-    refs_selected = next(iter(dataset.adata.uns[key].keys()))
+#     groupby_selected = params["groupby"]
+#     refs_selected = next(iter(dataset.adata.uns[key].keys()))
 
-    return [
-        groupby_options,
-        groupby_selected,
-        refs_options,
-        refs_selected,
-    ]
+#     return dict(update=True)
 
 
 def plot_pval_histogram(dataset, params):
@@ -92,12 +83,11 @@ def plot_pval_histogram(dataset, params):
     )
     return fig
 
-def get_groupby_options(dataset):
-    return [x[11:] for x in dataset.adata.uns.keys() if x.startswith("rank_genes_")]
-
 
 def get_reference_options(dataset, groupby):
     groupby = dataset.adata.uns.get(f"rank_genes_{groupby}", None)
+
     if groupby is None:
         return []
-    return dict([(key, f"{key} vs. Rest") for key in groupby.keys()])
+
+    return dict([(key, f"{key} vs. Rest") for key in sorted(groupby.keys())])

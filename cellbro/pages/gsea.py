@@ -314,6 +314,7 @@ class GSEAPage(DashPage):
 
     def _params_layout(self):
         rank_genes_groups = self.dataset.get_rank_genes_groups()
+        
         if len(rank_genes_groups) > 0:
             gsea_refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{rank_genes_groups[0]}"].keys()))
         else:
