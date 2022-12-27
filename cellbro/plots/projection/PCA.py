@@ -47,7 +47,7 @@ class PCAProjectionFigure(DashFigure):
         )
 
     def create_layout(self) -> list:
-        type_params = Components.FigureParamTab(self.page_id_prefix, tab_label="Type", children=[
+        type_params = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
             html.Div([
                 html.Label("Color"),
                 dcc.Dropdown(
@@ -79,7 +79,7 @@ class PCAProjectionFigure(DashFigure):
             ),
         ])
 
-        colormap_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Colormap", children=[
+        colormap_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Colormap", children=[
             html.Div([
                 html.Label("Continuous Color Map"),
                 Components.create_colormap_selector(
@@ -99,7 +99,7 @@ class PCAProjectionFigure(DashFigure):
 
         ])
 
-        figure_params = Components.FigureParams(self.page_id_prefix, tabs=[type_params, colormap_tab])
+        figure_params = Components.FigureHeader(self.page_id_prefix, tabs=[type_params, colormap_tab])
 
         figure = html.Div(
             children=[

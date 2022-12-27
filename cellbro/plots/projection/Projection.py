@@ -186,7 +186,7 @@ class Projection(DashFigure):
         available_projections = list(self.dataset.adata.obsm.keys())
 
 
-        projection_type_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Type", children=[
+        projection_type_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
             # Projection type celect
             html.Div([
                 html.Label("Projection Type"),
@@ -207,7 +207,7 @@ class Projection(DashFigure):
             ], className="param-row-stacked")
         ])
 
-        colormap_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Colormap", children=[
+        colormap_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Colormap", children=[
             html.Div([
                 html.Label("Continuous Color Map"),
                 Components.create_colormap_selector(
@@ -226,7 +226,7 @@ class Projection(DashFigure):
             ], className="param-row-stacked")
         ])
 
-        fig_params = Components.FigureParams(self.page_id_prefix, tabs=[projection_type_tab, colormap_tab])
+        fig_params = Components.FigureHeader(self.page_id_prefix, tabs=[projection_type_tab, colormap_tab])
 
         figure_layout = html.Div(
             children=[

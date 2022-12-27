@@ -1,3 +1,5 @@
+from functools import cmp_to_key
+
 import dash_bootstrap_components as dbc
 import numpy as np
 import pandas as pd
@@ -39,9 +41,7 @@ de_params = ParamsDict(
             description="",
             allowed_values=[
                 "benjamini-hochberg",
-                "t-test",
-                "t-test_overestim_var",
-                "wilcoxon",
+                "bonferroni",
             ],
         ),
     ]
@@ -84,10 +84,36 @@ def plot_pval_histogram(dataset, params):
     return fig
 
 
-def get_reference_options(dataset, groupby):
+def get_reference_options(dataset, groupby, target="Rest"):
     groupby = dataset.adata.uns.get(f"rank_genes_{groupby}", None)
 
-    if groupby is None:
-        return []
 
-    return dict([(key, f"{key} vs. Rest") for key in sorted(groupby.keys())])
+    def _compare(a, b):
+        if a < b:
+            return -1
+        elif a > b:
+            return 1
+
+        return 0
+
+
+    def compare(item1, item2):
+        x_words = item1.split(" vs. ")
+        y_words = item2.split(" vs. ")
+        try:
+            xt = int(x_words[0])
+            yt = int(y_words[0])
+            return _compare(xt, yt)
+        except:
+            if x_words[0] == y_words[0]:
+                try:
+                    xt = int(x_words[1])
+                    yt = int(y_words[1])
+                    return _compare(xt, yt)
+                except:
+                    return _compare(x_words[1], y_words[1])
+            else:
+                return _compare(x_words[0], y_words[0])
+        
+
+    return sorted(list(groupby.keys()), key=cmp_to_key(compare))

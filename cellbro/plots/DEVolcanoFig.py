@@ -86,7 +86,7 @@ class DEVolcanoFig(DashFigure):
         else:
             ref_options = []
 
-        select_ref_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Reference", children=[
+        select_ref_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Reference", children=[
             html.Div([
                 html.Label("Group By"),
                 dcc.Dropdown(
@@ -106,12 +106,12 @@ class DEVolcanoFig(DashFigure):
             ], className="param-row-stacked")
         ])
 
-        select_gene_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Gene",
+        select_gene_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
             id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
             Components.create_gene_card(None, self.dataset)
         ])
 
-        fig_header = Components.FigureParams(self.page_id_prefix, tabs=[select_ref_tab, select_gene_tab])
+        fig_header = Components.FigureHeader(self.page_id_prefix, tabs=[select_ref_tab, select_gene_tab])
 
         figure = html.Div(
             children=[
@@ -136,104 +136,3 @@ class DEVolcanoFig(DashFigure):
             className=f"{self.loc_class}",
         )
         return figure
-
-    def get_sidebar_params(self) -> list:
-        cats = self.dataset.get_categoric()
-        divs = []
-
-        groups = self.dataset.get_rank_genes_groups()
-        refs = DE.get_reference_options(
-            dataset=self.dataset, groupby=next(iter(groups), None)
-        )
-        # Volcano Group By Select
-        divs.append(
-            html.Div(
-                children=[
-                    html.Label("Volcano GroupBy"),
-                    html.Div(
-                        [
-                            dcc.Dropdown(
-                                options=groups,
-                                value=next(iter(groups), None),
-                                id=f"{self.page_id_prefix}-{self.loc_class}-volcano-groupby",
-                                clearable=False,
-                            ),
-                        ],
-                        className="param-select",
-                    ),
-                ],
-                className="param-row-stacked",
-                style={"display": "none" if len(groups) == 0 else "block"},
-            )
-        )
-
-        # Volcano Reference Select i.e. 'KO vs. Rest'
-        divs.append(
-            html.Div([
-                html.Label("Volcano Reference"),
-                html.Div(
-                    [
-                        dcc.Dropdown(
-                            options=refs,
-                            value=next(iter(refs), None),
-                            id=f"{self.page_id_prefix}-{self.loc_class}-volcano-reference",
-                            clearable=False,
-                        ),
-                    ],
-                    className="param-select",
-                ),
-            ],
-            className="param-row-stacked",
-            style={"display": "none" if len(groups) == 0 else "block"},
-            )
-        )
-
-        divs.append(
-            html.Div(
-                children=[
-                    html.Label(
-                        "Group By",
-                        className="param-label",
-                    ),
-                    html.Div(
-                        [
-                            dcc.Dropdown(
-                                options=cats,
-                                value=cats[0],
-                                id=f"de-groupby",
-                                clearable=False,
-                            )
-                        ],
-                        className="param-select",
-                    ),
-                ],
-                className="param-row-stacked",
-            )
-        )
-
-        for key, param in DE.de_params.items():
-            divs.append(
-                html.Div(
-                    children=[
-                        html.Label(
-                            param.name,
-                            className="param-label",
-                        ),
-                        html.Div(
-                            [
-                                dcc.Dropdown(
-                                    id=f"de-{key}",
-                                    value=param.default,
-                                    options=param.allowed_values,
-                                    clearable=False,
-                                )
-                            ],
-                            className="param-select",
-                        ),
-                    ],
-                    className="param-row-stacked",
-                )
-            )
-
-        # layout = html.Div(children=divs)
-        return divs

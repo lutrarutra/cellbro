@@ -49,7 +49,7 @@ def create_colormap_selector(id, options, default=None):
         clearable=False,
     )
 
-class FigureParamTab(DashComponent):
+class FigureHeaderTab(DashComponent):
     def __init__(self, page_id_prefix, children, tab_label, id=None):
         super().__init__(page_id_prefix)
         self.children = children
@@ -59,8 +59,8 @@ class FigureParamTab(DashComponent):
     def create_layout(self):
         return dbc.Card(dbc.CardBody(self.children, className="param-row-stacked", id=self.id))
 
-class FigureParams(DashComponent):
-    def __init__(self, page_id_prefix, tabs: list[FigureParamTab]):
+class FigureHeader(DashComponent):
+    def __init__(self, page_id_prefix, tabs: list[FigureHeaderTab]):
         super().__init__(page_id_prefix)
         self.tabs = tabs
 

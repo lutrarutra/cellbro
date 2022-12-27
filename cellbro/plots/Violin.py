@@ -65,7 +65,7 @@ class Violin(DashFigure):
             ]
         )
 
-        type_params = Components.FigureParamTab(self.page_id_prefix, tab_label="Type", children=[
+        type_params = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
             # Features
             html.Div([
                 html.Label("Feature"),
@@ -88,7 +88,7 @@ class Violin(DashFigure):
             ], className="param-row-stacked")
         ])
 
-        figure_params = Components.FigureParams(self.page_id_prefix, tabs=[type_params])
+        figure_params = Components.FigureHeader(self.page_id_prefix, tabs=[type_params])
 
 
         figure = html.Div(

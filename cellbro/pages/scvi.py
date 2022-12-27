@@ -165,7 +165,7 @@ class SCVIPage(DashPage):
 
         projection_types = self.dataset.get_scvi_projections()
 
-        type_params = Components.FigureParamTab(self.id, tab_label="Type", children=[
+        type_params = Components.FigureHeaderTab(self.id, tab_label="Type", children=[
             html.Div(
                 children=[
                     html.Label("Projection Type"),
@@ -192,7 +192,7 @@ class SCVIPage(DashPage):
             ),
         ])
 
-        figure_params = Components.FigureParams(self.id, tabs=[type_params])
+        figure_params = Components.FigureHeader(self.id, tabs=[type_params])
 
         main_figure = html.Div(
             children=[

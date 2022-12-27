@@ -45,12 +45,12 @@ class CorrCircleFig(DashFigure):
         )
 
     def create_layout(self) -> list:
-        select_gene_tab = Components.FigureParamTab(self.page_id_prefix, tab_label="Gene",
+        select_gene_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
             id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
             Components.create_gene_card(None, self.dataset)
         ])
 
-        fig_header = Components.FigureParams(self.page_id_prefix, tabs=[select_gene_tab])
+        fig_header = Components.FigureHeader(self.page_id_prefix, tabs=[select_gene_tab])
 
         figure = html.Div(
             children=[
