@@ -7,7 +7,7 @@ from ..util import Components
 from ..util.DashFigure import DashFigure
 from ..util.DashAction import DashAction
 from . import PCA
-from ..util.GeneListComponents import SelectGene
+from ..util.GeneListComponents import SelectGene, create_gene_card
 
 import scout
 
@@ -47,7 +47,7 @@ class CorrCircleFig(DashFigure):
     def create_layout(self) -> list:
         select_gene_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
             id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
-            Components.create_gene_card(None, self.dataset)
+            create_gene_card(None, self.dataset)
         ])
 
         fig_header = Components.FigureHeader(self.page_id_prefix, tabs=[select_gene_tab])

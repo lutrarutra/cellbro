@@ -9,7 +9,8 @@ import cellbro.plots.DE as DE
 import cellbro.util.Components as Components
 from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
-from ..plots.DEVolcanoFig import DEVolcanoFig
+
+from ..plots.DEVolcano import DEVolcano
 
 class PlotPvalHistogram(DashAction):
     def apply(self, params):
@@ -139,7 +140,7 @@ class DEPage(DashPage):
             plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset, page_id_prefix=self.id),
         )
         self.components.update(
-            main_figure=DEVolcanoFig(dataset=self.dataset, page_id_prefix=self.id, loc_class="main"),
+            main_figure=DEVolcano(dataset=self.dataset, page_id_prefix=self.id, loc_class="main"),
         )
 
     def create_layout(self):

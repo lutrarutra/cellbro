@@ -8,13 +8,14 @@ from dash.exceptions import PreventUpdate
 
 import cellbro.pages.home as home
 import cellbro.pages.cells as cells
-import cellbro.pages.de as de
-import cellbro.pages.qc as qc
-import cellbro.pages.pca as pca
-import cellbro.pages.scvi as scvi
-import cellbro.pages.gsea as gsea
+import cellbro.pages.DEPage as DEPage
+import cellbro.pages.QCPage as QCPage
+import cellbro.pages.PCAPage as PCAPage
+import cellbro.pages.SCVIPage as SCVIPage
+import cellbro.pages.GSEAPage as GSEAPage
 from cellbro.util.Dataset import Dataset
 from ..util.GeneListComponents import CreateGeneListPopup
+from ..util.TermComponents import AddGenesFromTermPopUp
 
 # from cellbro.core.pages.home import create_page as create_home_page
 
@@ -42,25 +43,26 @@ class App:
         home_page = home.HomePage(self.dataset, order=0)
         home_page.create()
 
-        qc_page = qc.QCPage(self.dataset, order=1)
+        qc_page = QCPage.QCPage(self.dataset, order=1)
         qc_page.create()
 
         cells_page = cells.CellsPage(self.dataset, order=2)
         cells_page.create()
 
-        de_page = de.DEPage(self.dataset, order=3)
+        de_page = DEPage.DEPage(self.dataset, order=3)
         de_page.create()
 
-        gsea_page = gsea.GSEAPage(self.dataset, order=4)
+        gsea_page = GSEAPage.GSEAPage(self.dataset, order=4)
         gsea_page.create()
 
-        pca_page = pca.PCAPage(self.dataset, order=5)
+        pca_page = PCAPage.PCAPage(self.dataset, order=5)
         pca_page.create()
 
-        scvi_page = scvi.SCVIPage(self.dataset, order=6)
+        scvi_page = SCVIPage.SCVIPage(self.dataset, order=6)
         scvi_page.create()
 
         genelist_popup = CreateGeneListPopup(page_id_prefix=None, dataset=self.dataset)
+        term_popup = AddGenesFromTermPopUp(page_id_prefix=None, dataset=self.dataset)
 
         # create_genes_page(self.dash_app, self.dataset)
 
@@ -70,11 +72,13 @@ class App:
                 html.Div(
                     [
                         dcc.Store(id="genelist-store"),
+                        dcc.Store(id="term-store"),
                         dcc.Store(id="de-store"),
+                        dcc.Store(id="gsea-store"),
                         dcc.Store(id="export-store"),
                         dcc.Store(id="import-store"),
-                        dcc.Store(id="gsea-store"),
                         genelist_popup.create_layout(),
+                        term_popup.create_layout(),
                         html.Div(
                             id="left-sidebar-btn-container",
                             children=[dbc.Switch(id="left-sidebar-btn", value=self.left_sidebar_open)]
@@ -117,6 +121,7 @@ class App:
         pca_page.setup_callbacks(self)
         scvi_page.setup_callbacks(self)
         genelist_popup.setup_callbacks(self)
+        term_popup.setup_callbacks(self)
 
 
         # TABS

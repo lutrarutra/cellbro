@@ -67,10 +67,18 @@ class Dataset:
             - set(self.adata.obs._get_numeric_data().columns) - set(["barcode"])
         )
 
-    def get_obs_features(self):
-        res = self.adata.obs_keys() + list(self.adata.var_names)
+    def get_obs_features(self, include_gene_lists=False):
+        res = sorted(list(self.adata.obs_keys()))
+        
+        if include_gene_lists:
+            for gene_list in self.get_gene_lists():
+                res.append(f"Gene List: {gene_list}")
+
+        res.extend(sorted(list(self.adata.var_names)))
+
         if "barcode" in res:
             res.remove("barcode")
+
 
         return res
 
@@ -114,3 +122,12 @@ class Dataset:
 
     def get_scvi_projections(self):
         return [x for x in list(self.adata.obsm.keys()) if "X_umap_scvi" in x]
+
+    def add_gsea_result(self, res, groupby, reference):
+        if "gsea" not in self.adata.uns.keys():
+            self.adata.uns["gsea"] = {}
+
+        if groupby not in self.adata.uns["gsea"].keys():
+            self.adata.uns["gsea"][groupby] = {}
+
+        self.adata.uns["gsea"][groupby][reference] = res

@@ -13,7 +13,7 @@ class SelectGene(DashAction):
 
     def apply(self, click_data):
         gene = click_data["points"][0]["hovertext"]
-        element = Components.create_gene_card(gene, self.dataset)
+        element = create_gene_card(gene, self.dataset)
         return element
 
     def setup_callbacks(self, app):
@@ -143,3 +143,58 @@ class CreateGeneListPopup(Components.DashComponent):
                 dbc.Button("Close", id=f"genelist-popup-close", n_clicks=0, color="danger"),
             ])
         ])
+
+
+def create_gene_card(gene, dataset):
+    if gene is None:
+        return html.Div([
+            html.H4("Select Gene by Clicking on a Point"),
+        ], style={
+            "display": "flex", "justify-content": "center",
+            "align-items": "center", "height": "100%", "width": "100%"
+        })
+
+    gl_options = dataset.get_gene_lists()
+    gl_elements = []
+    for gl in gl_options:
+        gl_elements.append({"label": gl, "value": gl})
+
+    gl_chosen = dataset.get_gene_lists(gene=gene)
+
+    element = html.Div([
+        html.Div([
+            html.Label("Gene:"),
+            html.H3(gene, id=dict(type="selected-gene", index=0)),
+        ], className="hover-header", style=dict(width="120px")),
+        html.Div([
+            html.Div([
+                html.A(
+                    href=f"https://www.genecards.org/cgi-bin/carddisp.pl?gene={gene}", role="button", target="_blank",
+                    children=[html.Img(src="assets/logos/genecards_logo.png", style={"height": "20px"})]
+                ),
+                html.A(
+                    href=f"https://scholar.google.com/scholar?q={gene}", role="button", target="_blank",
+                    children=[html.Img(src="assets/logos/google_scholar_logo.png", style={"height": "20px"})]
+                ),
+            ], className="hover-links"),
+            html.Div([
+                html.Label("Gene List(s)"),
+                dcc.Dropdown(
+                    options=gl_elements,
+                    value=gl_chosen,
+                    id=dict(type="gene-list-dropdown", index=0),
+                    clearable=False,
+                    placeholder="Select Gene List(s)",
+                    multi=True,
+                ),
+            ], className="param-row-stacked", style={"width": "calc(100% - 100px)"}),
+            html.Div([
+                html.Label("New List"),
+                html.Div([
+                    dbc.Button("Create", id=dict(type="new-gene-list-button", index=0), color="primary")
+                ]),
+            ], className="param-row-stacked", style={"width": "100px"}),
+        ], className="hover-body"),
+    ], className="hover-container", style={"display": "flex"})
+
+    return element

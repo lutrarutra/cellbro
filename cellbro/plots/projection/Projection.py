@@ -3,6 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import scanpy as sc
 from dash import Input, Output, State, dcc, html, ctx
+from dash.exceptions import PreventUpdate
 
 from cellbro.util.DashFigure import DashFigure
 from cellbro.util.DashAction import DashAction
@@ -31,8 +32,32 @@ projection_layout = go.Layout(
     # SCVI_MDE = "scvi_mde"
     # PCA = "PCA"
 
+class UpdateColorOptions(DashAction):
+    def setup_callbacks(self, app):
+        output = [
+            Output(f"{self.page_id_prefix}-projection-color", "options"),
+            Output(f"{self.page_id_prefix}-projection-color", "value"),
+        ]
+
+        inputs = dict(
+            store=Input("genelist-store", "data")
+        )
+        @app.dash_app.callback(output, inputs)
+        def _(store):
+            if store is None:
+                raise PreventUpdate
+
+            color_options = self.dataset.get_obs_features(include_gene_lists=True)
+            return color_options, next(iter(color_options), None)
+            
+            
+
 class PlotProjection(DashAction):
     def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap):
+        if "Gene List:" in color:
+            gene_list = color.split("Gene List: ")[1]
+            color = self.dataset.adata.uns["gene_lists"][gene_list]
+
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
             layout=projection_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
@@ -102,8 +127,9 @@ class PlotProjection(DashAction):
                 if projection_submit is not None:
                     obsm_layer = self.apply(projection_type, params=kwargs)
 
-            return (self.plot(color=color, obsm_layer=obsm_layer, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap),
-                    list(self.dataset.adata.obsm.keys()), obsm_layer)
+            fig = self.plot(color=color, obsm_layer=obsm_layer, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap)
+            options = list(self.dataset.adata.obsm.keys())
+            return (fig, options, obsm_layer)
 
 
 class SelectProjectionType(DashAction):
@@ -134,57 +160,13 @@ class Projection(DashFigure):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
             plot_projection=PlotProjection(self.dataset, self.page_id_prefix),
+            update_color_options=UpdateColorOptions(self.dataset, self.page_id_prefix, self.loc_class),
             select_projection_type=SelectProjectionType(self.dataset, self.page_id_prefix),
         )
 
-    def get_sidebar_params(self):
-        return [
-            html.Div([
-                html.Div(
-                    children=[
-                        html.Label(
-                            "Projection Type",
-                            className="param-label",
-                        ),
-                        dcc.Dropdown(
-                            id=f"{self.page_id_prefix}-projection-type-select",
-                            options=["UMAP", "t-SNE", "Trimap"],
-                            value="UMAP",
-                            clearable=False,
-                        )
-                    ],
-                    className="param-row-stacked",
-                )
-            ]),
-            html.Div(
-                children=UMAP.get_layout(self.page_id_prefix),
-                style={"display": "none"},
-                id=f"{self.page_id_prefix}-projection-{UMAP.get_key()}",
-                className="param-class"
-            ),
-            html.Div(
-                children=TSNE.get_layout(self.page_id_prefix),
-                style={"display": "none"},
-                id=f"{self.page_id_prefix}-projection-{TSNE.get_key()}",
-                className="param-class"
-            ),
-            html.Div(
-                children=Trimap.get_layout(self.page_id_prefix),
-                style={"display": "none"},
-                id=f"{self.page_id_prefix}-projection-{Trimap.get_key()}",
-                className="param-class"
-            ),
-            html.Div(
-                children=SCVI_UMAP.get_layout(self.page_id_prefix),
-                style={"display": "none"},
-                id=f"{self.page_id_prefix}-projection-{SCVI_UMAP.get_key()}",
-                className="param-class"
-            ),
-        ]
-
     def create_layout(self) -> list:
         available_projections = list(self.dataset.adata.obsm.keys())
-
+        color_options = self.dataset.get_obs_features(include_gene_lists=True)
 
         projection_type_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
             # Projection type celect
@@ -199,8 +181,8 @@ class Projection(DashFigure):
             html.Div([
                 html.Label("Color"),
                 dcc.Dropdown(
-                    self.dataset.get_obs_features(),
-                    value=self.dataset.adata.obs_keys()[0],
+                    options=color_options,
+                    value=color_options[0],
                     id=f"{self.page_id_prefix}-projection-color",
                     clearable=False,
                 )
@@ -252,4 +234,49 @@ class Projection(DashFigure):
         )
 
         return figure_layout
+
+    def get_sidebar_params(self):
+        return [
+            html.Div([
+                html.Div(
+                    children=[
+                        html.Label(
+                            "Projection Type",
+                            className="param-label",
+                        ),
+                        dcc.Dropdown(
+                            id=f"{self.page_id_prefix}-projection-type-select",
+                            options=["UMAP", "t-SNE", "Trimap"],
+                            value="UMAP",
+                            clearable=False,
+                        )
+                    ],
+                    className="param-row-stacked",
+                )
+            ]),
+            html.Div(
+                children=UMAP.get_layout(self.page_id_prefix),
+                style={"display": "none"},
+                id=f"{self.page_id_prefix}-projection-{UMAP.get_key()}",
+                className="param-class"
+            ),
+            html.Div(
+                children=TSNE.get_layout(self.page_id_prefix),
+                style={"display": "none"},
+                id=f"{self.page_id_prefix}-projection-{TSNE.get_key()}",
+                className="param-class"
+            ),
+            html.Div(
+                children=Trimap.get_layout(self.page_id_prefix),
+                style={"display": "none"},
+                id=f"{self.page_id_prefix}-projection-{Trimap.get_key()}",
+                className="param-class"
+            ),
+            html.Div(
+                children=SCVI_UMAP.get_layout(self.page_id_prefix),
+                style={"display": "none"},
+                id=f"{self.page_id_prefix}-projection-{SCVI_UMAP.get_key()}",
+                className="param-class"
+            ),
+        ]
 

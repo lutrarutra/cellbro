@@ -9,7 +9,7 @@ import cellbro.plots.QC as QC
 from cellbro.util.DashPage import DashPage
 from cellbro.util.DashAction import DashAction
 import cellbro.util.Components as Components
-from ..util.GeneListComponents import SelectGene
+from ..util.GeneListComponents import SelectGene, create_gene_card
 
 class FilterAction(DashAction):
     def apply(self, params):
@@ -47,24 +47,6 @@ class FilterAction(DashAction):
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(**kwargs):
             return self.apply(params=kwargs)
-
-
-class ClickAction(DashAction):
-    def apply(self, params):
-        data = params["clickData"]["points"][0]
-        gene = data["hovertext"]
-        element = Components.create_gene_card(gene, self.dataset)
-        return [element]
-
-    def setup_callbacks(self, app):
-        @app.dash_app.callback(
-            [Output(f"{self.page_id_prefix}-dispersion-info", "children")], [Input(f"{self.page_id_prefix}-dispersion-plot", "clickData")]
-        )
-        def _(clickData):
-            if clickData is None:
-                raise PreventUpdate
-            # return QC.on_hover(clickData["points"][0], self.dataset)
-            return self.apply(params=dict(clickData=clickData))
 
 
 class PlotQC(DashAction):
@@ -157,7 +139,7 @@ class QCPage(DashPage):
         select_gene_tab = Components.FigureHeaderTab(
             self.id, tab_label="Gene", id=f"{self.id}-secondary-genecard",
             children=[
-                Components.create_gene_card(None, self.dataset)
+                create_gene_card(None, self.dataset)
             ]
         )
 

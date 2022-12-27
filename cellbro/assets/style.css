@@ -312,14 +312,13 @@ h2 {
     width: 100%;
     height: 100%;
     display: flex;
-    /* overflow-y: scroll; */
 }
 
 .hover-body {
     width: 100%;
     height: 100%;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     gap: 10px;
 }
@@ -329,7 +328,20 @@ h2 {
     flex-direction: column;
 }
 
+.long-dropdown {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: scroll;
+}
+
 #gene-list-dropdown {
+    display: flex;
+    flex-direction: column;
+    justify-items: flex-start;
+}
+
+#term-gene-list-dropdown {
     display: flex;
     flex-direction: column;
 }
@@ -340,7 +352,6 @@ h2 {
     align-items: center;
     justify-content: center;
     /* padding: 0 5px 0px 5px; */
-    width: 120px;
     text-align: center;
 }
 

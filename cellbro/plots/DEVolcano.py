@@ -6,8 +6,8 @@ from dash.exceptions import PreventUpdate
 from ..util.DashFigure import DashFigure
 from ..util.DashAction import DashAction
 from ..util import Components
-from ..plots import DE
-from ..util.GeneListComponents import SelectGene
+from . import DE
+from ..util.GeneListComponents import SelectGene, create_gene_card
 
 import scout
 
@@ -49,7 +49,6 @@ class PlotVolcano(DashAction):
             ref_options = []
 
             if ctx.triggered_id == "de-store":
-                print(de_store)
                 if de_store["update"]:
                     groupby = de_store["groupby"]
 
@@ -71,7 +70,7 @@ class PlotVolcano(DashAction):
             return fig, groupby_options, groupby, ref_options, reference
 
 
-class DEVolcanoFig(DashFigure):
+class DEVolcano(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
@@ -108,7 +107,7 @@ class DEVolcanoFig(DashFigure):
 
         select_gene_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
             id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
-            Components.create_gene_card(None, self.dataset)
+            create_gene_card(None, self.dataset)
         ])
 
         fig_header = Components.FigureHeader(self.page_id_prefix, tabs=[select_ref_tab, select_gene_tab])
