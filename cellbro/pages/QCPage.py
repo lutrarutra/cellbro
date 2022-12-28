@@ -9,7 +9,7 @@ from cellbro.util.DashPage import DashPage
 from cellbro.util.DashAction import DashAction
 import cellbro.util.Components as Components
 
-from ..util.GeneListComponents import SelectGene, create_gene_card
+
 from ..plots import QC
 
 class FilterAction(DashAction):
@@ -37,7 +37,7 @@ class FilterAction(DashAction):
         inputs = {
             "submit": Input(
                 component_id=f"{self.page_id_prefix}-filtering-submit", component_property="n_clicks"
-            ),
+            )
         }
         state = {}
         for param in QC.qc_tools.qc_params.values():
@@ -50,42 +50,42 @@ class FilterAction(DashAction):
             return self.apply(params=kwargs)
 
 
-class PlotQC(DashAction):
-    def apply(self):
-        if not "pct_counts_mt" in self.dataset.adata.obs.columns:
-            QC.apply_mt_qc(self.dataset)
+# class PlotQC(DashAction):
+#     def apply(self):
+#         if not "pct_counts_mt" in self.dataset.adata.obs.columns:
+#             QC.apply_mt_qc(self.dataset)
 
-        if not "cv2" in self.dataset.adata.var.columns or not "mu" in self.dataset.adata.var.columns:
-            QC.apply_dispersion_qc(self.dataset)
+#         if not "cv2" in self.dataset.adata.var.columns or not "mu" in self.dataset.adata.var.columns:
+#             QC.apply_dispersion_qc(self.dataset)
 
-    def plot(self, params):
-        return QC.plot(self.dataset, params)
+#     def plot(self, params):
+#         return QC.plot(self.dataset, params)
 
-    def setup_callbacks(self, app):
-        state = {}
-        for param in QC.qc_tools.qc_params.values():
-            state[param.key] = State(
-                component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
-            )
+#     def setup_callbacks(self, app):
+#         state = {}
+#         for param in QC.qc_tools.qc_params.values():
+#             state[param.key] = State(
+#                 component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
+#             )
 
-        @app.dash_app.callback(
-            output=[
-                Output(component_id=f"{self.page_id_prefix}-main-plot", component_property="figure"),
-                Output(component_id=f"{self.page_id_prefix}-secondary-plot", component_property="figure"),
-                Output(component_id=f"{self.page_id_prefix}-bottom-plot", component_property="figure"),
-            ],
-            inputs=dict(submit=Input(f"{self.page_id_prefix}-apply-btn", "n_clicks")),
-            state=state
-        )
-        def _(submit, **kwargs):
-            if submit:
-                self.apply()
-                return self.plot(params=kwargs)
+#         @app.dash_app.callback(
+#             output=[
+#                 Output(component_id=f"{self.page_id_prefix}-main-plot", component_property="figure"),
+#                 Output(component_id=f"{self.page_id_prefix}-secondary-plot", component_property="figure"),
+#                 Output(component_id=f"{self.page_id_prefix}-bottom-plot", component_property="figure"),
+#             ],
+#             inputs=dict(submit=Input(f"{self.page_id_prefix}-apply-btn", "n_clicks")),
+#             state=state
+#         )
+#         def _(submit, **kwargs):
+#             if submit:
+#                 self.apply()
+#                 return self.plot(params=kwargs)
 
-            if self.dataset.qc_done():
-                return self.plot(params=kwargs)
+#             if self.dataset.qc_done():
+#                 return self.plot(params=kwargs)
 
-            raise PreventUpdate
+#             raise PreventUpdate
             # return [{"display": "block"}, {"display": "none"}, None, None, None]
 
 class QCPage(DashPage):
@@ -94,8 +94,12 @@ class QCPage(DashPage):
         self.dataset = dataset
         self.actions.update(
             filter=FilterAction(dataset, self.id),
-            click=SelectGene(dataset, self.id, "secondary"),
-            perform_qc=PlotQC(dataset, self.id),
+            # perform_qc=PlotQC(dataset, self.id),
+        )
+        self.components.update(
+            main_figure=QC.MTPlot(self.dataset, self.id, "main"),
+            secondary_figure=QC.DispersionPlot(self.dataset, self.id, "secondary"),
+            bot_figure=QC.QCViolins(self.dataset, self.id, "bottom"),
         )
 
     def create_layout(self):
@@ -122,76 +126,21 @@ class QCPage(DashPage):
             apply_btn_id=None, btn_text="Filter"
         )
 
-        main_figure = html.Div(
-            children=[
-                html.Div([
-                    dcc.Loading(
-                        type="circle",
-                        children=[
-                            html.Div(dcc.Graph(id=f"{self.id}-main-plot", className="main-plot"))
-                        ],
-                    )],
-                    className="main-body",
-                )
-            ],
-            className="main",
-        )
-
-        select_gene_tab = Components.FigureHeaderTab(
-            self.id, tab_label="Gene", id=f"{self.id}-secondary-genecard",
-            children=[
-                create_gene_card(None, self.dataset)
-            ]
-        )
-
-        secondary_header = Components.FigureHeader(
-            self.id, [select_gene_tab]
-        )
-
-        secondary_figure = html.Div(
-            children=[
-                html.Div(children=secondary_header.create_layout(), className="fig-header"),
-                html.Div([
-                    dcc.Loading(
-                        type="circle",
-                        children=[
-                            html.Div(
-                                dcc.Graph(
-                                    id=f"{self.id}-secondary-plot", className="secondary-plot"
-                                )
-                            )
-                        ],
-                    )], className="secondary-body",
-                ),
-            ],
-            className="secondary",
-        )
-
-        bottom_figure = html.Div(
-            children=[
-                dcc.Loading(
-                    type="circle",
-                    children=[
-                        html.Div(
-                            dcc.Graph(id=f"{self.id}-bottom-plot", className="bottom-plot")
-                        )
-                    ],
-                )
-            ],
-            id=f"{self.id}-bottom-body",
-            className="bottom-body",
-        )
-
         layout = [
             html.Div(
                 className="top",
                 children=[
-                    self.components["left_sidebar"].create_layout(), main_figure, secondary_figure,
+                    self.components["left_sidebar"].create_layout(),
+                    self.components["main_figure"].create_layout(),
+                    self.components["secondary_figure"].create_layout(),
                     self.components["right_sidebar"].create_layout()
                 ],
             ),
             html.Div(
-                className="bottom", children=[self.components["bot_sidebar"].create_layout(), bottom_figure]
+                className="bottom", children=[
+                    self.components["bot_sidebar"].create_layout(),
+                    self.components["bot_figure"].create_layout(),
+                ]
             ),
         ]
         return layout

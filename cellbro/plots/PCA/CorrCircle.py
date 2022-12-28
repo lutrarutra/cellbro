@@ -12,9 +12,9 @@ from ...util.GeneListComponents import SelectGene, create_gene_card
 import scout
 
 
-class PlotCorrelationCircle(DashAction):
+class PlotCorrCircle(DashAction):
     def plot(self, pc_x, pc_y):
-        fig = scout.ply.pca_correlation_circle(
+        fig = scout.ply.pca_corr_circle(
             self.dataset.adata, components=[pc_x, pc_y], layout=pca_tools.default_layout
         )
 
@@ -40,7 +40,7 @@ class CorrCircle(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
-            plot_correlation_circle=PlotCorrelationCircle(self.dataset, self.page_id_prefix),
+            plot_correlation_circle=PlotCorrCircle(self.dataset, self.page_id_prefix),
             select_gene=SelectGene(self.dataset, self.page_id_prefix, self.loc_class),
         )
 

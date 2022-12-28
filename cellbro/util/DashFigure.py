@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Literal
 
-from cellbro.util.Components import DashComponent
+from ..util.DashComponent import DashComponent
 
 class DashFigure(DashComponent, ABC):
     def __init__(self, dataset, page_id_prefix, loc_class: Literal["main", "secondary", "bottom"]):

@@ -40,6 +40,8 @@ class PlotProjection(DashAction):
             gene_list = color.split("Gene List: ")[1]
             color = self.dataset.adata.uns["gene_lists"][gene_list]
 
+        print(continuous_cmap)
+        print(discrete_cmap)
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
             layout=prj_tools.default_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
@@ -185,7 +187,7 @@ class Projection(DashFigure):
                 Components.create_colormap_selector(
                     id=f"{self.page_id_prefix}-projection-discrete_cmap",
                     options=Components.discrete_colormaps,
-                    default="scanpy_default",
+                    default="scanpy default",
                 )
             ], className="param-row-stacked")
         ])

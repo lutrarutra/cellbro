@@ -93,7 +93,7 @@ class PCAProjection(DashFigure):
                 Components.create_colormap_selector(
                     id=f"{self.page_id_prefix}-projection-discrete_cmap",
                     options=Components.discrete_colormaps,
-                    default="scanpy_default",
+                    default="scanpy default",
                 )
             ], className="param-row-stacked"),
 

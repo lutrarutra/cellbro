@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from typing import Literal
 
 import dash
@@ -8,34 +7,21 @@ import dash_bootstrap_components as dbc
 import scout
 
 from .DashAction import DashAction
+from .DashComponent import DashComponent
 
-continuous_colormaps = [
-    {"value" : "seismic", "label": "Seismic (for centered)"},
-    {"value" : "RdBu_r", "label": "B-W-R"},
-    {"value" : "viridis", "label": "Viridis"},
-    {"value" : "plasma", "label": "Plasma"},
-    {"value" : "inferno", "label": "Inferno"},
-    {"value" : "magma", "label": "Magma"},
-    {"value" : "cividis", "label": "Cividis"},
-]
-
-discrete_colormaps = [
-    {"value" : value, "label" : value.replace("_", " ").title()} for value in scout.ply._discrete_cmap_mapping.keys()
-]
+# continuous_colormaps = [
+#     {"value" : "seismic", "label": "Seismic (for centered)"},
+#     {"value" : "RdBu_r", "label": "B-W-R"},
+#     {"value" : "viridis", "label": "Viridis"},
+#     {"value" : "plasma", "label": "Plasma"},
+#     {"value" : "inferno", "label": "Inferno"},
+#     {"value" : "magma", "label": "Magma"},
+#     {"value" : "cividis", "label": "Cividis"},
+# ]
 
 
-class DashComponent(ABC):
-    def __init__(self, page_id_prefix):
-        self.actions = {}
-        self.page_id_prefix = page_id_prefix
-
-    @abstractmethod
-    def create_layout(self):
-        ...
-
-    def setup_callbacks(self, app):
-        for action in self.actions.values():
-            action.setup_callbacks(app)
+continuous_colormaps = list(scout.ply.get_continuous_colorscales().keys())
+discrete_colormaps = list(scout.ply.get_discrete_colorscales().keys())
 
 
 def create_colormap_selector(id, options, default=None):

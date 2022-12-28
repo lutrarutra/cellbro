@@ -15,9 +15,9 @@ import scout
 
 from cellbro.util.DashFigure import DashFigure
 
-class PlotVarianceExplained(DashAction):
+class PlotVarExplained(DashAction):
     def plot(self, plot_type, n_pcs):
-        fig = scout.ply.pca_explain_variance(
+        fig = scout.ply.pca_explain_var(
             self.dataset.adata, layout=PCA.pca_tools.default_layout,
             plot_type=plot_type, n_pcs=n_pcs
         )
@@ -42,7 +42,7 @@ class PlotVarianceExplained(DashAction):
         def _(plot_type, n_pcs):
             return [self.plot(plot_type, n_pcs)]
 
-class PlotCorrelationExplained(DashAction):
+class PlotCorrExplained(DashAction):
     def plot(self, n_pcs):
         fig = scout.ply.pca_explain_corr(
             self.dataset.adata, layout=PCA.pca_tools.default_layout,
@@ -70,8 +70,8 @@ class ExplainVarExplainCorrFigures(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
-            plot_var_explained=PlotVarianceExplained(self.dataset, self.page_id_prefix),
-            plot_corr_explained=PlotCorrelationExplained(self.dataset, self.page_id_prefix)
+            plot_var_explained=PlotVarExplained(self.dataset, self.page_id_prefix),
+            plot_corr_explained=PlotCorrExplained(self.dataset, self.page_id_prefix)
         )
 
     def get_sidebar_params(self) -> list:

@@ -95,7 +95,7 @@ class PlotProjection(DashAction):
     def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap, **kwargs):
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
-            layout=prj.projection_layout, 
+            layout=prj.prj_tools.default_layout, 
             continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap,
             **kwargs
         )
