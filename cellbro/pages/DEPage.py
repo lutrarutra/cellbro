@@ -5,9 +5,9 @@ from dash.exceptions import PreventUpdate
 
 import scout
 
-import cellbro.util.Components as Components
-from cellbro.util.DashAction import DashAction
-from cellbro.util.DashPage import DashPage
+from ..components import components
+from ..util.DashAction import DashAction
+from ..components.DashPage import DashPage
 
 from ..plots import DE
 
@@ -143,14 +143,14 @@ class DEPage(DashPage):
         )
 
     def create_layout(self):
-        self.components["top_sidebar"] = Components.Sidebar(
+        self.components["top_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, apply_btn_id=f"{self.id}-submit",
             title="Differential Expression Settings",
             params_children=self.actions["de_apply"].get_sidebar_params(),
             row="top", side="left",
         )
 
-        plot_type_params = Components.FigureHeaderTab(self.id, tab_label="Type", children=[
+        plot_type_params = components.FigureHeaderTab(self.id, tab_label="Type", children=[
             # Volcano Group By Select
             html.Div([
                 html.Label("Plot Type"),
@@ -163,7 +163,7 @@ class DEPage(DashPage):
             ], className="param-row-stacked")
         ])
 
-        figure_params = Components.FigureHeader(self.id, tabs=[plot_type_params])
+        figure_params = components.FigureHeader(self.id, tabs=[plot_type_params])
 
         secondary = html.Div(
             children=[
@@ -189,7 +189,7 @@ class DEPage(DashPage):
             className="secondary",
         )
 
-        self.components["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = components.Sidebar(
             page_id_prefix=self.id,  row="bot", side="left",
             title="Empty",
             params_children=[], apply_btn_id=None

@@ -3,8 +3,8 @@ from dash import html, dcc, Input, Output, State, ctx, ALL
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 
-from .DashAction import DashAction
-from . import Components
+from ..util.DashAction import DashAction
+from . import components
 
 class SelectGene(DashAction):
     def __init__(self, dataset, page_id_prefix, loc_class):
@@ -105,7 +105,7 @@ class NewGeneList(DashAction):
             return options, value
 
 
-class CreateGeneListPopup(Components.DashComponent):
+class CreateGeneListPopup(components.DashComponent):
     def __init__(self, page_id_prefix, dataset):
         super().__init__(page_id_prefix)
         self.dataset = dataset

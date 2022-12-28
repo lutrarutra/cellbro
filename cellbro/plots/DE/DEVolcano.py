@@ -3,11 +3,11 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
-from ...util.DashFigure import DashFigure
+from ...components.DashFigure import DashFigure
 from ...util.DashAction import DashAction
-from ...util import Components
+from ...components import components
 from . import de_tools
-from ...util.GeneListComponents import SelectGene, create_gene_card
+from ...components.GeneListComponents import SelectGene, create_gene_card
 
 import scout
 
@@ -85,7 +85,7 @@ class DEVolcano(DashFigure):
         else:
             ref_options = []
 
-        select_ref_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Reference", children=[
+        select_ref_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Reference", children=[
             html.Div([
                 html.Label("Group By"),
                 dcc.Dropdown(
@@ -105,12 +105,12 @@ class DEVolcano(DashFigure):
             ], className="param-row-stacked")
         ])
 
-        select_gene_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
+        select_gene_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
             id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
             create_gene_card(None, self.dataset)
         ])
 
-        fig_header = Components.FigureHeader(self.page_id_prefix, tabs=[select_ref_tab, select_gene_tab])
+        fig_header = components.FigureHeader(self.page_id_prefix, tabs=[select_ref_tab, select_gene_tab])
 
         figure = html.Div(
             children=[

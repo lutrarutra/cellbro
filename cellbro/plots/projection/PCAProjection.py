@@ -3,9 +3,9 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
-from ...util.DashFigure import DashFigure
+from ...components.DashFigure import DashFigure
 from ...util.DashAction import DashAction
-from ...util import Components
+from ...components import components
 from .. import PCA
 
 import scout
@@ -47,7 +47,7 @@ class PCAProjection(DashFigure):
         )
 
     def create_layout(self) -> list:
-        type_params = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
+        type_params = components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
             html.Div([
                 html.Label("Color"),
                 dcc.Dropdown(
@@ -79,27 +79,27 @@ class PCAProjection(DashFigure):
             ),
         ])
 
-        colormap_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Colormap", children=[
+        colormap_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Colormap", children=[
             html.Div([
                 html.Label("Continuous Color Map"),
-                Components.create_colormap_selector(
+                components.create_colormap_selector(
                     id=f"{self.page_id_prefix}-projection-continuous_cmap",
-                    options=Components.continuous_colormaps,
+                    options=components.continuous_colormaps,
                     default="viridis",
                 )
             ], className="param-row-stacked"),
             html.Div([
                 html.Label("Discrete Color Map"),
-                Components.create_colormap_selector(
+                components.create_colormap_selector(
                     id=f"{self.page_id_prefix}-projection-discrete_cmap",
-                    options=Components.discrete_colormaps,
+                    options=components.discrete_colormaps,
                     default="scanpy default",
                 )
             ], className="param-row-stacked"),
 
         ])
 
-        figure_params = Components.FigureHeader(self.page_id_prefix, tabs=[type_params, colormap_tab])
+        figure_params = components.FigureHeader(self.page_id_prefix, tabs=[type_params, colormap_tab])
 
         figure = html.Div(
             children=[

@@ -1,7 +1,7 @@
 from dash import Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
-from ...util.DashFigure import DashFigure
+from ...components.DashFigure import DashFigure
 from ...util.DashAction import DashAction
 from .qc_tools import default_layout
 

@@ -4,9 +4,9 @@ import scanpy as sc
 from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
-from cellbro.util.DashFigure import DashFigure
-from cellbro.util.DashAction import DashAction
-import cellbro.util.Components as Components
+from ...components.DashFigure import DashFigure
+from ...components import components
+from ...util.DashAction import DashAction
 
 from .UMAP import UMAP, SCVI_UMAP
 from .TSNE import TSNE
@@ -40,8 +40,6 @@ class PlotProjection(DashAction):
             gene_list = color.split("Gene List: ")[1]
             color = self.dataset.adata.uns["gene_lists"][gene_list]
 
-        print(continuous_cmap)
-        print(discrete_cmap)
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
             layout=prj_tools.default_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
@@ -152,13 +150,14 @@ class Projection(DashFigure):
         available_projections = list(self.dataset.adata.obsm.keys())
         color_options = self.dataset.get_obs_features(include_gene_lists=True)
 
-        projection_type_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
+        projection_type_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
             # Projection type celect
             html.Div([
                 html.Label("Projection Type"),
                 dcc.Dropdown(
                     available_projections, value=available_projections[0],
                     id=f"{self.page_id_prefix}-projection-plot-type", clearable=False,
+                    persistence=True, persistence_type="local",
                 ),
             ], className="param-row-stacked"),
             # Projection Hue celect
@@ -173,26 +172,26 @@ class Projection(DashFigure):
             ], className="param-row-stacked")
         ])
 
-        colormap_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Colormap", children=[
+        colormap_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Colormap", children=[
             html.Div([
                 html.Label("Continuous Color Map"),
-                Components.create_colormap_selector(
+                components.create_colormap_selector(
                     id=f"{self.page_id_prefix}-projection-continuous_cmap",
-                    options=Components.continuous_colormaps,
+                    options=components.continuous_colormaps,
                     default="viridis",
                 )
             ], className="param-row-stacked"),
             html.Div([
                 html.Label("Discrete Color Map"),
-                Components.create_colormap_selector(
+                components.create_colormap_selector(
                     id=f"{self.page_id_prefix}-projection-discrete_cmap",
-                    options=Components.discrete_colormaps,
+                    options=components.discrete_colormaps,
                     default="scanpy default",
                 )
             ], className="param-row-stacked")
         ])
 
-        fig_params = Components.FigureHeader(self.page_id_prefix, tabs=[projection_type_tab, colormap_tab])
+        fig_params = components.FigureHeader(self.page_id_prefix, tabs=[projection_type_tab, colormap_tab])
 
         figure_layout = html.Div(
             children=[

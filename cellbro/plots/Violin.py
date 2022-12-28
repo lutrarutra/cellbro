@@ -1,15 +1,9 @@
-import dash_bootstrap_components as dbc
-import numpy as np
-import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
-import scanpy as sc
 from dash import Input, Output, State, dcc, html
 
-from cellbro.util.DashFigure import DashFigure
-from cellbro.util.DashAction import DashAction
-import cellbro.util.Components as Components
-from cellbro.util.Param import *
+from ..components.DashFigure import DashFigure
+from ..util.DashAction import DashAction
+from ..components import components
 
 import scout
 
@@ -65,7 +59,7 @@ class Violin(DashFigure):
             ]
         )
 
-        type_params = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
+        type_params = components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
             # Features
             html.Div([
                 html.Label("Feature"),
@@ -88,7 +82,7 @@ class Violin(DashFigure):
             ], className="param-row-stacked")
         ])
 
-        figure_params = Components.FigureHeader(self.page_id_prefix, tabs=[type_params])
+        figure_params = components.FigureHeader(self.page_id_prefix, tabs=[type_params])
 
 
         figure = html.Div(

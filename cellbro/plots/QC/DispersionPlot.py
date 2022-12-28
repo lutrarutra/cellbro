@@ -1,12 +1,12 @@
 from dash import Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
-from ...util.DashFigure import DashFigure
-from ...util import Components
+from ...components.DashFigure import DashFigure
+from ...components import components
 from ...util.DashAction import DashAction
+from ...components.GeneListComponents import SelectGene, create_gene_card
 from .qc_tools import default_layout
 
-from ...util.GeneListComponents import SelectGene, create_gene_card
 import scout
 
 class Plot(DashAction):
@@ -39,14 +39,14 @@ class DispersionPlot(DashFigure):
 
     def create_layout(self):
 
-        select_gene_tab = Components.FigureHeaderTab(
+        select_gene_tab = components.FigureHeaderTab(
             self.page_id_prefix, tab_label="Gene", id=f"{self.page_id_prefix}-{self.loc_class}-genecard",
             children=[
                 create_gene_card(None, self.dataset)
             ]
         )
 
-        figure_header = Components.FigureHeader(
+        figure_header = components.FigureHeader(
             self.page_id_prefix, [select_gene_tab]
         )
 

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import dash
 
-import cellbro.util.Components as Components
+import cellbro.components.components as components
 import cellbro.util.DashAction as DashAction
 
 class DashPage(ABC):
@@ -19,7 +19,7 @@ class DashPage(ABC):
 
         self.actions: dict[str, DashAction.DashAction] = {}
 
-        self.components:dict[str, Components.DashComponent] = {}
+        self.components:dict[str, components.DashComponent] = {}
 
     @abstractmethod
     def create_layout(self) -> list:

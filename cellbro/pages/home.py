@@ -5,9 +5,9 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import numpy as np
 
-from cellbro.util.DashPage import DashPage
+from cellbro.components.DashPage import DashPage
 from cellbro.util.DashAction import DashAction
-import cellbro.util.Components as Components
+import cellbro.components.components as components
 
 import cellbro.io as io
 
@@ -43,13 +43,13 @@ class HomePage(DashPage):
         self.actions.update(self.export_popups)
 
     def create_layout(self) -> list:
-        self.components["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="top", side="left",
             title="Home", params_children=[],
             apply_btn_id=None, btn_text=""
         )
 
-        self.components["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="Home", params_children=[],
             apply_btn_id=None, btn_text=""

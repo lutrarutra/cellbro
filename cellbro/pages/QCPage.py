@@ -5,9 +5,9 @@ import plotly.graph_objects as go
 from dash import Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
-from cellbro.util.DashPage import DashPage
-from cellbro.util.DashAction import DashAction
-import cellbro.util.Components as Components
+from ..components.DashPage import DashPage
+from ..util.DashAction import DashAction
+from ..components import components
 
 
 from ..plots import QC
@@ -104,7 +104,7 @@ class QCPage(DashPage):
 
     def create_layout(self):
 
-        self.components["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="top", side="left",
             title="Quality Control Parameters",
             params_children=self._filter_params_layout(),
@@ -112,14 +112,14 @@ class QCPage(DashPage):
         )
 
         # Something smarter
-        self.components["right_sidebar"] = Components.Sidebar(
+        self.components["right_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="top", side="right",
             title="Quality Control Parameters",
             params_children=self._qc_params_layout(),
             apply_btn_id=f"{self.id}-apply-btn", btn_text="Filter"
         )
 
-        self.components["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="Quality Control Violin Plots",
             params_children=[],

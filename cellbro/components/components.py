@@ -6,7 +6,7 @@ from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import scout
 
-from .DashAction import DashAction
+from ..util.DashAction import DashAction
 from .DashComponent import DashComponent
 
 # continuous_colormaps = [

@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html, ctx, ALL
 
 from ..util.DashAction import DashAction
-from ..util import Components
+from . import components
 
 # class AddTermToList(DashAction):
 #     def __init__(self, dataset, page_id_prefix):
@@ -76,7 +76,7 @@ class UpdateTermPopup(DashAction):
             return [title, term_name, genes, genes, genelists]
 
 
-class AddGenesFromTermPopUp(Components.DashComponent):
+class AddGenesFromTermPopUp(components.DashComponent):
     def __init__(self, page_id_prefix, dataset):
         super().__init__(page_id_prefix)
         self.dataset = dataset

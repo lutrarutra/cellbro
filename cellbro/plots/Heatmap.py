@@ -5,10 +5,10 @@ import scanpy as sc
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
-from cellbro.util.Param import *
-import cellbro.util.Components as Components
-from cellbro.util.DashAction import DashAction
-from cellbro.util.DashFigure import DashFigure
+from ..util.Param import Param, ParamsDict
+from ..components import components
+from ..components.DashFigure import DashFigure
+from ..util.DashAction import DashAction
 
 import scout
 
@@ -42,7 +42,7 @@ heatmap_params = ParamsDict(
             default="seismic",
             type=list,
             description="",
-            allowed_values=Components.continuous_colormaps,
+            allowed_values=components.continuous_colormaps,
         ),
     ]
 )
@@ -196,7 +196,7 @@ class Heatmap(DashFigure):
                 className="param-row-stacked",
             ),
         ]
-        divs.extend(Components.params_layout(heatmap_params, f"{self.page_id_prefix}-heatmap"))
+        divs.extend(components.params_layout(heatmap_params, f"{self.page_id_prefix}-heatmap"))
 
         return divs
 

@@ -5,12 +5,11 @@ import plotly.graph_objects as go
 from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
-
-import cellbro.plots.Heatmap as Heatmap
-import cellbro.plots.Violin as Violin
-import cellbro.plots.projection as prj
-from cellbro.util.DashPage import DashPage
-import cellbro.util.Components as Components
+from ..components import components
+from ..components.DashPage import DashPage
+from ..plots.Heatmap import Heatmap
+from ..plots.Violin import Violin
+from ..plots import projection as prj
 
 import scout
 
@@ -20,12 +19,12 @@ class CellsPage(DashPage):
         self.dataset = dataset
         self.components.update(
             projection=prj.Projection(self.dataset, self.id, "main"),
-            violin=Violin.Violin(self.dataset, self.id, "secondary"),
-            heatmap=Heatmap.Heatmap(self.dataset, self.id, "bottom"),
+            violin=Violin(self.dataset, self.id, "secondary"),
+            heatmap=Heatmap(self.dataset, self.id, "bottom"),
         )
 
     def create_layout(self) -> list:
-        self.components["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="top", side="left",
             title="Projection Settings",
             params_children=self.components["projection"].get_sidebar_params(),
@@ -34,7 +33,7 @@ class CellsPage(DashPage):
 
         main_figure = self.components["projection"].create_layout()
 
-        self.components["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="Heatmap Settings",
             params_children=self.components["heatmap"].get_sidebar_params(),

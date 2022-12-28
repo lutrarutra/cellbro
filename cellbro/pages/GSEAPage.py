@@ -3,11 +3,10 @@ from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html, ctx
 
-from cellbro.util.DashAction import DashAction
-from cellbro.util.DashPage import DashPage
-import cellbro.util.Components as Components
-import cellbro.plots.Heatmap as Heatmap
-
+from ..util.DashAction import DashAction
+from ..components.DashPage import DashPage
+from ..components import components
+from ..plots.Heatmap import Heatmap, heatmap_params
 from ..plots import projection as prj
 from ..plots.GSEA.GSEAVolcano import GSEAVolcano
 
@@ -65,7 +64,7 @@ class PlotHeatmap(DashAction):
             categoricals=State(f"{self.page_id_prefix}-heatmap-selected_categoricals", "value")
 
         )
-        for key in Heatmap.heatmap_params.keys():
+        for key in heatmap_params.keys():
             state[key] = State(component_id=f"{self.page_id_prefix}-heatmap-{key}", component_property="value")
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
@@ -196,7 +195,7 @@ class GSEAPage(DashPage):
         self.components.update(
             main=GSEAVolcano(dataset, self.id, loc_class="main"),
             projection=prj.Projection(dataset, self.id, loc_class="secondary"),
-            heatmap=Heatmap.Heatmap(dataset, self.id, loc_class="bottom")
+            heatmap=Heatmap(dataset, self.id, loc_class="bottom")
         )
 
         self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(dataset, self.id)
@@ -205,14 +204,14 @@ class GSEAPage(DashPage):
         self.components["projection"].actions["plot_projection"] = PlotProjection(dataset, self.id)
 
     def create_layout(self) -> list:
-        self.components["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, apply_btn_id=f"{self.id}-submit",
             title="Gene Set Enrichment Settings",
             params_children=self.components["main"].get_sidebar_params(),
             row="top", side="left",
         )
 
-        self.components["right_sidebar"] = Components.Sidebar(
+        self.components["right_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, apply_btn_id=f"{self.id}-projection-submit",
             title="Projection Settings",
             params_children=self.components["projection"].get_sidebar_params(),
@@ -220,7 +219,7 @@ class GSEAPage(DashPage):
         )
         secondary_figure = self.components["projection"].create_layout()
         
-        self.components["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="Heatmap Settings",
             params_children=self.components["heatmap"].get_sidebar_params(),

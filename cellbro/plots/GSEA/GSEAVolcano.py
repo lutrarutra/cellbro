@@ -5,10 +5,10 @@ from dash import Input, Output, State, dcc, html, ctx
 
 import gseapy
 
-from ...util.DashFigure import DashFigure
+from ...components.DashFigure import DashFigure
 from ...util.DashAction import DashAction
-from ...util import Components
-from ...util import TermComponents
+from ...components import components
+from ...components import TermComponents
 
 import scout
 
@@ -88,7 +88,7 @@ class GSEAVolcano(DashFigure):
         )
 
     def create_layout(self):
-        select_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Select", children=[
+        select_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Select", children=[
             html.Div([
                 html.Label("Group By"),
                 dcc.Dropdown(
@@ -107,14 +107,14 @@ class GSEAVolcano(DashFigure):
             ], className="param-row-stacked")
         ])
 
-        term_tab = Components.FigureHeaderTab(
+        term_tab = components.FigureHeaderTab(
             self.page_id_prefix, tab_label="Term", id=f"{self.page_id_prefix}-{self.loc_class}-termcard",
             children=[
                 TermComponents.create_term_card(None, None, None)
             ]
         )
 
-        header = Components.FigureHeader(self.page_id_prefix, tabs=[select_tab, term_tab])
+        header = components.FigureHeader(self.page_id_prefix, tabs=[select_tab, term_tab])
 
         figure = html.Div(
             children=[

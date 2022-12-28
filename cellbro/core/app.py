@@ -6,16 +6,18 @@ import dash_bootstrap_components as dbc
 from dash import ALL, Dash, Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
-import cellbro.pages.home as home
-import cellbro.pages.CellsPage as CellsPage
-import cellbro.pages.DEPage as DEPage
-import cellbro.pages.QCPage as QCPage
-import cellbro.pages.PCAPage as PCAPage
-import cellbro.pages.SCVIPage as SCVIPage
-import cellbro.pages.GSEAPage as GSEAPage
-from cellbro.util.Dataset import Dataset
-from ..util.GeneListComponents import CreateGeneListPopup
-from ..util.TermComponents import AddGenesFromTermPopUp
+from ..pages.home import HomePage
+from ..pages.QCPage import QCPage
+from ..pages.CellsPage import CellsPage
+from ..pages.DEPage import DEPage
+from ..pages.GSEAPage import GSEAPage
+from ..pages.PCAPage import PCAPage
+from ..pages.SCVIPage import SCVIPage
+
+from ..util.Dataset import Dataset
+
+from ..components.GeneListComponents import CreateGeneListPopup
+from ..components.TermComponents import AddGenesFromTermPopUp
 
 # from cellbro.core.pages.home import create_page as create_home_page
 
@@ -40,25 +42,25 @@ class App:
         self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
         self.dataset = Dataset("./data/full.h5ad")
 
-        home_page = home.HomePage(self.dataset, order=0)
+        home_page = HomePage(self.dataset, order=0)
         home_page.create()
 
-        qc_page = QCPage.QCPage(self.dataset, order=1)
+        qc_page = QCPage(self.dataset, order=1)
         qc_page.create()
 
-        cells_page = CellsPage.CellsPage(self.dataset, order=2)
+        cells_page = CellsPage(self.dataset, order=2)
         cells_page.create()
 
-        de_page = DEPage.DEPage(self.dataset, order=3)
+        de_page = DEPage(self.dataset, order=3)
         de_page.create()
 
-        gsea_page = GSEAPage.GSEAPage(self.dataset, order=4)
+        gsea_page = GSEAPage(self.dataset, order=4)
         gsea_page.create()
 
-        pca_page = PCAPage.PCAPage(self.dataset, order=5)
+        pca_page = PCAPage(self.dataset, order=5)
         pca_page.create()
 
-        scvi_page = SCVIPage.SCVIPage(self.dataset, order=6)
+        scvi_page = SCVIPage(self.dataset, order=6)
         scvi_page.create()
 
         genelist_popup = CreateGeneListPopup(page_id_prefix=None, dataset=self.dataset)

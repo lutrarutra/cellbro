@@ -3,17 +3,17 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
-import cellbro.util.Components as Components
-from cellbro.util.DashPage import DashPage
-from cellbro.util.DashAction import DashAction
+from ..components import components
+from ..components.DashPage import DashPage
+from ..util.DashAction import DashAction
 
 from ..plots.PCA.CorrCircle import CorrCircle
 from ..plots import projection as prj
 from ..plots import PCA
+from ..components.DashFigure import DashFigure
 
 import scout
 
-from cellbro.util.DashFigure import DashFigure
 
 class PlotVarExplained(DashAction):
     def plot(self, plot_type, n_pcs):
@@ -137,14 +137,14 @@ class PCAPage(DashPage):
         )
 
     def create_layout(self) -> list:
-        self.components["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="top", side="left",
             title="PCA Projection Settings",
             params_children=self.components["pca_figure"].get_sidebar_params(),
             apply_btn_id=None, btn_text="Plot"
         )
 
-        self.components["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="PCA Plots",
             params_children=self.components["bottom_figure"].get_sidebar_params(),

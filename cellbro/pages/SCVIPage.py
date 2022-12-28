@@ -3,12 +3,13 @@ from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 
-import cellbro.plots.SCVI as scvi_plots
-import cellbro.util.Components as Components
-import cellbro.plots.projection.Projection as Projection
-from cellbro.util.DashPage import DashPage
-from cellbro.util.DashAction import DashAction
-from cellbro.plots.projection.UMAP import SCVI_UMAP
+from ..plots import SCVI
+from ..components import components
+from ..plots.projection import Projection
+from ..components.DashPage import DashPage
+from ..util.DashAction import DashAction
+from ..plots.projection.UMAP import SCVI_UMAP
+
 import scout
 
 class FitAction(DashAction):
@@ -57,10 +58,10 @@ class FitAction(DashAction):
             "setup_categorical_covariate_keys": Input(f"{self.page_id_prefix}-categorical_covariate_keys", "value"),
             "setup_batch_key": Input(f"{self.page_id_prefix}-batch_key", "value"),
         }
-        for key, param in scvi_plots.scvi_model_params.items():
+        for key, param in SCVI.scvi_model_params.items():
             state[f"model_{param.key}"] = State(f"{self.page_id_prefix}-model-{param.key}", "value")
 
-        for key, param in scvi_plots.scvi_train_params.items():
+        for key, param in SCVI.scvi_train_params.items():
             state[f"train_{param.key}"] = State(f"{self.page_id_prefix}-train-{param.key}", "value")
 
         for key in SCVI_UMAP._params.keys():
@@ -96,7 +97,7 @@ class SCVIPage(DashPage):
         cats = self.dataset.get_categoric()
         conts = self.dataset.get_numeric()
 
-        self.components["param-collapse-setup"] = Components.CollapsibleDiv(
+        self.components["param-collapse-setup"] = components.CollapsibleDiv(
             page_id_prefix=self.id,
             div_id=f"{self.id}-param-collapse-setup",
             collapse_btn_id=f"{self.id}-btn-param-collapse-setup",
@@ -128,36 +129,36 @@ class SCVIPage(DashPage):
             ]
         )
 
-        self.components["param-collapse-scvi_model"] = Components.CollapsibleDiv(
+        self.components["param-collapse-scvi_model"] = components.CollapsibleDiv(
             page_id_prefix=self.id,
             div_id=f"{self.id}-param-collapse-scvi_model",
             collapse_btn_id=f"{self.id}-btn-param-collapse-scvi_model",
-            children=Components.params_layout(
-                scvi_plots.scvi_model_params, f"{self.id}-model"),
+            children=components.params_layout(
+                SCVI.scvi_model_params, f"{self.id}-model"),
         )
         
-        self.components["param-collapse-scvi_train"] = Components.CollapsibleDiv(
+        self.components["param-collapse-scvi_train"] = components.CollapsibleDiv(
             page_id_prefix=self.id,
             div_id=f"{self.id}-param-collapse-scvi_train",
             collapse_btn_id=f"{self.id}-btn-param-collapse-scvi_train",
-            children=Components.params_layout(
-                scvi_plots.scvi_train_params, f"{self.id}-train"),
+            children=components.params_layout(
+                SCVI.scvi_train_params, f"{self.id}-train"),
         )
 
-        self.components["param-collapse-scvi_umap"] = Components.CollapsibleDiv(
+        self.components["param-collapse-scvi_umap"] = components.CollapsibleDiv(
             page_id_prefix=self.id,
             div_id=f"{self.id}-param-collapse-scvi_umap",
             collapse_btn_id=f"{self.id}-btn-param-collapse-scvi_umap",
             children=SCVI_UMAP.get_layout(self.id),
         )
 
-        self.components["left_sidebar"] = Components.Sidebar(
+        self.components["left_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="top", side="left",
             title="SCVI Settings", params_children=self._params_layout(),
             apply_btn_id=f"{self.id}-fit-submit", btn_text="Fit SCVI"
         )
 
-        self.components["bot_sidebar"] = Components.Sidebar(
+        self.components["bot_sidebar"] = components.Sidebar(
             page_id_prefix=self.id, row="bot", side="left",
             title="Empty", params_children=[],
             apply_btn_id=None, btn_text="Fit SCVI"
@@ -165,7 +166,7 @@ class SCVIPage(DashPage):
 
         projection_types = self.dataset.get_scvi_projections()
 
-        type_params = Components.FigureHeaderTab(self.id, tab_label="Type", children=[
+        type_params = components.FigureHeaderTab(self.id, tab_label="Type", children=[
             html.Div(
                 children=[
                     html.Label("Projection Type"),
@@ -192,7 +193,7 @@ class SCVIPage(DashPage):
             ),
         ])
 
-        figure_params = Components.FigureHeader(self.id, tabs=[type_params])
+        figure_params = components.FigureHeader(self.id, tabs=[type_params])
 
         main_figure = html.Div(
             children=[

@@ -1,19 +1,10 @@
 from functools import cmp_to_key
 
-import dash_bootstrap_components as dbc
-import numpy as np
-import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
-import scanpy as sc
-from dash import Input, Output, State, dcc, html
-from dash.exceptions import PreventUpdate
-from plotly.subplots import make_subplots
 
 import scout
-# import cellbro.util.Components import Components
-from cellbro.util.DashPage import DashPage
-from cellbro.util.Param import *
+
+from ...util.Param import Param, ParamsDict
 
 figure_layout = go.Layout(
     paper_bgcolor="white",

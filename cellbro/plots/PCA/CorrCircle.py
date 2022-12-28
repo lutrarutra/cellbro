@@ -3,11 +3,11 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
-from ...util import Components
-from ...util.DashFigure import DashFigure
+from ...components import components
+from ...components.DashFigure import DashFigure
 from ...util.DashAction import DashAction
 from . import pca_tools
-from ...util.GeneListComponents import SelectGene, create_gene_card
+from ...components.GeneListComponents import SelectGene, create_gene_card
 
 import scout
 
@@ -45,12 +45,12 @@ class CorrCircle(DashFigure):
         )
 
     def create_layout(self) -> list:
-        select_gene_tab = Components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
+        select_gene_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
             id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
             create_gene_card(None, self.dataset)
         ])
 
-        fig_header = Components.FigureHeader(self.page_id_prefix, tabs=[select_gene_tab])
+        fig_header = components.FigureHeader(self.page_id_prefix, tabs=[select_gene_tab])
 
         figure = html.Div(
             children=[
