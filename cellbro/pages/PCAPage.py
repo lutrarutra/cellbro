@@ -3,13 +3,13 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
-import cellbro.plots.PCA as PCA
 import cellbro.util.Components as Components
 from cellbro.util.DashPage import DashPage
 from cellbro.util.DashAction import DashAction
 
+from ..plots.PCA.CorrCircle import CorrCircle
 from ..plots import projection as prj
-from ..plots.CorrCircleFig import CorrCircleFig
+from ..plots import PCA
 
 import scout
 
@@ -18,7 +18,7 @@ from cellbro.util.DashFigure import DashFigure
 class PlotVarianceExplained(DashAction):
     def plot(self, plot_type, n_pcs):
         fig = scout.ply.pca_explain_variance(
-            self.dataset.adata, layout=PCA.figure_layout,
+            self.dataset.adata, layout=PCA.pca_tools.default_layout,
             plot_type=plot_type, n_pcs=n_pcs
         )
 
@@ -45,7 +45,7 @@ class PlotVarianceExplained(DashAction):
 class PlotCorrelationExplained(DashAction):
     def plot(self, n_pcs):
         fig = scout.ply.pca_explain_corr(
-            self.dataset.adata, layout=PCA.figure_layout,
+            self.dataset.adata, layout=PCA.pca_tools.default_layout,
             n_pcs=n_pcs
         )
 
@@ -131,8 +131,8 @@ class PCAPage(DashPage):
         super().__init__("pages.pca", "PCA", "pca", order)
         self.dataset = dataset
         self.components.update(
-            pca_figure=prj.PCAProjectionFigure(self.dataset, self.id, "main"),
-            correlation_circle_figure=CorrCircleFig(self.dataset, self.id, "secondary"),
+            pca_figure=prj.PCAProjection(self.dataset, self.id, "main"),
+            correlation_circle_figure=CorrCircle(self.dataset, self.id, "secondary"),
             bottom_figure=ExplainVarExplainCorrFigures(self.dataset, self.id, "bottom")
         )
 

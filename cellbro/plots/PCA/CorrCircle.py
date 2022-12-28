@@ -3,11 +3,11 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 
-from ..util import Components
-from ..util.DashFigure import DashFigure
-from ..util.DashAction import DashAction
-from . import PCA
-from ..util.GeneListComponents import SelectGene, create_gene_card
+from ...util import Components
+from ...util.DashFigure import DashFigure
+from ...util.DashAction import DashAction
+from . import pca_tools
+from ...util.GeneListComponents import SelectGene, create_gene_card
 
 import scout
 
@@ -15,7 +15,7 @@ import scout
 class PlotCorrelationCircle(DashAction):
     def plot(self, pc_x, pc_y):
         fig = scout.ply.pca_correlation_circle(
-            self.dataset.adata, components=[pc_x, pc_y], layout=PCA.figure_layout
+            self.dataset.adata, components=[pc_x, pc_y], layout=pca_tools.default_layout
         )
 
         return fig
@@ -36,7 +36,7 @@ class PlotCorrelationCircle(DashAction):
             return [self.plot(pc_x-1, pc_y-1)]
 
 
-class CorrCircleFig(DashFigure):
+class CorrCircle(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(

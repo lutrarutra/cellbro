@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-import cellbro.plots.QC as QC
+from ..plots import QC
 
 import scanpy as sc
 import pandas as pd
@@ -31,8 +31,8 @@ class Dataset:
         if "log1p" in self.adata.uns.keys():
             self.adata.uns["log1p"] = {"base": None}
 
-        QC.apply_dispersion_qc(self)
-        QC.apply_mt_qc(self)
+        QC.qc_tools.apply_dispersion_qc(self)
+        QC.qc_tools.apply_mt_qc(self)
         
         print("Dataset Ready!")
 

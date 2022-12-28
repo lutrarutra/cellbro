@@ -5,11 +5,12 @@ import plotly.graph_objects as go
 from dash import Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
-import cellbro.plots.QC as QC
 from cellbro.util.DashPage import DashPage
 from cellbro.util.DashAction import DashAction
 import cellbro.util.Components as Components
+
 from ..util.GeneListComponents import SelectGene, create_gene_card
+from ..plots import QC
 
 class FilterAction(DashAction):
     def apply(self, params):
@@ -28,7 +29,7 @@ class FilterAction(DashAction):
 
     def setup_callbacks(self, app):
         output = []
-        for param in QC.qc_params.values():
+        for param in QC.qc_tools.qc_params.values():
             output.append(
                 Output(component_id=f"{self.page_id_prefix}-{param.key}", component_property="value")
             )
@@ -39,7 +40,7 @@ class FilterAction(DashAction):
             ),
         }
         state = {}
-        for param in QC.qc_params.values():
+        for param in QC.qc_tools.qc_params.values():
             state[param.key] = State(
                 component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
             )
@@ -62,7 +63,7 @@ class PlotQC(DashAction):
 
     def setup_callbacks(self, app):
         state = {}
-        for param in QC.qc_params.values():
+        for param in QC.qc_tools.qc_params.values():
             state[param.key] = State(
                 component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
             )
@@ -205,7 +206,7 @@ class QCPage(DashPage):
                     id=f"{self.id}-{key}", type=param.input_type, value=param.value,
                     step=param.step if param.step != None else 0.1, className="param-input",
                 ),
-            ], className="param-row") for key, param in QC.qc_params.items()
+            ], className="param-row") for key, param in QC.qc_tools.qc_params.items()
         ]
 
     def _qc_params_layout(self):

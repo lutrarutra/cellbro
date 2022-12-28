@@ -1,6 +1,5 @@
 import dash_bootstrap_components as dbc
 import plotly.express as px
-import plotly.graph_objects as go
 import scanpy as sc
 from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
@@ -12,25 +11,9 @@ import cellbro.util.Components as Components
 from .UMAP import UMAP, SCVI_UMAP
 from .TSNE import TSNE
 from .Trimap import Trimap
+from . import prj_tools
 
 import scout
-
-projection_layout = go.Layout(
-    paper_bgcolor="white",
-    plot_bgcolor="white",
-    xaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=False),
-    yaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=False),
-    margin=dict(t=10, b=10, l=10, r=10),
-)
-
-# class ProjectionType(Enum):
-#     UMAP = "umap"
-#     TRIMAP = "trimap"
-#     TSNE = "tsne"
-#     MDE = "mde"
-#     SCVI_UMAP = "scvi_umap"
-    # SCVI_MDE = "scvi_mde"
-    # PCA = "PCA"
 
 class UpdateColorOptions(DashAction):
     def setup_callbacks(self, app):
@@ -50,7 +33,6 @@ class UpdateColorOptions(DashAction):
             color_options = self.dataset.get_obs_features(include_gene_lists=True)
             return color_options, next(iter(color_options), None)
             
-            
 
 class PlotProjection(DashAction):
     def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap):
@@ -60,7 +42,7 @@ class PlotProjection(DashAction):
 
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
-            layout=projection_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
+            layout=prj_tools.default_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
         )
         return fig
 

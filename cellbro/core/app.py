@@ -7,7 +7,7 @@ from dash import ALL, Dash, Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
 import cellbro.pages.home as home
-import cellbro.pages.cells as cells
+import cellbro.pages.CellsPage as CellsPage
 import cellbro.pages.DEPage as DEPage
 import cellbro.pages.QCPage as QCPage
 import cellbro.pages.PCAPage as PCAPage
@@ -46,7 +46,7 @@ class App:
         qc_page = QCPage.QCPage(self.dataset, order=1)
         qc_page.create()
 
-        cells_page = cells.CellsPage(self.dataset, order=2)
+        cells_page = CellsPage.CellsPage(self.dataset, order=2)
         cells_page.create()
 
         de_page = DEPage.DEPage(self.dataset, order=3)

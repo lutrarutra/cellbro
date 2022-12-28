@@ -5,16 +5,15 @@ from dash.exceptions import PreventUpdate
 
 import scout
 
-import cellbro.plots.DE as DE
 import cellbro.util.Components as Components
 from cellbro.util.DashAction import DashAction
 from cellbro.util.DashPage import DashPage
 
-from ..plots.DEVolcano import DEVolcano
+from ..plots import DE
 
 class PlotPvalHistogram(DashAction):
     def apply(self, params):
-        return [DE.plot_pval_histogram(dataset=self.dataset, params=params)]
+        return [DE.de_tools.plot_pval_histogram(dataset=self.dataset, params=params)]
 
     def setup_callbacks(self, app):
         outputs = [
@@ -51,7 +50,7 @@ class ApplyDE(DashAction):
             reference=State(component_id=f"{self.page_id_prefix}-reference", component_property="value")
         )
 
-        for param in DE.de_params.values():
+        for param in DE.de_tools.de_params.values():
             state[param.key] = State(
                 component_id=f"de-{param.key}", component_property="value"
             )
@@ -111,7 +110,7 @@ class ApplyDE(DashAction):
             )
         )
 
-        for key, param in DE.de_params.items():
+        for key, param in DE.de_tools.de_params.items():
             divs.append(
                 html.Div(
                     children=[
@@ -140,7 +139,7 @@ class DEPage(DashPage):
             plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset, page_id_prefix=self.id),
         )
         self.components.update(
-            main_figure=DEVolcano(dataset=self.dataset, page_id_prefix=self.id, loc_class="main"),
+            main_figure=DE.DEVolcano(dataset=self.dataset, page_id_prefix=self.id, loc_class="main"),
         )
 
     def create_layout(self):

@@ -3,11 +3,11 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
-from ..util.DashFigure import DashFigure
-from ..util.DashAction import DashAction
-from ..util import Components
-from . import DE
-from ..util.GeneListComponents import SelectGene, create_gene_card
+from ...util.DashFigure import DashFigure
+from ...util.DashAction import DashAction
+from ...util import Components
+from . import de_tools
+from ...util.GeneListComponents import SelectGene, create_gene_card
 
 import scout
 
@@ -19,7 +19,7 @@ class PlotVolcano(DashAction):
             reference = list(self.dataset.adata.uns[key].keys())[0]
 
         fig = scout.ply.marker_volcano(
-            self.dataset.adata.uns[key][reference], layout=DE.figure_layout
+            self.dataset.adata.uns[key][reference], layout=de_tools.figure_layout
         )
 
         return fig
@@ -58,7 +58,7 @@ class PlotVolcano(DashAction):
             
             # if ctx.triggered_id == f"{self.page_id_prefix}-{self.loc_class}-groupby":
             if groupby is not None:
-                ref_options = DE.get_reference_options(self.dataset, groupby)
+                ref_options = de_tools.get_reference_options(self.dataset, groupby)
             
             if reference is None:
                 reference = next(iter(ref_options), None)
@@ -81,7 +81,7 @@ class DEVolcano(DashFigure):
     def create_layout(self):
         groupby_options = self.dataset.get_rank_genes_groups()
         if len(groupby_options) > 0:
-            ref_options = DE.get_reference_options(self.dataset)
+            ref_options = de_tools.get_reference_options(self.dataset)
         else:
             ref_options = []
 

@@ -87,7 +87,6 @@ def plot_pval_histogram(dataset, params):
 def get_reference_options(dataset, groupby, target="Rest"):
     groupby = dataset.adata.uns.get(f"rank_genes_{groupby}", None)
 
-
     def _compare(a, b):
         if a < b:
             return -1
@@ -95,7 +94,6 @@ def get_reference_options(dataset, groupby, target="Rest"):
             return 1
 
         return 0
-
 
     def compare(item1, item2):
         x_words = item1.split(" vs. ")
