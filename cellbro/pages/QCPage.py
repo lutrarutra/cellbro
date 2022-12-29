@@ -93,7 +93,7 @@ class QCPage(DashPage):
         super().__init__("pages.qc", "QC", "qc", order)
         self.dataset = dataset
         self.actions.update(
-            filter=FilterAction(dataset, self.id),
+            filter=FilterAction(dataset, self.id, loc_class="static"),
             # perform_qc=PlotQC(dataset, self.id),
         )
         self.components.update(

@@ -4,6 +4,7 @@ import dash
 import dash_bootstrap_components as dbc
 
 from dash import ALL, Dash, Input, Output, State, dcc, html, ctx
+import plotly.graph_objects as go
 from dash.exceptions import PreventUpdate
 
 from ..pages.home import HomePage
@@ -51,22 +52,24 @@ class App:
         cells_page = CellsPage(self.dataset, order=2)
         cells_page.create()
 
-        de_page = DEPage(self.dataset, order=3)
-        de_page.create()
+        # de_page = DEPage(self.dataset, order=3)
+        # de_page.create()
 
-        gsea_page = GSEAPage(self.dataset, order=4)
-        gsea_page.create()
+        # gsea_page = GSEAPage(self.dataset, order=4)
+        # gsea_page.create()
 
-        pca_page = PCAPage(self.dataset, order=5)
-        pca_page.create()
+        # pca_page = PCAPage(self.dataset, order=5)
+        # pca_page.create()
 
-        scvi_page = SCVIPage(self.dataset, order=6)
-        scvi_page.create()
+        # scvi_page = SCVIPage(self.dataset, order=6)
+        # scvi_page.create()
 
-        genelist_popup = CreateGeneListPopup(page_id_prefix=None, dataset=self.dataset)
-        term_popup = AddGenesFromTermPopUp(page_id_prefix=None, dataset=self.dataset)
+        genelist_popup = CreateGeneListPopup(self.dataset)
+        term_popup = AddGenesFromTermPopUp("static", self.dataset)
 
-        # create_genes_page(self.dash_app, self.dataset)
+        # Fixes weird Plotly 'value error'-bug with first plot
+        _ = go.Figure(layout=dict(template='plotly'))
+
 
         self.dash_app.layout = html.Div(
             [
@@ -79,8 +82,10 @@ class App:
                         dcc.Store(id="gsea-store"),
                         dcc.Store(id="export-store"),
                         dcc.Store(id="import-store"),
+                        
                         genelist_popup.create_layout(),
                         term_popup.create_layout(),
+
                         html.Div(
                             id="left-sidebar-btn-container",
                             children=[dbc.Switch(id="left-sidebar-btn", value=self.left_sidebar_open)]
@@ -118,10 +123,11 @@ class App:
         home_page.setup_callbacks(self)
         qc_page.setup_callbacks(self)
         cells_page.setup_callbacks(self)
-        de_page.setup_callbacks(self)
-        gsea_page.setup_callbacks(self)
-        pca_page.setup_callbacks(self)
-        scvi_page.setup_callbacks(self)
+        # de_page.setup_callbacks(self)
+        # gsea_page.setup_callbacks(self)
+        # pca_page.setup_callbacks(self)
+        # scvi_page.setup_callbacks(self)
+
         genelist_popup.setup_callbacks(self)
         term_popup.setup_callbacks(self)
 
@@ -142,6 +148,7 @@ class App:
                 "nav-link active" if pathname == page["relative_path"] else "nav-link"
                 for page in dash.page_registry.values()
             ]
+
 
     def run(self):
         self.dash_app.run_server(debug=True, host="127.0.0.1")

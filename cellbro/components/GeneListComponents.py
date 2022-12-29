@@ -4,23 +4,22 @@ from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 
 from ..util.DashAction import DashAction
-from . import components
+from .DashComponent import DashComponent
 
 class SelectGene(DashAction):
     def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix)
-        self.loc_class = loc_class
+        super().__init__(dataset, page_id_prefix, loc_class)
 
     def apply(self, click_data):
         gene = click_data["points"][0]["hovertext"]
-        element = create_gene_card(gene, self.dataset)
+        element = create_gene_card(self.page_id_prefix, self.loc_class, gene, self.dataset)
         return element
 
     def setup_callbacks(self, app):
         outputs = Output(f"{self.page_id_prefix}-{self.loc_class}-genecard", "children")
-        inputs = {
-            "click_data": Input(f"{self.page_id_prefix}-{self.loc_class}-plot", "clickData"),
-        }
+        inputs = dict(
+            click_data=Input(f"{self.page_id_prefix}-{self.loc_class}-plot", "clickData"),
+        )
 
         @app.dash_app.callback(output=outputs, inputs=inputs)
         def _(click_data):
@@ -29,89 +28,106 @@ class SelectGene(DashAction):
             return self.apply(click_data)
 
 class CreateGeneListAction(DashAction):
+    def __init__(self, dataset, page_id_prefix, loc_class):
+        super().__init__(dataset, page_id_prefix, loc_class)
+        self.selected_gene_cid = dict(id="selected-gene", page_id=ALL, loc_class=ALL)
+        self.create_gene_list_btn_cid = dict(id="create-gene-list-button", page_id=ALL, loc_class=ALL)
+        self.select_gene_list_cid = dict(id="gene-list-dropdown", page_id=ALL, loc_class=ALL)
+
+    def create_new_list(self, name, selected_gene, available_list):
+        if name is None or name == "":
+            raise PreventUpdate
+        if name in self.dataset.get_gene_lists():
+            raise PreventUpdate
+
+        assert name not in self.dataset.adata.uns["gene_lists"].keys()
+        
+        assert len(selected_gene) == 1
+        selected_gene = next(iter(selected_gene), None)
+
+        assert selected_gene is not None
+
+        self.dataset.adata.uns["gene_lists"][name] = [selected_gene]
+
+        return [False, dict(update=True), None, available_list]
+
     def setup_callbacks(self, app):
         output = [
-            Output(f"genelist-popup", "is_open"),
-            Output(f"genelist-store", "data"),
-            Output(f"genelist-name", "value"),
-            Output("genelist-existing-lists", "children")
+            Output("genelist-popup", "is_open"),
+            Output("genelist-store", "data"),
+            Output("genelist-name", "value"),      # always returns None, just to clear it
+            Output("genelist-existing-lists", "children"),
         ]
         inputs = dict(
             submit=Input(f"genelist-popup-submit", "n_clicks"),
-            open=Input(dict(type="new-gene-list-button", index=ALL), "n_clicks"),
+            open=Input(self.create_gene_list_btn_cid, "n_clicks"),
             close=Input(f"genelist-popup-close", "n_clicks"),
         )
         state = dict(
             name=State(f"genelist-name", "value"),
             is_open=State(f"genelist-popup", "is_open"),
-            selected_gene=State(dict(type="selected-gene", index=ALL), "children")
+            selected_gene=State(self.selected_gene_cid, "children")
         )
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, open, close, name, is_open, selected_gene):
+            # When a gene is selected new button is created, this prevents to go further without pressing it
+            if all(v is None for v in open): raise PreventUpdate
+
             available_list = [dbc.ListGroupItem(name) for name in self.dataset.get_gene_lists()]
 
-            if ctx.triggered_id is None:
-                raise PreventUpdate
-
             if ctx.triggered_id == f"genelist-popup-close":
-                return [False, dict(), None, available_list]
-
-            if isinstance(ctx.triggered_id, dict):
-                for v in open:
-                    if v is not None:
-                        return [True, dict(), None, available_list]
-
-                return [False, dict(), None, available_list]
+                return [False, dash.no_update, None, dash.no_update]
 
             if ctx.triggered_id == f"genelist-popup-submit":
-                if name is None or name == "":
-                    raise PreventUpdate
-                if name in self.dataset.get_gene_lists():
-                    raise PreventUpdate
+                return self.create_new_list(name, selected_gene, available_list)
 
-                selected_gene = next(iter(selected_gene), None)
-                self.dataset.adata.uns["gene_lists"][name] = [selected_gene] if selected_gene is not None else []
-
-                return [False, dict(update=True, selected_gene=selected_gene), None, available_list]
+            return [True, dash.no_update, None, available_list]
 
 
-class NewGeneList(DashAction):
-    def __init__(self, dataset, page_id_prefix):
-        super().__init__(dataset, page_id_prefix)
+class UpdateGeneList(DashAction):
+    def __init__(self, dataset, page_id_prefix, loc_class):
+        super().__init__(dataset, page_id_prefix, loc_class)
+        self.selected_gene_cid = dict(id="selected-gene", page_id=self.page_id_prefix, loc_class=self.loc_class)
+        self.gene_list_dropdown_cid = dict(id="gene-list-dropdown", page_id=self.page_id_prefix, loc_class=self.loc_class)
 
     def setup_callbacks(self, app):
         output = [
-            Output(dict(type="gene-list-dropdown", index=ALL), "options"),
-            Output(dict(type="gene-list-dropdown", index=ALL), "value"),
+            Output(dict(id="gene-list-dropdown", page_id=self.page_id_prefix, loc_class=self.loc_class), "options"),
+            Output(dict(id="gene-list-dropdown", page_id=self.page_id_prefix, loc_class=self.loc_class), "value"),
         ]
         inputs = dict(
-            genelist_store=Input(f"genelist-store", "data")
+            genelist_store=Input(f"genelist-store", "data"),
+            selected_list=Input(self.gene_list_dropdown_cid, "value"),
         )
         state = dict(
-            dropdowns=State(dict(type="gene-list-dropdown", index=ALL), "id"),
+            selected_gene=State(self.selected_gene_cid, "children")
         )
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
-        def _(genelist_store, dropdowns):
-            if "update" not in genelist_store.keys():
+        def _(genelist_store, selected_list, selected_gene):
+            if ctx.triggered_id is None:
                 raise PreventUpdate
 
-            options = [self.dataset.get_gene_lists()] * len(dropdowns)
-            selected_gene = genelist_store["selected_gene"]
-            value = self.dataset.get_gene_lists(selected_gene) if selected_gene is not None else []
-            value = [value] * len(dropdowns)
+            options = self.dataset.get_gene_lists()
 
+            # if "update" in genelist_store.keys():
+            #     selected_gene = genelist_store["selected_gene"]
+
+            if ctx.triggered_id == self.gene_list_dropdown_cid:
+                self.dataset.update_gene_lists(selected_gene, selected_list)
+
+            value = self.dataset.get_gene_lists(selected_gene) if selected_gene is not None else []
             return options, value
 
 
-class CreateGeneListPopup(components.DashComponent):
-    def __init__(self, page_id_prefix, dataset):
-        super().__init__(page_id_prefix)
+class CreateGeneListPopup(DashComponent):
+    def __init__(self, dataset):
+        super().__init__("static")
         self.dataset = dataset
         self.actions.update(
-            create_gene_list=CreateGeneListAction(self.dataset, self.page_id_prefix),
-            new_gene_list=NewGeneList(self.dataset, self.page_id_prefix)
+            create_gene_list=CreateGeneListAction(self.dataset, self.page_id_prefix, loc_class="static"),
+            # add_gene_to_list=AddGeneToList(self.dataset, self.page_id_prefix),
         )
 
     def create_layout(self):
@@ -135,7 +151,7 @@ class CreateGeneListPopup(components.DashComponent):
                 ], className="param-row-stacked"),
                 # Dummy
                 html.Div([
-                    dbc.Button("Dummy", id=dict(type="new-gene-list-button", index=0)),
+                    dbc.Button("Dummy", id=dict(id="create-gene-list-button", page_id=self.page_id_prefix, loc_class="dummy")),
                 ], style={"display": "none"})
             ]),
             dbc.ModalFooter([
@@ -145,7 +161,7 @@ class CreateGeneListPopup(components.DashComponent):
         ])
 
 
-def create_gene_card(gene, dataset):
+def create_gene_card(page_id, loc_class, gene, dataset):
     if gene is None:
         return html.Div([
             html.H4("Select Gene by Clicking on a Point"),
@@ -164,7 +180,7 @@ def create_gene_card(gene, dataset):
     element = html.Div([
         html.Div([
             html.Label("Gene:"),
-            html.H3(gene, id=dict(type="selected-gene", index=0)),
+            html.H3(gene, id=dict(id="selected-gene", page_id=page_id, loc_class=loc_class)),
         ], className="hover-header", style=dict(width="120px")),
         html.Div([
             html.Div([
@@ -182,7 +198,7 @@ def create_gene_card(gene, dataset):
                 dcc.Dropdown(
                     options=gl_elements,
                     value=gl_chosen,
-                    id=dict(type="gene-list-dropdown", index=0),
+                    id=dict(id="gene-list-dropdown", page_id=page_id, loc_class=loc_class),
                     clearable=False,
                     placeholder="Select Gene List(s)",
                     multi=True,
@@ -191,7 +207,7 @@ def create_gene_card(gene, dataset):
             html.Div([
                 html.Label("New List"),
                 html.Div([
-                    dbc.Button("Create", id=dict(type="new-gene-list-button", index=0), color="primary")
+                    dbc.Button("Create", id=dict(id="create-gene-list-button", page_id=page_id, loc_class=loc_class), color="primary")
                 ]),
             ], className="param-row-stacked", style={"width": "100px"}),
         ], className="hover-body"),

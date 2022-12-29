@@ -90,7 +90,7 @@ class SCVIPage(DashPage):
         super().__init__("pages.scvi", "SCVI", "scvi", order)
         self.dataset = dataset
         self.actions.update(
-            fit=FitAction(self.dataset, self.id),
+            fit=FitAction(self.dataset, self.id, loc_class="static"),
         )
 
     def create_layout(self) -> list:

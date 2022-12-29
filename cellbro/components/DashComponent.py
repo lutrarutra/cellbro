@@ -13,3 +13,6 @@ class DashComponent(ABC):
     def setup_callbacks(self, app):
         for action in self.actions.values():
             action.setup_callbacks(app)
+
+    def get_stores(self):
+        return []

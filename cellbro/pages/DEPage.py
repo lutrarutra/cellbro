@@ -135,8 +135,8 @@ class DEPage(DashPage):
         super().__init__("pages.de", "DE", "de", order)
         self.dataset = dataset
         self.actions.update(
-            de_apply=ApplyDE(dataset=self.dataset, page_id_prefix=self.id),
-            plot_pval_histogram=PlotPvalHistogram(dataset=self.dataset, page_id_prefix=self.id),
+            de_apply=ApplyDE(self.dataset, self.id, loc_class="static"),
+            plot_pval_histogram=PlotPvalHistogram(self.dataset, self.id, "secondary"),
         )
         self.components.update(
             main_figure=DE.DEVolcano(dataset=self.dataset, page_id_prefix=self.id, loc_class="main"),

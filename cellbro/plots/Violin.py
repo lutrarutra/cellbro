@@ -4,10 +4,11 @@ from dash import Input, Output, State, dcc, html
 from ..components.DashFigure import DashFigure
 from ..util.DashAction import DashAction
 from ..components import components
+from ..components.DropDown import DropDown
 
 import scout
 
-violin_layout = go.Layout(
+default_layout = go.Layout(
     paper_bgcolor="white",
     plot_bgcolor="white",
     xaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=True),
@@ -17,7 +18,7 @@ violin_layout = go.Layout(
 
 class PlotViolin(DashAction):
     def plot(self, feature, groupby):
-        fig = scout.ply.violin(self.dataset.adata, y=feature, groupby=groupby, layout=violin_layout)
+        fig = scout.ply.violin(self.dataset.adata, y=feature, groupby=groupby, layout=default_layout)
         return [fig]
 
     def setup_callbacks(self, app):
@@ -39,46 +40,50 @@ class Violin(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
-            plot_violin=PlotViolin(dataset, self.page_id_prefix)
+            plot_violin=PlotViolin(dataset, self.page_id_prefix, self.loc_class)
         )
+
+        var_names = sorted(list(self.dataset.adata.var_names))
+        other = sorted(list(self.dataset.get_numeric()))
+        features = other + var_names
+        groupbys = self.dataset.get_categoric()
+
+        self.select_feature = DropDown(
+            self.page_id_prefix, id=f"{self.page_id_prefix}-violin-feature",
+            options=features, default=features[0],
+        )
+        self.select_groupby = DropDown(
+            self.page_id_prefix, id=f"{self.page_id_prefix}-violin-groupby",
+            options=groupbys, default=None, clearable=True
+        )
+        self.actions.update(self.select_feature.actions)
+        self.actions.update(self.select_groupby.actions)
 
     def create_layout(self) -> list:
-        var_names = [(f, f) for f in sorted(list(self.dataset.adata.var_names))]
-
-        other = [
-            (f, f.replace("_", " ").capitalize())
-            for f in sorted(list(self.dataset.get_numeric()))
-        ]
-
-        features = dict(other + var_names)
-
-        groupbys = dict(
-            [
-                (k, k.replace("_", " ").capitalize())
-                for k in self.dataset.get_categoric()
-            ]
-        )
-
         type_params = components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
             # Features
             html.Div([
                 html.Label("Feature"),
-                dcc.Dropdown(
-                    features,
-                    value=list(features.keys())[0],
-                    id=f"{self.page_id_prefix}-violin-feature",
-                    clearable=False,
-                )
+                self.select_feature.create_layout(),
+                self.select_feature.get_stores(),
+                # dcc.Dropdown(
+                #     features,
+                #     value=list(features.keys())[0],
+                #     id=f"{self.page_id_prefix}-violin-feature",
+                #     clearable=False,
+                # )
             ], className="param-row-stacked"),
             # Groupby select
             html.Div([
                 html.Label("Group By"),
-                dcc.Dropdown(
-                    groupbys,
-                    value=None,
-                    id=f"{self.page_id_prefix}-violin-groupby",
-                    clearable=True,
-                ),
+                self.select_groupby.create_layout(),
+                self.select_groupby.get_stores(),
+                # dcc.Dropdown(
+                #     groupbys,
+                #     value=None,
+                #     id=f"{self.page_id_prefix}-violin-groupby",
+                #     clearable=True,
+                # ),
             ], className="param-row-stacked")
         ])
 
@@ -90,21 +95,15 @@ class Violin(DashFigure):
                 html.Div(
                     children=figure_params.create_layout(), className="fig-header"
                 ),
-                html.Div(
-                    [
-                        dcc.Loading(
-                            type="circle",
-                            children=[
-                                html.Div(
-                                    dcc.Graph(
-                                        id=f"{self.page_id_prefix}-violin-plot", className="secondary-plot"
-                                    )
-                                )
-                            ],
+                html.Div([
+                    dcc.Loading(type="circle", children=[
+                        html.Div(
+                            dcc.Graph(
+                                id=f"{self.page_id_prefix}-violin-plot", className="secondary-plot"
+                            )
                         )
-                    ],
-                    className="secondary-body",
-                ),
+                    ])
+                ], className="secondary-body"),
             ],
             className="secondary",
         )

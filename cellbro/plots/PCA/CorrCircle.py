@@ -40,14 +40,14 @@ class CorrCircle(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
-            plot_correlation_circle=PlotCorrCircle(self.dataset, self.page_id_prefix),
+            plot_correlation_circle=PlotCorrCircle(self.dataset, self.page_id_prefix, self.loc_class),
             select_gene=SelectGene(self.dataset, self.page_id_prefix, self.loc_class),
         )
 
     def create_layout(self) -> list:
         select_gene_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
             id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
-            create_gene_card(None, self.dataset)
+            create_gene_card(self.page_id_prefix, self.loc_class, None, self.dataset)
         ])
 
         fig_header = components.FigureHeader(self.page_id_prefix, tabs=[select_gene_tab])

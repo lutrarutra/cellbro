@@ -62,7 +62,7 @@ class FigureHeader(DashComponent):
 
 class HideSidebar(DashAction):
     def __init__(self, page_id_prefix, id, btn_id, side: Literal["left", "right"]):
-        super().__init__(dataset=None, page_id_prefix=page_id_prefix)
+        super().__init__(dataset=None, page_id_prefix=page_id_prefix, loc_class="static")
         self.id = id
         self.btn_id = btn_id
         self.side = side
@@ -141,7 +141,7 @@ class Sidebar(DashComponent):
 
 class CollapseDiv(DashAction):
     def __init__(self, page_id_prefix, div_id, btn_id):
-        super().__init__(dataset=None, page_id_prefix=page_id_prefix)
+        super().__init__(dataset=None, page_id_prefix=page_id_prefix, loc_class="static")
         self.div_id = div_id
         self.btn_id = btn_id
 

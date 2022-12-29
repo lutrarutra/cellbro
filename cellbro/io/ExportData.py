@@ -1,9 +1,4 @@
-import functools, os
 from abc import ABC, abstractmethod
-
-import pickle
-import shutil
-import pandas as pd
 
 import dash
 from dash import Dash, html, dcc, Input, Output, State, ctx
@@ -17,7 +12,7 @@ import cellbro.io.FileFormat as ff
 
 class ExportData(DashAction, ABC):
     def __init__(self, dataset, id, filename_ph, page_id_prefix, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
-        DashAction.__init__(self, dataset, page_id_prefix)
+        DashAction.__init__(self, dataset, page_id_prefix, loc_class="static")
 
         self._id = id
         self.filename_ph = filename_ph

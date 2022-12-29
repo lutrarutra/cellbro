@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html, ctx, ALL
 
 from ..util.DashAction import DashAction
-from . import components
+from .DashComponent import DashComponent
 
 # class AddTermToList(DashAction):
 #     def __init__(self, dataset, page_id_prefix):
@@ -76,13 +76,13 @@ class UpdateTermPopup(DashAction):
             return [title, term_name, genes, genes, genelists]
 
 
-class AddGenesFromTermPopUp(components.DashComponent):
+class AddGenesFromTermPopUp(DashComponent):
     def __init__(self, page_id_prefix, dataset):
         super().__init__(page_id_prefix)
         self.dataset = dataset
         self.actions.update(
-            update_term_popup=UpdateTermPopup(dataset, page_id_prefix),
-            handle_popup=HandleTermPopup(dataset, page_id_prefix)
+            update_term_popup=UpdateTermPopup(dataset, page_id_prefix, loc_class="static"),
+            handle_popup=HandleTermPopup(dataset, page_id_prefix, loc_class="static")
         )
 
     def create_layout(self):
@@ -133,8 +133,7 @@ class AddGenesFromTermPopUp(components.DashComponent):
 
 class SelectTerm(DashAction):
     def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix)
-        self.loc_class = loc_class
+        super().__init__(dataset, page_id_prefix, loc_class)
 
     def apply(self, click_data, groupby, reference):
         term = click_data["points"][0]["hovertext"]

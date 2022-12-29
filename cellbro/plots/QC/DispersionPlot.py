@@ -4,7 +4,7 @@ from dash.exceptions import PreventUpdate
 from ...components.DashFigure import DashFigure
 from ...components import components
 from ...util.DashAction import DashAction
-from ...components.GeneListComponents import SelectGene, create_gene_card
+from ...components.GeneListComponents import SelectGene, create_gene_card, UpdateGeneList
 from .qc_tools import default_layout
 
 import scout
@@ -33,7 +33,8 @@ class DispersionPlot(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
-            select_gene=SelectGene(dataset, self.page_id_prefix, "secondary"),
+            select_gene=SelectGene(dataset, self.page_id_prefix, self.loc_class),
+            update_gene_list=UpdateGeneList(self.dataset, self.page_id_prefix, self.loc_class),
             plot=Plot(dataset, page_id_prefix, loc_class)
         )
 
@@ -41,9 +42,7 @@ class DispersionPlot(DashFigure):
 
         select_gene_tab = components.FigureHeaderTab(
             self.page_id_prefix, tab_label="Gene", id=f"{self.page_id_prefix}-{self.loc_class}-genecard",
-            children=[
-                create_gene_card(None, self.dataset)
-            ]
+            children=create_gene_card(self.page_id_prefix, self.loc_class, None, self.dataset)
         )
 
         figure_header = components.FigureHeader(

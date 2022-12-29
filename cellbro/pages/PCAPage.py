@@ -70,8 +70,8 @@ class ExplainVarExplainCorrFigures(DashFigure):
     def __init__(self, dataset, page_id_prefix, loc_class):
         super().__init__(dataset, page_id_prefix, loc_class)
         self.actions.update(
-            plot_var_explained=PlotVarExplained(self.dataset, self.page_id_prefix),
-            plot_corr_explained=PlotCorrExplained(self.dataset, self.page_id_prefix)
+            plot_var_explained=PlotVarExplained(self.dataset, self.page_id_prefix, self.loc_class),
+            plot_corr_explained=PlotCorrExplained(self.dataset, self.page_id_prefix,self. loc_class)
         )
 
     def get_sidebar_params(self) -> list:

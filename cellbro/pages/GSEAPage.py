@@ -190,7 +190,7 @@ class GSEAPage(DashPage):
         super().__init__("pages.gsea", "GSEA", "gsea", order)
         self.dataset = dataset
         self.actions.update(
-            list_available_refs=ListAvailableLRefs(dataset=self.dataset, page_id_prefix=self.id),
+            list_available_refs=ListAvailableLRefs(self.dataset, self.id, loc_class="static"),
         )
         self.components.update(
             main=GSEAVolcano(dataset, self.id, loc_class="main"),
@@ -198,10 +198,10 @@ class GSEAPage(DashPage):
             heatmap=Heatmap(dataset, self.id, loc_class="bottom")
         )
 
-        self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(dataset, self.id)
-        # TODO: Fix this
-        self.components["heatmap"].actions.pop("add_genes_from_list")
-        self.components["projection"].actions["plot_projection"] = PlotProjection(dataset, self.id)
+        # self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(dataset, self.id)
+        # # TODO: Fix this
+        # self.components["heatmap"].actions.pop("add_genes_from_list")
+        # self.components["projection"].actions["plot_projection"] = PlotProjection(dataset, self.id)
 
     def create_layout(self) -> list:
         self.components["left_sidebar"] = components.Sidebar(

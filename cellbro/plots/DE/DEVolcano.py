@@ -107,7 +107,7 @@ class DEVolcano(DashFigure):
 
         select_gene_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
             id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
-            create_gene_card(None, self.dataset)
+            create_gene_card(self.page_id_prefix, self.loc_class, None, self.dataset)
         ])
 
         fig_header = components.FigureHeader(self.page_id_prefix, tabs=[select_ref_tab, select_gene_tab])
