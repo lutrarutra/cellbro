@@ -326,6 +326,8 @@ h2 {
 .hover-links {
     display: flex;
     flex-direction: column;
+    height: 100%;
+    justify-content: center;
 }
 
 .long-dropdown {
@@ -335,13 +337,13 @@ h2 {
     overflow-y: scroll;
 }
 
-#gene-list-dropdown {
+#genelist-dropdown {
     display: flex;
     flex-direction: column;
     justify-items: flex-start;
 }
 
-#term-gene-list-dropdown {
+#term-genelist-dropdown {
     display: flex;
     flex-direction: column;
 }

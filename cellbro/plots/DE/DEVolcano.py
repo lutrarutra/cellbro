@@ -3,11 +3,12 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
-from ...components.DashFigure import DashFigure
+from ...components.DashPlot import DashPlot
 from ...util.DashAction import DashAction
 from ...components import components
+from ...components.CID import CID
+from ...components.GeneCard import GeneCard
 from . import de_tools
-from ...components.GeneListComponents import SelectGene, create_gene_card
 
 import scout
 
@@ -26,19 +27,19 @@ class PlotVolcano(DashAction):
 
     def setup_callbacks(self, app):
         outputs = [
-            Output(component_id=f"{self.page_id_prefix}-{self.loc_class}-plot", component_property="figure"),
-            Output(f"{self.page_id_prefix}-{self.loc_class}-groupby", "options"),
-            Output(f"{self.page_id_prefix}-{self.loc_class}-groupby", "value"),
-            Output(f"{self.page_id_prefix}-{self.loc_class}-reference", "options"),
-            Output(f"{self.page_id_prefix}-{self.loc_class}-reference", "value")
+            Output(component_id=f"{self.page_id}-{self.loc_class}-plot", component_property="figure"),
+            Output(f"{self.page_id}-{self.loc_class}-groupby", "options"),
+            Output(f"{self.page_id}-{self.loc_class}-groupby", "value"),
+            Output(f"{self.page_id}-{self.loc_class}-reference", "options"),
+            Output(f"{self.page_id}-{self.loc_class}-reference", "value")
         ]
         
         inputs = dict(
             groupby=Input(
-                component_id=f"{self.page_id_prefix}-{self.loc_class}-groupby", component_property="value"
+                component_id=f"{self.page_id}-{self.loc_class}-groupby", component_property="value"
             ),
             reference=Input(
-                component_id=f"{self.page_id_prefix}-{self.loc_class}-reference", component_property="value"
+                component_id=f"{self.page_id}-{self.loc_class}-reference", component_property="value"
             ),
             de_store=Input("de-store", "data")
         )
@@ -56,7 +57,7 @@ class PlotVolcano(DashAction):
             if groupby is None:
                 groupby = next(iter(groupby_options), None)
             
-            # if ctx.triggered_id == f"{self.page_id_prefix}-{self.loc_class}-groupby":
+            # if ctx.triggered_id == f"{self.page_id}-{self.loc_class}-groupby":
             if groupby is not None:
                 ref_options = de_tools.get_reference_options(self.dataset, groupby)
             
@@ -70,12 +71,15 @@ class PlotVolcano(DashAction):
             return fig, groupby_options, groupby, ref_options, reference
 
 
-class DEVolcano(DashFigure):
-    def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix, loc_class)
+class DEVolcano(DashPlot):
+    def __init__(self, dataset, page_id, loc_class):
+        super().__init__(dataset, page_id, loc_class)
         self.actions.update(
-            plot_projection=PlotVolcano(self.dataset, self.page_id_prefix, self.loc_class),
-            click_action=SelectGene(dataset=self.dataset, page_id_prefix=self.page_id_prefix, loc_class=self.loc_class),
+            plot_volcano=PlotVolcano(CID(self.page_id, self.loc_class, "plot_volcano_action"), self.dataset),
+            # click_action=SelectGene(dataset=self.dataset, page_id=self.page_id, loc_class=self.loc_class),
+        )
+        self.children.update(
+            gene_card=GeneCard(self.cid.page_id, self.cid.loc_class, self.dataset)
         )
 
     def create_layout(self):
@@ -85,32 +89,35 @@ class DEVolcano(DashFigure):
         else:
             ref_options = []
 
-        select_ref_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Reference", children=[
-            html.Div([
-                html.Label("Group By"),
-                dcc.Dropdown(
-                    options=groupby_options, value=next(iter(groupby_options), None),
-                    id=f"{self.page_id_prefix}-{self.loc_class}-groupby", clearable=False,
-                ),
-            ], className="param-row-stacked"),
-            # Projection Hue celect
-            html.Div([
-                html.Label("Reference"),
-                dcc.Dropdown(
-                    options=ref_options,
-                    value=next(iter(ref_options), None),
-                    id=f"{self.page_id_prefix}-{self.loc_class}-reference",
-                    clearable=False,
-                )
-            ], className="param-row-stacked")
-        ])
+        select_ref_tab = components.FigureHeaderTab(
+            self.page_id, self.loc_class, tab_label="Reference", children=[
+                html.Div([
+                    html.Label("Group By"),
+                    dcc.Dropdown(
+                        options=groupby_options, value=next(iter(groupby_options), None),
+                        id=f"{self.page_id}-{self.loc_class}-groupby", clearable=False,
+                    ),
+                ], className="param-row-stacked"),
+                # Projection Hue celect
+                html.Div([
+                    html.Label("Reference"),
+                    dcc.Dropdown(
+                        options=ref_options,
+                        value=next(iter(ref_options), None),
+                        id=f"{self.page_id}-{self.loc_class}-reference",
+                        clearable=False,
+                    )
+                ], className="param-row-stacked")
+            ]
+        )
 
-        select_gene_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Gene",
-            id=f"{self.page_id_prefix}-{self.loc_class}-genecard", children=[
-            create_gene_card(self.page_id_prefix, self.loc_class, None, self.dataset)
-        ])
+        select_gene_tab = components.FigureHeaderTab(
+            self.page_id, self.loc_class, tab_label="Gene",
+            id=f"{self.page_id}-{self.loc_class}-genecard",
+            children=self.children["gene_card"].create_layout()
+        )
 
-        fig_header = components.FigureHeader(self.page_id_prefix, tabs=[select_ref_tab, select_gene_tab])
+        fig_header = components.FigureHeader(self.page_id, self.loc_class, tabs=[select_ref_tab, select_gene_tab])
 
         figure = html.Div(
             children=[
@@ -123,7 +130,7 @@ class DEVolcano(DashFigure):
                             children=[
                                 html.Div(
                                     dcc.Graph(
-                                        id=f"{self.page_id_prefix}-{self.loc_class}-plot", className=f"{self.loc_class}-plot"
+                                        id=f"{self.page_id}-{self.loc_class}-plot", className=f"{self.loc_class}-plot"
                                     )
                                 )
                             ],

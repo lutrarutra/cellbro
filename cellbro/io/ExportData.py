@@ -11,10 +11,9 @@ import cellbro.io.FileFormat as ff
 
 
 class ExportData(DashAction, ABC):
-    def __init__(self, dataset, id, filename_ph, page_id_prefix, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
-        DashAction.__init__(self, dataset, page_id_prefix, loc_class="static")
+    def __init__(self, parent_cid, dataset, filename_ph, formats: list[ff.FileFormat] = [ff.CSV, ff.TSV, ff.Pickle]):
+        DashAction.__init__(self, parent_cid, dataset)
 
-        self._id = id
         self.filename_ph = filename_ph
         self.formats = formats
 
@@ -27,18 +26,19 @@ class ExportData(DashAction, ABC):
         ...
 
     def get_layout(self):
-        return dbc.Modal(id=f"{self._id}-modal", className="popup", is_open=False, children=[
+        _id = self.parent_cid.to_str()
+        return dbc.Modal(id=f"{_id}-modal", className="popup", is_open=False, children=[
             dcc.Loading(type="circle", children=[
                 dbc.ModalHeader(dbc.ModalTitle("Export")),
                 dbc.ModalBody(children=self._params_layout()),
                 dbc.ModalFooter(
                     html.Div([
                         dbc.Button(
-                            "Export", id=f"{self._id}-apply", color="primary"
+                            "Export", id=f"{_id}-apply", color="primary"
                         ),
-                        dcc.Download(id=f"{self._id}-export"),
+                        dcc.Download(id=f"{_id}-export"),
                         dbc.Button(
-                            "Cancel", id=f"{self._id}-close", color="danger"
+                            "Cancel", id=f"{_id}-close", color="danger"
                         )
                     ])
                 )

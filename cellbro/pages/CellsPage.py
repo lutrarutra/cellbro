@@ -5,8 +5,8 @@ import plotly.graph_objects as go
 from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
-from ..components import components
 from ..components.DashPage import DashPage
+from ..components.Sidebar import Sidebar
 from ..plots.Heatmap import Heatmap
 from ..plots.Violin import Violin
 from ..plots import projection as prj
@@ -18,26 +18,26 @@ class CellsPage(DashPage):
         super().__init__("pages.cells", "Cells", "cells", order)
         self.dataset = dataset
         self.components.update(
-            projection=prj.Projection(self.dataset, self.id, "main"),
-            violin=Violin(self.dataset, self.id, "secondary"),
-            heatmap=Heatmap(self.dataset, self.id, "bottom"),
+            projection=prj.Projection(self.dataset, self.page_id, "main"),
+            violin=Violin(self.dataset, self.page_id, "secondary"),
+            heatmap=Heatmap(self.dataset, self.page_id, "bottom"),
         )
 
     def create_layout(self) -> list:
-        self.components["left_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="top", side="left",
+        self.components["left_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="main",
             title="Projection Settings",
             params_children=self.components["projection"].get_sidebar_params(),
-            apply_btn_id=f"{self.id}-projection-submit", btn_text="Apply Projection"
+            create_btn=True, btn_text="Apply Projection"
         )
 
         main_figure = self.components["projection"].create_layout()
 
-        self.components["bot_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="bot", side="left",
+        self.components["bot_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="bottom",
             title="Heatmap Settings",
             params_children=self.components["heatmap"].get_sidebar_params(),
-            apply_btn_id=f"{self.id}-heatmap-submit", btn_text="Plot"
+            create_btn=True, btn_text="Plot"
         )
 
         bottom_figure = self.components["heatmap"].create_layout()

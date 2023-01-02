@@ -1,3 +1,5 @@
+from functools import namedtuple
+
 import dash
 from dash import Input, Output, State, dcc, html, ALL, ctx
 from dash.exceptions import PreventUpdate
@@ -5,9 +7,10 @@ import plotly.graph_objects as go
 
 from ..util.Param import Param, ParamsDict
 from ..components import components
-from ..components.DashFigure import DashFigure
+from ..components.DashPlot import DashPlot
 from ..util.DashAction import DashAction
 from ..components.DropDown import DropDown
+from ..components.CID import CID
 
 import scout
 
@@ -46,58 +49,67 @@ heatmap_params = ParamsDict(
     ]
 )
 
-class AddGenesFromList(DashAction):
-    def setup_callbacks(self, app):
-        output = Output(dict(
-            id="input-store", component_id=f"{self.page_id_prefix}-heatmap-selected_genes",
-        ), "data")
+# class AddGenesFromList(DashAction):
+#     def setup_callbacks(self, app):
+#         output = Output(dict(
+#             id="input-store", component_id=f"{self.page_id}-{self.loc_class}-param-genes",
+#         ), "data")
 
-        inputs = Input(f"{self.page_id_prefix}-heatmap-selected_genelists", "value")
+#         inputs = Input(f"{self.page_id}-{self.loc_class}-param-genelists", "value")
 
-        state = State(f"{self.page_id_prefix}-heatmap-selected_genes", "value")
+#         state = State(f"{self.page_id}-{self.loc_class}-param-genes", "value")
 
-        @app.dash_app.callback(output=output, inputs=inputs, state=state)
-        def _(selected_gene_lists, selected_genes):
-            if selected_gene_lists is None or selected_genes is None:
-                raise PreventUpdate
+#         @app.dash_app.callback(output=output, inputs=inputs, state=state)
+#         def _(selected_genelists, selected_genes):
+#             if selected_genelists is None or selected_genes is None:
+#                 raise PreventUpdate
 
-            if selected_genes is None:
-                selected_genes = []
+#             if selected_genes is None:
+#                 selected_genes = []
 
-            for gene_list in selected_gene_lists:
-                print(self.dataset.uns["gene_lists"])
-                selected_genes.extend(self.dataset.get_genes_from_list(gene_list))
+#             for genelist in selected_genelists:
+#                 selected_genes.extend(self.dataset.get_genes_from_list(genelist))
 
-            print(selected_gene_lists)
-            print(selected_genes)
-            raise PreventUpdate
-            return dict(value=list(set(selected_genes)))
+#             raise PreventUpdate
+#             return dict(value=list(set(selected_genes)))
 
 class EditGeneList(DashAction):
     def setup_callbacks(self, app):
         @app.dash_app.callback(
             output=Output(dict(
-                id="input-store", component_id=f"{self.page_id_prefix}-heatmap-selected_genelists",
+                id="input-store", component_id=f"{self.page_id}-heatmap-selected_genelists",
             ), "data"),
 
             inputs=Input("genelist-store", "data")
         )
         def _(genelist_store):
-            return dict(options=self.dataset.get_gene_lists())
+            return dict(options=self.dataset.get_genelists())
 
 class PlotHeatmap(DashAction):
-    def plot(self, params):
-        selected_genes = params.pop("selected_genes")
+    RType = namedtuple("RType", ["figure", "style", "button"])
 
-        if selected_genes and len(selected_genes) > 0:
-            selected_genes = selected_genes
-        else:
-            selected_genes = self.dataset.adata.var_names[:50].tolist()
+    def __init__(
+        self, parent_cid: CID, dataset,
+        select_genes_cid,
+        select_genelists_cid,
+        select_clusterby_cid,
+        select_categoricals_cid,
+        select_layer_cid,
+        select_colormap_cid,
+    ):
+        super().__init__(parent_cid, dataset)
+        self.select_genes_cid = select_genes_cid
+        self.select_genelists_cid = select_genelists_cid
+        self.select_clusterby_cid = select_clusterby_cid
+        self.select_categoricals_cid = select_categoricals_cid
+        self.select_layer_cid = select_layer_cid
+        self.select_colormap_cid = select_colormap_cid
 
+    def plot(self, selected_genes, cluster_cells_by, categoricals, layer, colormap):
         fig = scout.ply.heatmap(
-            adata=self.dataset.adata, var_names=selected_genes, categoricals=params["categoricals"],
-            layer=params["layer"], cluster_cells_by=params["cluster_cells_by"], layout=dict(),
-            cmap=params["colormap"],
+            adata=self.dataset.adata, var_names=selected_genes, categoricals=categoricals,
+            layer=layer, cluster_cells_by=cluster_cells_by, layout=dict(),
+            cmap=colormap,
         )
 
         style = {
@@ -108,88 +120,96 @@ class PlotHeatmap(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            Output(component_id=f"{self.page_id_prefix}-heatmap-plot", component_property="figure"),
-            Output(component_id=f"{self.page_id_prefix}-heatmap-plot", component_property="style"),
-            Output(f"{self.page_id_prefix}-heatmap-submit", "n_clicks"),
+            Output(self.parent_cid.to_dict(), "figure"),
+            Output(self.parent_cid.to_dict(), "style"),
+            Output(f"{self.page_id}-{self.loc_class}-sidebar-apply_btn", "n_clicks"),
         ]
 
         # Inputs to Projection
         inputs = dict(
-            submit=Input(f"{self.page_id_prefix}-heatmap-submit", "n_clicks"),
-            store=Input(dict(id="selected-store", component_id=ALL), "data"),
+            submit=Input(f"{self.page_id}-{self.loc_class}-sidebar-apply_btn", "n_clicks"),
+            selected_genes=State(self.select_genes_cid.to_dict(), "value"),
+            cluster_cells_by=State(self.select_clusterby_cid.to_dict(), "value"),
+            categoricals=State(self.select_categoricals_cid.to_dict(), "value"),
+            layer=State(self.select_layer_cid.to_dict(), "value"),
+            colormap=State(self.select_colormap_cid.to_dict(), "value"),
         )
-
-        state = dict(
-            selected_genes=State(f"{self.page_id_prefix}-heatmap-selected_genes", "value"),
-            cluster_cells_by=State(f"{self.page_id_prefix}-heatmap-cluster_cells_by", "value"),
-            categoricals=State(f"{self.page_id_prefix}-heatmap-selected_categoricals", "value"),
-        )
-
-        for key in heatmap_params.keys():
-            state[key] = State(component_id=f"{self.page_id_prefix}-heatmap-{key}", component_property="value")
             
 
-        @app.dash_app.callback(output=output, inputs=inputs, state=state)
-        def _(submit, store, **kwargs):
-            if submit is None or ctx.triggered_id == f"{self.page_id_prefix}-heatmap-submit":
-                if kwargs["selected_genes"] is None or len(kwargs["selected_genes"]) == 0:
-                    return dash.no_update, dash.no_update, 0
+        @app.dash_app.callback(output=output, inputs=inputs)
+        def _(submit, selected_genes, cluster_cells_by, categoricals, layer, colormap):
+            if submit is None or ctx.triggered_id == f"{self.page_id}-{self.loc_class}-sidebar-apply_btn":
+                if selected_genes is None or len(selected_genes) == 0:
+                    return self.RType(
+                        figure=dash.no_update, style=dash.no_update, button=0
+                    )
 
-                fig, style = self.plot(kwargs)
-                return fig, style, 0
+                fig, style = self.plot(selected_genes, cluster_cells_by, categoricals, layer, colormap)
+
+                return self.RType(
+                    figure=fig, style=style, button=0
+                )
 
             raise PreventUpdate
 
-class Heatmap(DashFigure):
-    def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix, loc_class)
+class Heatmap(DashPlot):
+    def __init__(self, dataset, page_id, loc_class):
+        super().__init__(dataset, page_id, loc_class)
 
         genes = sorted(self.dataset.adata.var_names.tolist())
-        gene_lists = sorted(self.dataset.get_gene_lists())
+        genelists = sorted(self.dataset.get_genelists())
         categoricals = self.dataset.get_categoric()
 
-        self.select_genes = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-heatmap-selected_genes",
-            options=genes, default=None, clearable=True,
-            placeholder="Select Genes", multi=True,
-            style={"width": "100%"}
-        )
-        self.select_genelist = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-heatmap-selected_genelists",
-            clearable=True, default=None, options=gene_lists,
-            placeholder="Select Gene Lists", multi=True,
-            style={"width": "100%"}
-        )
-        self.select_clusterby = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-heatmap-cluster_cells_by",
-            options=categoricals + ["barcode"], default=None, clearable=True,
-            placeholder="Select Categorical (Optional)",
-        )
-        self.select_categoricals = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-heatmap-selected_categoricals",
-            options=categoricals, default=next(iter(categoricals), None),
-            placeholder="Select Feature(s)", multi=True, clearable=True,
-            style={"width": "100%"}
-        )
-        self.select_layer = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-heatmap-layer",
-            options=heatmap_params["layer"].allowed_values, default=heatmap_params["layer"].default,
-        )
-        self.select_colormap = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-heatmap-colormap",
-            options=heatmap_params["colormap"].allowed_values, default=heatmap_params["colormap"].default,
+        self.children.update(
+            select_genes=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-genes"),
+                options=genes, default=None, clearable=True,
+                placeholder="Select Genes", multi=True,
+                style={"width": "100%"},
+                options_callback=lambda: sorted(self.dataset.adata.var_names.tolist())
+            ),
+            select_genelists=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-genelists"),
+                clearable=True, default=None, options=genelists,
+                placeholder="Select Gene Lists", multi=True,
+                style={"width": "100%"},
+                options_callback=lambda: sorted(self.dataset.get_genelists()),
+            ),
+            select_clusterby=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-cluster_cells_by"),
+                options=categoricals + ["barcode"], default=None, clearable=True,
+                placeholder="Select Categorical (Optional)",
+                options_callback=lambda: self.dataset.get_categoric() + ["barcode"],
+            ),
+            select_categoricals=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-categoricals"),
+                options=categoricals, default=next(iter(categoricals), None),
+                placeholder="Select Feature(s)", multi=True, clearable=True,
+                style={"width": "100%"},
+                options_callback=lambda: self.dataset.get_categoric(),
+            ),
+            select_layer=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-layer"),
+                options=heatmap_params["layer"].allowed_values, default=heatmap_params["layer"].default,
+            ),
+            select_colormap=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-colormap"),
+                options=heatmap_params["colormap"].allowed_values, default=heatmap_params["colormap"].default,
+            )
         )
 
-        self.actions.update(self.select_genes.actions)
-        self.actions.update(self.select_genelist.actions)
-        self.actions.update(self.select_clusterby.actions)
-        self.actions.update(self.select_categoricals.actions)
-        self.actions.update(self.select_layer.actions)
-        self.actions.update(self.select_colormap.actions)
         self.actions.update(
-            plot_heatmap=PlotHeatmap(dataset, self.page_id_prefix, self.loc_class),
-            add_genes_from_list=AddGenesFromList(dataset, self.page_id_prefix, self.loc_class),
-            edit_gene_list=EditGeneList(dataset, self.page_id_prefix, self.loc_class),
+            plot_heatmap=PlotHeatmap(
+                self.cid, dataset,
+                select_genes_cid=self.children["select_genes"].cid,
+                select_genelists_cid=self.children["select_genelists"].cid,
+                select_clusterby_cid=self.children["select_clusterby"].cid,
+                select_categoricals_cid=self.children["select_categoricals"].cid,
+                select_layer_cid=self.children["select_layer"].cid,
+                select_colormap_cid=self.children["select_colormap"].cid,
+            ),
+            # edit_genelist=EditGeneList(self.cid, dataset),
+            # add_genes_from_list=AddGenesFromList(CID(self.page_id, self.loc_class, "add_genes_from_list"), dataset),
         )
 
     def get_sidebar_params(self) -> list:
@@ -197,18 +217,18 @@ class Heatmap(DashFigure):
             html.Div([
                 html.Label("Show Genes",className="param-label"),
                 html.Div([
-                    self.select_genes.create_layout(),
-                    self.select_genes.get_stores(),
-                    self.select_genelist.create_layout(),
-                    self.select_genelist.get_stores(),
+                    self.children["select_genes"].create_layout(),
+                    self.children["select_genes"].get_stores(),
+                    self.children["select_genelists"].create_layout(),
+                    self.children["select_genelists"].get_stores(),
                 ], style={"display": "flex", "gap": "10px"})
             ], className="param-row-stacked"),
             html.Div(
                 children=[
                     html.Label("Cluster Group By", className="param-label"),
                     html.Div([
-                        self.select_clusterby.create_layout(),
-                        self.select_clusterby.get_stores(),
+                        self.children["select_clusterby"].create_layout(),
+                        self.children["select_clusterby"].get_stores(),
                     ], className="param-select"),
                 ],
                 className="param-row-stacked",
@@ -217,8 +237,8 @@ class Heatmap(DashFigure):
                 children=[
                     html.Label("Show Categorical Feature(s)", className="param-label"),
                     html.Div([
-                        self.select_categoricals.create_layout(),
-                        self.select_categoricals.get_stores(),
+                        self.children["select_categoricals"].create_layout(),
+                        self.children["select_categoricals"].get_stores(),
                     ], className="param-select"),
                 ],
                 className="param-row-stacked",
@@ -227,8 +247,8 @@ class Heatmap(DashFigure):
                 children=[
                     html.Label("Select Layer", className="param-label"),
                     html.Div([
-                        self.select_layer.create_layout(),
-                        self.select_layer.get_stores(),
+                        self.children["select_layer"].create_layout(),
+                        self.children["select_layer"].get_stores(),
                     ], className="param-select"),
                 ],
                 className="param-row-stacked",
@@ -237,14 +257,14 @@ class Heatmap(DashFigure):
                 children=[
                     html.Label("Select Colormap", className="param-label"),
                     html.Div([
-                        self.select_colormap.create_layout(),
-                        self.select_colormap.get_stores(),
+                        self.children["select_colormap"].create_layout(),
+                        self.children["select_colormap"].get_stores(),
                     ], className="param-select"),
                 ],
                 className="param-row-stacked",
             ),
         ]
-        # divs.extend(components.params_layout(heatmap_params, f"{self.page_id_prefix}-heatmap"))
+        # divs.extend(components.params_layout(heatmap_params, f"{self.page_id}-heatmap"))
 
 
         return divs
@@ -254,17 +274,12 @@ class Heatmap(DashFigure):
             children=[
                 html.Div(
                     [
-                        dcc.Loading(
-                            type="circle",
-                            children=[
-                                html.Div(
-                                    [
-                                        dcc.Graph(
-                                            id=f"{self.page_id_prefix}-heatmap-plot", className=f"{self.loc_class}-plot"
-                                        )
-                                    ],
-                                )
-                            ],
+                        dcc.Loading(type="circle", children=[
+                            html.Div([
+                                dcc.Graph(
+                                    id=self.cid.to_dict(), className=f"{self.loc_class}-plot"
+                                )],
+                            )]
                         )
                     ],
                     className=f"{self.loc_class}-body", id=f"heatmap-figure"

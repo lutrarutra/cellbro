@@ -6,14 +6,14 @@ import cellbro.components.components as components
 import cellbro.util.DashAction as DashAction
 
 class DashPage(ABC):
-    def __init__(self, module: str, title: str, id: str, order: int, path=None):
+    def __init__(self, module: str, title: str, page_id: str, order: int, path=None):
         self.module = module
         self.title = title
         self.order = order
-        self.id = id
+        self.page_id = page_id
         
         if path is None:
-            self.path = f"/{id}"
+            self.path = f"/{page_id}"
         else:
             self.path = path
 
@@ -26,11 +26,12 @@ class DashPage(ABC):
         ...
 
     def setup_callbacks(self, app):
+        for key, sidebar in self.components.items():
+            sidebar.setup_callbacks(app)
+            
         for key, action in self.actions.items():
             action.setup_callbacks(app)
 
-        for key, sidebar in self.components.items():
-            sidebar.setup_callbacks(app)
 
     def create(self):
         dash.register_page(

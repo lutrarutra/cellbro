@@ -40,38 +40,38 @@ class FitAction(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            Output(f"{self.page_id_prefix}-projection-plot", "figure"),
-            Output(f"{self.page_id_prefix}-projection-plot-type", "options"),
-            Output(component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"),
+            Output(f"{self.page_id}-projection-plot", "figure"),
+            Output(f"{self.page_id}-projection-plot-type", "options"),
+            Output(component_id=f"{self.page_id}-projection-plot-type", component_property="value"),
         ]
         inputs = {
-            "submit": Input(f"{self.page_id_prefix}-fit-submit", "n_clicks"),
+            "submit": Input(f"{self.page_id}-fit-submit", "n_clicks"),
             "color": Input(
-                component_id=f"{self.page_id_prefix}-projection-color", component_property="value"
+                component_id=f"{self.page_id}-projection-color", component_property="value"
             ),
             "obsm_layer": Input(
-                component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"
+                component_id=f"{self.page_id}-projection-plot-type", component_property="value"
             ),
         }
         state = {
-            "setup_continuous_covariate_keys": Input(f"{self.page_id_prefix}-continuous_covariate_keys", "value"),
-            "setup_categorical_covariate_keys": Input(f"{self.page_id_prefix}-categorical_covariate_keys", "value"),
-            "setup_batch_key": Input(f"{self.page_id_prefix}-batch_key", "value"),
+            "setup_continuous_covariate_keys": Input(f"{self.page_id}-continuous_covariate_keys", "value"),
+            "setup_categorical_covariate_keys": Input(f"{self.page_id}-categorical_covariate_keys", "value"),
+            "setup_batch_key": Input(f"{self.page_id}-batch_key", "value"),
         }
         for key, param in SCVI.scvi_model_params.items():
-            state[f"model_{param.key}"] = State(f"{self.page_id_prefix}-model-{param.key}", "value")
+            state[f"model_{param.key}"] = State(f"{self.page_id}-model-{param.key}", "value")
 
         for key, param in SCVI.scvi_train_params.items():
-            state[f"train_{param.key}"] = State(f"{self.page_id_prefix}-train-{param.key}", "value")
+            state[f"train_{param.key}"] = State(f"{self.page_id}-train-{param.key}", "value")
 
         for key in SCVI_UMAP._params.keys():
             state[f"scvi_umap_{key}"] = State(
-                component_id=f"{self.page_id_prefix}-projection-scvi_umap-{key}", component_property="value"
+                component_id=f"{self.page_id}-projection-scvi_umap-{key}", component_property="value"
             )
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, color, obsm_layer, **kwargs):
-            if ctx.triggered_id == f"{self.page_id_prefix}-fit-submit":
+            if ctx.triggered_id == f"{self.page_id}-fit-submit":
                 self.apply(params=kwargs)
                 obsm_layer = self.apply_projection(params=kwargs)
 
@@ -98,7 +98,7 @@ class SCVIPage(DashPage):
         conts = self.dataset.get_numeric()
 
         self.components["param-collapse-setup"] = components.CollapsibleDiv(
-            page_id_prefix=self.id,
+            page_id=self.id,
             div_id=f"{self.id}-param-collapse-setup",
             collapse_btn_id=f"{self.id}-btn-param-collapse-setup",
             children=[
@@ -130,7 +130,7 @@ class SCVIPage(DashPage):
         )
 
         self.components["param-collapse-scvi_model"] = components.CollapsibleDiv(
-            page_id_prefix=self.id,
+            page_id=self.id,
             div_id=f"{self.id}-param-collapse-scvi_model",
             collapse_btn_id=f"{self.id}-btn-param-collapse-scvi_model",
             children=components.params_layout(
@@ -138,7 +138,7 @@ class SCVIPage(DashPage):
         )
         
         self.components["param-collapse-scvi_train"] = components.CollapsibleDiv(
-            page_id_prefix=self.id,
+            page_id=self.id,
             div_id=f"{self.id}-param-collapse-scvi_train",
             collapse_btn_id=f"{self.id}-btn-param-collapse-scvi_train",
             children=components.params_layout(
@@ -146,20 +146,20 @@ class SCVIPage(DashPage):
         )
 
         self.components["param-collapse-scvi_umap"] = components.CollapsibleDiv(
-            page_id_prefix=self.id,
+            page_id=self.id,
             div_id=f"{self.id}-param-collapse-scvi_umap",
             collapse_btn_id=f"{self.id}-btn-param-collapse-scvi_umap",
             children=SCVI_UMAP.get_layout(self.id),
         )
 
         self.components["left_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="top", side="left",
+            page_id=self.id, row="top", side="left",
             title="SCVI Settings", params_children=self._params_layout(),
             apply_btn_id=f"{self.id}-fit-submit", btn_text="Fit SCVI"
         )
 
         self.components["bot_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="bot", side="left",
+            page_id=self.id, row="bot", side="left",
             title="Empty", params_children=[],
             apply_btn_id=None, btn_text="Fit SCVI"
         )

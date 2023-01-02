@@ -5,10 +5,11 @@ from dash import Input, Output, State, dcc, html, ctx, ALL
 
 from ..util.DashAction import DashAction
 from .DashComponent import DashComponent
+from ..components.CID import CID
 
 # class AddTermToList(DashAction):
-#     def __init__(self, dataset, page_id_prefix):
-#         super().__init__(dataset, page_id_prefix)
+#     def __init__(self, dataset, page_id):
+#         super().__init__(dataset, page_id)
 
 #     def setup_callbacks(self, app):
 
@@ -17,16 +18,14 @@ class HandleTermPopup(DashAction):
         output = Output("termlist-popup", "is_open")
 
         inputs = dict(
-            open=Input(dict(type="add-term-to-gene-list", index=ALL), "n_clicks"),
+            open=Input(dict(type="add-term-to-genelist", index=ALL), "n_clicks"),
             close=Input(f"termlist-popup-close", "n_clicks"),
             submit=Input("termlist-popup-new-genelist", "n_clicks"),
-        )
-        state = dict(
             name=State("termlist-genelist-name", "value"),
             genes=State("termlist-genes", "value")
         )
 
-        @app.dash_app.callback(output=output, inputs=inputs, state=state)
+        @app.dash_app.callback(output=output, inputs=inputs)
         def _(open, close, submit, name, genes):
             if ctx.triggered_id is None:
                 return False
@@ -40,10 +39,10 @@ class HandleTermPopup(DashAction):
                         return True
             
             if submit:
-                if name in self.dataset.adata.uns["gene_lists"].keys():
+                if name in self.dataset.adata.uns["genelists"].keys():
                     return True
                 else:
-                    self.dataset.adata.uns["gene_lists"][name] = genes
+                    self.dataset.adata.uns["genelists"][name] = genes
                 
             return False
 
@@ -71,22 +70,22 @@ class UpdateTermPopup(DashAction):
             term_name = store["term_name"]
 
             title = f"{gene_set_name}: {term_name}"
-            genelists = self.dataset.get_gene_lists()
+            genelists = self.dataset.get_genelists()
             #enabled = term_name in genelists
             return [title, term_name, genes, genes, genelists]
 
 
 class AddGenesFromTermPopUp(DashComponent):
-    def __init__(self, page_id_prefix, dataset):
-        super().__init__(page_id_prefix)
+    def __init__(self, dataset):
+        super().__init__("static", "static", "add_genes_from_term_popup")
         self.dataset = dataset
         self.actions.update(
-            update_term_popup=UpdateTermPopup(dataset, page_id_prefix, loc_class="static"),
-            handle_popup=HandleTermPopup(dataset, page_id_prefix, loc_class="static")
+            update_term_popup=UpdateTermPopup(CID(self.page_id, self.loc_class, "update_term_popup"), dataset),
+            handle_popup=HandleTermPopup(CID(self.page_id, self.loc_class, "handle_popup"), dataset)
         )
 
     def create_layout(self):
-        lists = self.dataset.get_gene_lists()
+        lists = self.dataset.get_genelists()
 
         return dbc.Modal(id=f"termlist-popup", is_open=False, children=[
             dbc.ModalHeader("Term: ", id="termlist-popup-term-title"),
@@ -132,8 +131,8 @@ class AddGenesFromTermPopUp(DashComponent):
         ])
 
 class SelectTerm(DashAction):
-    def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix, loc_class)
+    def __init__(self, cid: CID, dataset):
+        super().__init__(cid, dataset)
 
     def apply(self, click_data, groupby, reference):
         term = click_data["points"][0]["hovertext"]
@@ -146,15 +145,15 @@ class SelectTerm(DashAction):
 
     def setup_callbacks(self, app):
         outputs = [
-            Output(f"{self.page_id_prefix}-{self.loc_class}-termcard", "children"),
+            Output(f"{self.page_id}-{self.loc_class}-termcard", "children"),
             Output("term-store", "data")
         ]
         inputs = dict(
-            click_data=Input(f"{self.page_id_prefix}-{self.loc_class}-plot", "clickData"),
+            click_data=Input(f"{self.page_id}-{self.loc_class}-plot", "clickData"),
         )
         state = dict(
-            groupby=State(component_id=f"{self.page_id_prefix}-{self.loc_class}-groupby", component_property="value"),
-            reference=State(component_id=f"{self.page_id_prefix}-{self.loc_class}-reference", component_property="value"),
+            groupby=State(component_id=f"{self.page_id}-{self.loc_class}-groupby", component_property="value"),
+            reference=State(component_id=f"{self.page_id}-{self.loc_class}-reference", component_property="value"),
         )
 
         @app.dash_app.callback(output=outputs, inputs=inputs, state=state)
@@ -194,7 +193,7 @@ def create_term_card(term_name, gene_set_name, genes):
                 dcc.Dropdown(
                     options=genes,
                     value=genes,
-                    id=dict(type="term-gene-list-dropdown", index=0),
+                    id=dict(type="term-genelist-dropdown", index=0),
                     clearable=False,
                     placeholder="Select Gene List(s)",
                     multi=True,
@@ -203,7 +202,7 @@ def create_term_card(term_name, gene_set_name, genes):
             html.Div([
                 html.Label("Add to Gene List"),
                 html.Div([
-                    dbc.Button("Add", id=dict(type="add-term-to-gene-list", index=0), color="primary", style=dict(width="100%"))
+                    dbc.Button("Add", id=dict(type="add-term-to-genelist", index=0), color="primary", style=dict(width="100%"))
                 ]),
             ], className="param-row-stacked", style={"width": "120px"}),
         ], className="hover-body"),

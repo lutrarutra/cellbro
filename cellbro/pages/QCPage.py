@@ -7,10 +7,9 @@ from dash.exceptions import PreventUpdate
 
 from ..components.DashPage import DashPage
 from ..util.DashAction import DashAction
-from ..components import components
-
-
+from ..components.Sidebar import Sidebar
 from ..plots import QC
+from ..components.CID import CID, LocClass
 
 class FilterAction(DashAction):
     def apply(self, params):
@@ -31,99 +30,55 @@ class FilterAction(DashAction):
         output = []
         for param in QC.qc_tools.qc_params.values():
             output.append(
-                Output(component_id=f"{self.page_id_prefix}-{param.key}", component_property="value")
+                Output(f"{self.page_id}-{param.key}", "value")
             )
 
-        inputs = {
-            "submit": Input(
-                component_id=f"{self.page_id_prefix}-filtering-submit", component_property="n_clicks"
-            )
-        }
-        state = {}
+        inputs = dict(
+            submit=Input(f"{self.page_id}-main-sidebar-apply_btn", "n_clicks"),
+        )
+
         for param in QC.qc_tools.qc_params.values():
-            state[param.key] = State(
-                component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
-            )
+            inputs[param.key] = State(f"{self.page_id}-{param.key}", "value")
 
-        @app.dash_app.callback(output=output, inputs=inputs, state=state)
+        @app.dash_app.callback(output=output, inputs=inputs)
         def _(**kwargs):
             return self.apply(params=kwargs)
 
-
-# class PlotQC(DashAction):
-#     def apply(self):
-#         if not "pct_counts_mt" in self.dataset.adata.obs.columns:
-#             QC.apply_mt_qc(self.dataset)
-
-#         if not "cv2" in self.dataset.adata.var.columns or not "mu" in self.dataset.adata.var.columns:
-#             QC.apply_dispersion_qc(self.dataset)
-
-#     def plot(self, params):
-#         return QC.plot(self.dataset, params)
-
-#     def setup_callbacks(self, app):
-#         state = {}
-#         for param in QC.qc_tools.qc_params.values():
-#             state[param.key] = State(
-#                 component_id=f"{self.page_id_prefix}-{param.key}", component_property="value"
-#             )
-
-#         @app.dash_app.callback(
-#             output=[
-#                 Output(component_id=f"{self.page_id_prefix}-main-plot", component_property="figure"),
-#                 Output(component_id=f"{self.page_id_prefix}-secondary-plot", component_property="figure"),
-#                 Output(component_id=f"{self.page_id_prefix}-bottom-plot", component_property="figure"),
-#             ],
-#             inputs=dict(submit=Input(f"{self.page_id_prefix}-apply-btn", "n_clicks")),
-#             state=state
-#         )
-#         def _(submit, **kwargs):
-#             if submit:
-#                 self.apply()
-#                 return self.plot(params=kwargs)
-
-#             if self.dataset.qc_done():
-#                 return self.plot(params=kwargs)
-
-#             raise PreventUpdate
-            # return [{"display": "block"}, {"display": "none"}, None, None, None]
 
 class QCPage(DashPage):
     def __init__(self, dataset, order):
         super().__init__("pages.qc", "QC", "qc", order)
         self.dataset = dataset
         self.actions.update(
-            filter=FilterAction(dataset, self.id, loc_class="static"),
-            # perform_qc=PlotQC(dataset, self.id),
+            filter=FilterAction(CID(self.page_id, LocClass.static, "filter_action"), dataset),
         )
         self.components.update(
-            main_figure=QC.MTPlot(self.dataset, self.id, "main"),
-            secondary_figure=QC.DispersionPlot(self.dataset, self.id, "secondary"),
-            bot_figure=QC.QCViolins(self.dataset, self.id, "bottom"),
+            main_figure=QC.MTPlot(self.dataset, self.page_id, "main"),
+            secondary_figure=QC.DispersionPlot(self.dataset, self.page_id, "secondary"),
+            bot_figure=QC.QCViolins(self.dataset, self.page_id, "bottom"),
         )
 
     def create_layout(self):
 
-        self.components["left_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="top", side="left",
+        self.components["left_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="main",
             title="Quality Control Parameters",
             params_children=self._filter_params_layout(),
-            apply_btn_id=f"{self.id}-filtering-submit", btn_text="Filter"
+            create_btn=True, btn_text="Filter"
         )
 
         # Something smarter
-        self.components["right_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="top", side="right",
+        self.components["right_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="secondary",
             title="Quality Control Parameters",
             params_children=self._qc_params_layout(),
-            apply_btn_id=f"{self.id}-apply-btn", btn_text="Filter"
+            create_btn=True, btn_text="Filter"
         )
 
-        self.components["bot_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="bot", side="left",
+        self.components["bot_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="bottom",
             title="Quality Control Violin Plots",
             params_children=[],
-            apply_btn_id=None, btn_text="Filter"
         )
 
         layout = [
@@ -152,7 +107,7 @@ class QCPage(DashPage):
                     param.name, className="param-label",
                 ),
                 dcc.Input(
-                    id=f"{self.id}-{key}", type=param.input_type, value=param.value,
+                    id=f"{self.page_id}-{key}", type=param.input_type, value=param.value,
                     step=param.step if param.step != None else 0.1, className="param-input",
                 ),
             ], className="param-row") for key, param in QC.qc_tools.qc_params.items()

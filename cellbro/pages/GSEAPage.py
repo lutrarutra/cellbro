@@ -1,3 +1,5 @@
+from functools import namedtuple
+
 import dash
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
@@ -5,23 +7,24 @@ from dash import Input, Output, State, dcc, html, ctx
 
 from ..util.DashAction import DashAction
 from ..components.DashPage import DashPage
-from ..components import components
 from ..plots.Heatmap import Heatmap, heatmap_params
 from ..plots import projection as prj
 from ..plots.GSEA.GSEAVolcano import GSEAVolcano
+from ..components.CID import CID
+from ..components.Sidebar import Sidebar
 
 import scout
 
 class ListAvailableLRefs(DashAction):
     def setup_callbacks(self, app):
         output = [
-            Output(component_id=f"{self.page_id_prefix}-gsea-groupby", component_property="options"),
-            Output(component_id=f"{self.page_id_prefix}-gsea-groupby", component_property="value"),
-            Output(component_id=f"{self.page_id_prefix}-gsea-reference", component_property="options"),
-            Output(component_id=f"{self.page_id_prefix}-gsea-reference", component_property="value"),
+            Output(component_id=f"{self.page_id}-gsea-groupby", component_property="options"),
+            Output(component_id=f"{self.page_id}-gsea-groupby", component_property="value"),
+            Output(component_id=f"{self.page_id}-gsea-reference", component_property="options"),
+            Output(component_id=f"{self.page_id}-gsea-reference", component_property="value"),
         ]
         inputs = {
-            "groupby": Input(component_id=f"{self.page_id_prefix}-gsea-groupby", component_property="value"),
+            "groupby": Input(component_id=f"{self.page_id}-gsea-groupby", component_property="value"),
         }
 
         @app.dash_app.callback(output=output, inputs=inputs)
@@ -42,40 +45,42 @@ class ListAvailableLRefs(DashAction):
 
 
 class PlotHeatmap(DashAction):
+    RType = namedtuple("RType", ["figure", "style"])
+
     def setup_callbacks(self, app):
         output = [
-            Output(component_id=f"{self.page_id_prefix}-heatmap-selected_genes", component_property="value"),
-            Output(f"{self.page_id_prefix}-heatmap-cluster_cells_by", "value"),
-            Output(component_id=f"{self.page_id_prefix}-heatmap-plot", component_property="figure"),
-            Output(component_id=f"{self.page_id_prefix}-heatmap-plot", component_property="style"),
+            # Output(f"{self.page_id}-{self.loc_class}-param-genes", "value"),
+            # Output(f"{self.page_id}-{self.loc_class}-param-cluster_cells_by", "value"),
+            Output(f"{self.page_id}-heatmap-plot", "figure"),
+            Output(f"{self.page_id}-heatmap-plot", "style"),
         ]
 
         # Inputs to Projection
         inputs = dict(
-            submit=Input(f"{self.page_id_prefix}-heatmap-submit", "n_clicks"),
-            click_data=Input(f"{self.page_id_prefix}-main-plot", "clickData"),
-            gsea_groupby = State(component_id=f"{self.page_id_prefix}-main-groupby", component_property="value"),
-            gsea_reference = State(component_id=f"{self.page_id_prefix}-main-reference", component_property="value"),
+            submit=Input(f"{self.page_id}-{self.loc_class}-sidebar-apply_btn", "n_clicks"),
+            click_data=Input(f"{self.page_id}-main-plot", "clickData"),
+            gsea_groupby = Input(f"{self.page_id}-main-groupby", "value"),
+            gsea_reference = Input(f"{self.page_id}-main-reference", "value"),
         )
 
         state = dict(
-            selected_genes=State(f"{self.page_id_prefix}-heatmap-selected_genes", "value"),
-            cluster_cells_by=State(f"{self.page_id_prefix}-heatmap-cluster_cells_by", "value"),
-            categoricals=State(f"{self.page_id_prefix}-heatmap-selected_categoricals", "value")
-
+            selected_genes=State(f"{self.page_id}-{self.loc_class}-param-genes", "value"),
+            cluster_cells_by=State(f"{self.page_id}-{self.loc_class}-param-cluster_cells_by", "value"),
+            categoricals=State(f"{self.page_id}-{self.loc_class}-param-categoricals", "value")
         )
         for key in heatmap_params.keys():
-            state[key] = State(component_id=f"{self.page_id_prefix}-heatmap-{key}", component_property="value")
+            state[key] = State(f"{self.page_id}-{self.loc_class}-param-{key}", "value")
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, click_data, **kwargs):
+            print(ctx.triggered_id)
             if click_data is None:
                 raise PreventUpdate
             
             selected_genes = kwargs["selected_genes"]
             cluster_cells_by = kwargs["cluster_cells_by"]
 
-            if ctx.triggered_id == f"{self.page_id_prefix}-main-plot":
+            if ctx.triggered_id == f"{self.page_id}-main-plot":
                 cluster_cells_by = kwargs["gsea_groupby"]
                 reference = kwargs["gsea_reference"]
 
@@ -88,7 +93,12 @@ class PlotHeatmap(DashAction):
 
             fig, style = Heatmap.Heatmap.plot(self.dataset, kwargs)
 
-            return [selected_genes, cluster_cells_by, fig, style]
+            return self.RType(
+                # selected_genes=selected_genes,
+                # cluster_cells_by=cluster_cells_by,
+                figure=fig,
+                style=style
+            )
 
 class PlotProjection(DashAction):
     def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap, **kwargs):
@@ -112,58 +122,40 @@ class PlotProjection(DashAction):
 
     def setup_callbacks(self, app):
         outputs = [
-            Output(component_id=f"{self.page_id_prefix}-projection-plot", component_property="figure"),
-            Output(f"{self.page_id_prefix}-projection-plot-type", "options"),
-            Output(component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"),
+            Output(f"{self.page_id}-projection-plot", "figure"),
+            Output(f"{self.page_id}-{self.loc_class}-select-projection_type", "options"),
+            Output(f"{self.page_id}-{self.loc_class}-select-projection_type", "value"),
         ]
 
-        inputs = {
-            "projection_submit": Input(
-                component_id=f"{self.page_id_prefix}-projection-submit", component_property="n_clicks"
-            ),
-            "color": Input(
-                component_id=f"{self.page_id_prefix}-projection-color", component_property="value"
-            ),
-            "obsm_layer": Input(
-                component_id=f"{self.page_id_prefix}-projection-plot-type", component_property="value"
-            ),
-            "continuous_cmap": Input(
-                component_id=f"{self.page_id_prefix}-projection-continuous_cmap", component_property="value"
-            ),
-            "discrete_cmap": Input(
-                component_id=f"{self.page_id_prefix}-projection-discrete_cmap", component_property="value"
-            ),
-            "click_data": Input(f"{self.page_id_prefix}-main-plot", "clickData"),
-        }
+        inputs = dict(
+            submit=Input(f"{self.page_id}-main-sidebar-apply_btn", "n_clicks"),
+            color=Input(f"{self.page_id}-{self.loc_class}-select-color", "value"),
+            obsm_layer=Input(f"{self.page_id}-{self.loc_class}-select-projection_type", "value"),
+            continuous_cmap=Input(f"{self.page_id}-{self.loc_class}-select-continuous_cmap", "value"),
+            discrete_cmap=Input(f"{self.page_id}-{self.loc_class}-select-discrete_cmap", "value"),
+            click_data=Input(f"{self.page_id}-main-plot", "clickData"),
+        )
 
         state = dict(
-            projection_type=State(component_id=f"{self.page_id_prefix}-projection-type-select", component_property="value"),
-            gsea_groupby=State(component_id=f"{self.page_id_prefix}-main-groupby", component_property="value"),
-            gsea_reference=State(component_id=f"{self.page_id_prefix}-main-reference", component_property="value"),
+            projection_type=State(f"{self.page_id}-{self.loc_class}-type-select", "value"),
+            gsea_groupby=State(f"{self.page_id}-{self.loc_class}-groupby", "value"),
+            gsea_reference=State(f"{self.page_id}-{self.loc_class}-reference", "value"),
         )
         for key in prj.UMAP._params.keys():
-            state[f"umap_{key}"] = State(
-                component_id=f"{self.page_id_prefix}-projection-umap-{key}", component_property="value"
-            )
+            state[f"umap_{key}"] = State(f"{self.page_id}-projection-umap-{key}", "value")
 
         for key in prj.SCVI_UMAP._params.keys():
-            state[f"scvi_umap_{key}"] = State(
-                component_id=f"{self.page_id_prefix}-projection-scvi_umap-{key}", component_property="value"
-            )
+            state[f"scvi_umap_{key}"] = State(f"{self.page_id}-projection-scvi_umap-{key}", "value")
 
         for key in prj.TSNE._params.keys():
-            state[f"tsne_{key}"] = State(
-                component_id=f"{self.page_id_prefix}-projection-tsne-{key}", component_property="value"
-            )
+            state[f"tsne_{key}"] = State(f"{self.page_id}-projection-tsne-{key}", "value")
 
         for key in prj.Trimap._params.keys():
-            state[f"trimap_{key}"] = State(
-                component_id=f"{self.page_id_prefix}-projection-trimap-{key}", component_property="value"
-            )
+            state[f"trimap_{key}"] = State(f"{self.page_id}-projection-trimap-{key}", "value")
 
         @app.dash_app.callback(output=outputs, inputs=inputs, state=state)
-        def _(projection_submit, color, obsm_layer, projection_type, continuous_cmap, discrete_cmap, click_data, **kwargs):
-            if ctx.triggered_id == f"{self.page_id_prefix}-projection-submit":
+        def _(submit, color, obsm_layer, projection_type, continuous_cmap, discrete_cmap, click_data, **kwargs):
+            if ctx.triggered_id == f"{self.page_id}-projection-submit":
                 if projection_submit is not None:
                     obsm_layer = self.apply(projection_type, params=kwargs)
 
@@ -190,40 +182,37 @@ class GSEAPage(DashPage):
         super().__init__("pages.gsea", "GSEA", "gsea", order)
         self.dataset = dataset
         self.actions.update(
-            list_available_refs=ListAvailableLRefs(self.dataset, self.id, loc_class="static"),
+            # list_available_refs=ListAvailableLRefs(CID(self.page_id, "static", "list_available_refs"), self.dataset),
         )
         self.components.update(
-            main=GSEAVolcano(dataset, self.id, loc_class="main"),
-            projection=prj.Projection(dataset, self.id, loc_class="secondary"),
-            heatmap=Heatmap(dataset, self.id, loc_class="bottom")
+            main=GSEAVolcano(dataset, self.page_id, loc_class="main"),
+            projection=prj.Projection(dataset, self.page_id, loc_class="secondary"),
+            heatmap=Heatmap(dataset, self.page_id, loc_class="bottom")
         )
 
-        # self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(dataset, self.id)
+        self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(CID(self.page_id, "bottom", "plot_heatmap"), self.dataset)
         # # TODO: Fix this
-        # self.components["heatmap"].actions.pop("add_genes_from_list")
-        # self.components["projection"].actions["plot_projection"] = PlotProjection(dataset, self.id)
+        # self.components["heatmap"].actions.pop("edit_genelist")
+        self.components["projection"].actions["plot_projection"] = PlotProjection(CID(self.page_id, "secondary", "plot_projection"), dataset)
 
     def create_layout(self) -> list:
-        self.components["left_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, apply_btn_id=f"{self.id}-submit",
-            title="Gene Set Enrichment Settings",
-            params_children=self.components["main"].get_sidebar_params(),
-            row="top", side="left",
+        self.components["left_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="main",
+            create_btn=True, title="Gene Set Enrichment Settings",
+            params_children=self.components["main"].get_sidebar_params()
         )
 
-        self.components["right_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, apply_btn_id=f"{self.id}-projection-submit",
-            title="Projection Settings",
+        self.components["right_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="secondary",
+            create_btn=True, title="Projection Settings",
             params_children=self.components["projection"].get_sidebar_params(),
-            row="top", side="right",
         )
         secondary_figure = self.components["projection"].create_layout()
         
-        self.components["bot_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="bot", side="left",
-            title="Heatmap Settings",
+        self.components["bot_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="bottom",
+            title="Heatmap Settings", create_btn=True, btn_text="Plot",
             params_children=self.components["heatmap"].get_sidebar_params(),
-            apply_btn_id=f"{self.id}-heatmap-submit", btn_text="Plot"
         )
         
         bot_figure = self.components["heatmap"].create_layout()

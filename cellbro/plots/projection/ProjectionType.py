@@ -48,17 +48,17 @@ class ProjectionType(ABC):
     #     return rerun
 
     @classmethod
-    def get_layout(cls, page_id_prefix):
+    def get_layout(cls, page_id):
         divs = []
         for key, param in cls.get_params().items():
             if param.type == bool:
                 inp = dbc.Switch(
-                    id=f"{page_id_prefix}-projection-{cls.get_key()}-{key}",
+                    id=f"{page_id}-projection-{cls.get_key()}-{key}",
                     value=param.default,
                 )
             else:
                 inp = dbc.Input(
-                    id=f"{page_id_prefix}-projection-{cls.get_key()}-{key}",
+                    id=f"{page_id}-projection-{cls.get_key()}-{key}",
                     type=param.input_type,
                     value=param.value,
                     step=param.step if param.step != None else 0.1,

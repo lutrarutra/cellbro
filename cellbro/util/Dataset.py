@@ -21,8 +21,8 @@ class Dataset:
 
         self.adata.obs["barcode"] = pd.Categorical(self.adata.obs_names)
 
-        if "gene_lists" not in self.adata.uns.keys():
-            self.adata.uns["gene_lists"] = {}
+        if "genelists" not in self.adata.uns.keys():
+            self.adata.uns["genelists"] = {}
 
         self.adata.uns["scvi_setup_params"] = {}
         self.adata.uns["scvi_model_params"] = {}
@@ -67,12 +67,12 @@ class Dataset:
             - set(self.adata.obs._get_numeric_data().columns) - set(["barcode"])
         )
 
-    def get_obs_features(self, include_gene_lists=False):
+    def get_obs_features(self, include_genelists=False):
         res = sorted(list(self.adata.obs_keys()))
         
-        if include_gene_lists:
-            for gene_list in self.get_gene_lists():
-                res.append(f"Gene List: {gene_list}")
+        if include_genelists:
+            for genelist in self.get_genelists():
+                res.append(f"Gene List: {genelist}")
 
         res.extend(sorted(list(self.adata.var_names)))
 
@@ -88,31 +88,31 @@ class Dataset:
     def get_neighbors(self):
         return [key for key in self.adata.uns_keys() if "neighbors" in key]
 
-    def get_gene_lists(self, gene=None):
-        if "gene_lists" not in self.adata.uns.keys():
+    def get_genelists(self, gene=None):
+        if "genelists" not in self.adata.uns.keys():
             return []
         if gene is None:
-            return list(self.adata.uns["gene_lists"].keys())
+            return list(self.adata.uns["genelists"].keys())
 
         return [
             gl
-            for gl in self.adata.uns["gene_lists"].keys()
-            if gene in self.adata.uns["gene_lists"][gl]
+            for gl in self.adata.uns["genelists"].keys()
+            if gene in self.adata.uns["genelists"][gl]
         ]
 
-    def get_genes_from_list(self, gene_list):
-        return self.adata.uns["gene_lists"][gene_list]
+    def get_genes_from_list(self, genelist):
+        return self.adata.uns["genelists"][genelist]
 
-    def update_gene_lists(self, gene, gene_lists):
-        for gl_key in self.get_gene_lists():
-            if gl_key in gene_lists:
-                if gene not in self.adata.uns["gene_lists"][gl_key]:
-                    self.adata.uns["gene_lists"][gl_key].append(gene)
+    def update_genelists(self, gene, genelists):
+        for gl_key in self.get_genelists():
+            if gl_key in genelists:
+                if gene not in self.adata.uns["genelists"][gl_key]:
+                    self.adata.uns["genelists"][gl_key].append(gene)
             else:
-                if gene in self.adata.uns["gene_lists"][gl_key]:
-                    self.adata.uns["gene_lists"][gl_key].remove(gene)
+                if gene in self.adata.uns["genelists"][gl_key]:
+                    self.adata.uns["genelists"][gl_key].remove(gene)
 
-        return self.get_gene_lists(gene)
+        return self.get_genelists(gene)
 
     def get_rank_genes_groups(self):
         return sorted([key[11:] for key in self.adata.uns_keys() if "rank_genes_" in key])

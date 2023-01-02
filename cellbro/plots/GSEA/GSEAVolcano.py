@@ -5,10 +5,11 @@ from dash import Input, Output, State, dcc, html, ctx
 
 import gseapy
 
-from ...components.DashFigure import DashFigure
+from ...components.DashPlot import DashPlot
 from ...util.DashAction import DashAction
 from ...components import components
 from ...components import TermComponents
+from ...components.CID import CID
 
 import scout
 
@@ -30,27 +31,27 @@ class ApplyGSEA(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            Output(component_id=f"{self.page_id_prefix}-{self.loc_class}-plot", component_property="figure"),
-            Output(component_id=f"{self.page_id_prefix}-{self.loc_class}-groupby", component_property="options"),
-            Output(component_id=f"{self.page_id_prefix}-{self.loc_class}-groupby", component_property="value"),
-            Output(component_id=f"{self.page_id_prefix}-{self.loc_class}-reference", component_property="options"),
-            Output(component_id=f"{self.page_id_prefix}-{self.loc_class}-reference", component_property="value")
+            Output(f"{self.page_id}-{self.loc_class}-plot", "figure"),
+            Output(f"{self.page_id}-{self.loc_class}-groupby", "options"),
+            Output(f"{self.page_id}-{self.loc_class}-groupby", "value"),
+            Output(f"{self.page_id}-{self.loc_class}-reference", "options"),
+            Output(f"{self.page_id}-{self.loc_class}-reference", "value")
         ]
         inputs = dict(
-            submit=Input(component_id=f"{self.page_id_prefix}-submit", component_property="n_clicks"),
-            groupby=State(component_id=f"{self.page_id_prefix}-{self.loc_class}-groupby", component_property="value"),
-            reference=State(component_id=f"{self.page_id_prefix}-{self.loc_class}-reference", component_property="value"),
+            submit=Input(f"{self.page_id}-{self.loc_class}-sidebar-apply_btn", "n_clicks"),
+            groupby=State(f"{self.page_id}-{self.loc_class}-groupby", "value"),
+            reference=State(f"{self.page_id}-{self.loc_class}-reference", "value"),
         )
 
         state = dict(
-            de_groupby=State(component_id=f"{self.page_id_prefix}-gsea-groupby", component_property="value"),
-            de_reference=State(component_id=f"{self.page_id_prefix}-gsea-reference", component_property="value"),
-            de_gene_set=State(component_id=f"{self.page_id_prefix}-gsea-gene_set", component_property="value"),
+            de_groupby=State(f"{self.page_id}-gsea-groupby", "value"),
+            de_reference=State(f"{self.page_id}-gsea-reference", "value"),
+            de_gene_set=State(f"{self.page_id}-gsea-gene_set", "value"),
         )
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, groupby, reference, de_groupby, de_reference, de_gene_set):
-            if ctx.triggered_id == f"{self.page_id_prefix}-submit":
+            if ctx.triggered_id == f"{self.page_id}-{self.loc_class}-sidebar-apply_btn":
                 if submit is not None:
                     self.apply(de_groupby, de_reference, de_gene_set)
                     groupby = de_groupby
@@ -79,21 +80,21 @@ class ApplyGSEA(DashAction):
 
 
 
-class GSEAVolcano(DashFigure):
-    def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix, loc_class)
+class GSEAVolcano(DashPlot):
+    def __init__(self, dataset, page_id, loc_class):
+        super().__init__(dataset, page_id, loc_class)
         self.actions.update(
-            apply_gsea=ApplyGSEA(dataset, page_id_prefix, loc_class),
-            select_term=TermComponents.SelectTerm(dataset, page_id_prefix, loc_class),
+            apply_gsea=ApplyGSEA(CID(page_id, loc_class, "apply_gsea"), dataset),
+            select_term=TermComponents.SelectTerm(CID(page_id, loc_class, "select_term"), dataset),
         )
 
     def create_layout(self):
-        select_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Select", children=[
+        select_tab = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Select", children=[
             html.Div([
                 html.Label("Group By"),
                 dcc.Dropdown(
                     options=[], value=None,
-                    id=f"{self.page_id_prefix}-{self.loc_class}-groupby", clearable=False,
+                    id=f"{self.page_id}-{self.loc_class}-groupby", clearable=False,
                 ),
             ], className="param-row-stacked"),
             # Projection Hue celect
@@ -101,20 +102,20 @@ class GSEAVolcano(DashFigure):
                 html.Label("Color"),
                 dcc.Dropdown(
                     options=[], value=None,
-                    id=f"{self.page_id_prefix}-{self.loc_class}-reference",
+                    id=f"{self.page_id}-{self.loc_class}-reference",
                     clearable=False,
                 )
             ], className="param-row-stacked")
         ])
 
         term_tab = components.FigureHeaderTab(
-            self.page_id_prefix, tab_label="Term", id=f"{self.page_id_prefix}-{self.loc_class}-termcard",
+            self.page_id, self.loc_class, tab_label="Term", id=f"{self.page_id}-{self.loc_class}-termcard",
             children=[
                 TermComponents.create_term_card(None, None, None)
             ]
         )
 
-        header = components.FigureHeader(self.page_id_prefix, tabs=[select_tab, term_tab])
+        header = components.FigureHeader(self.page_id, self.loc_class, tabs=[select_tab, term_tab])
 
         figure = html.Div(
             children=[
@@ -125,7 +126,7 @@ class GSEAVolcano(DashFigure):
                         dcc.Loading(type="circle", children=[
                             html.Div(
                                 dcc.Graph(
-                                    id=f"{self.page_id_prefix}-{self.loc_class}-plot", className=f"{self.loc_class}-plot"
+                                    id=f"{self.page_id}-{self.loc_class}-plot", className=f"{self.loc_class}-plot"
                                 )
                             )],
                         )
@@ -156,7 +157,7 @@ class GSEAVolcano(DashFigure):
                             dcc.Dropdown(
                                 options=rank_genes_groups,
                                 value=next(iter(rank_genes_groups), None),
-                                id=f"{self.page_id_prefix}-gsea-groupby", clearable=False,
+                                id=f"{self.page_id}-gsea-groupby", clearable=False,
                             ),
                          ],
                         className="param-select",
@@ -172,7 +173,7 @@ class GSEAVolcano(DashFigure):
                             dcc.Dropdown(
                                 options=gsea_refs,
                                 value=next(iter(gsea_refs), None),
-                                id=f"{self.page_id_prefix}-gsea-reference", clearable=False,
+                                id=f"{self.page_id}-gsea-reference", clearable=False,
                             ),
                         ],
                         className="param-select",
@@ -188,7 +189,7 @@ class GSEAVolcano(DashFigure):
                             dcc.Dropdown(
                                 options=gene_sets,
                                 value=default_gene_set,
-                                id=f"{self.page_id_prefix}-gsea-gene_set", clearable=False,
+                                id=f"{self.page_id}-gsea-gene_set", clearable=False,
                             ),
                         ],
                         className="param-select",

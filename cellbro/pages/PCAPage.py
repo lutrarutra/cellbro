@@ -10,7 +10,7 @@ from ..util.DashAction import DashAction
 from ..plots.PCA.CorrCircle import CorrCircle
 from ..plots import projection as prj
 from ..plots import PCA
-from ..components.DashFigure import DashFigure
+from ..components.DashPlot import DashPlot
 
 import scout
 
@@ -26,15 +26,15 @@ class PlotVarExplained(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            Output(component_id=f"{self.page_id_prefix}-var-plot", component_property="figure")
+            Output(component_id=f"{self.page_id}-var-plot", component_property="figure")
         ]
 
         inputs = {
             "plot_type": Input(
-                component_id=f"{self.page_id_prefix}-hist-plot_type", component_property="value"
+                component_id=f"{self.page_id}-hist-plot_type", component_property="value"
             ),
             "n_pcs": Input(
-                component_id=f"{self.page_id_prefix}-hist-n_pcs", component_property="value"
+                component_id=f"{self.page_id}-hist-n_pcs", component_property="value"
             )
         }
 
@@ -53,12 +53,12 @@ class PlotCorrExplained(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            Output(component_id=f"{self.page_id_prefix}-corr-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id}-corr-plot", component_property="figure"),
         ]
 
         inputs = {
             "n_pcs": Input(
-                component_id=f"{self.page_id_prefix}-hist-n_pcs", component_property="value"
+                component_id=f"{self.page_id}-hist-n_pcs", component_property="value"
             )
         }
 
@@ -66,12 +66,12 @@ class PlotCorrExplained(DashAction):
         def _(n_pcs):
             return [self.plot(n_pcs)]
 
-class ExplainVarExplainCorrFigures(DashFigure):
-    def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix, loc_class)
+class ExplainVarExplainCorrFigures(DashPlot):
+    def __init__(self, dataset, page_id, loc_class):
+        super().__init__(dataset, page_id, loc_class)
         self.actions.update(
-            plot_var_explained=PlotVarExplained(self.dataset, self.page_id_prefix, self.loc_class),
-            plot_corr_explained=PlotCorrExplained(self.dataset, self.page_id_prefix,self. loc_class)
+            plot_var_explained=PlotVarExplained(self.dataset, self.page_id, self.loc_class),
+            plot_corr_explained=PlotCorrExplained(self.dataset, self.page_id,self. loc_class)
         )
 
     def get_sidebar_params(self) -> list:
@@ -82,7 +82,7 @@ class ExplainVarExplainCorrFigures(DashFigure):
                     dcc.Dropdown(
                         ["Bar", "Line", "Area", "Cumulative"],
                         value="Cumulative",
-                        id=f"{self.page_id_prefix}-hist-plot_type",
+                        id=f"{self.page_id}-hist-plot_type",
                         clearable=False,
                     ),
                 ],
@@ -92,7 +92,7 @@ class ExplainVarExplainCorrFigures(DashFigure):
                 children=[
                     html.Label("Num. Components"),
                     dcc.Input(
-                        id=f"{self.page_id_prefix}-hist-n_pcs", type="number", value=30, min=2, step=1,
+                        id=f"{self.page_id}-hist-n_pcs", type="number", value=30, min=2, step=1,
                         max=self.dataset.adata.uns["pca"]["variance_ratio"].shape[0] + 1,
                         className="param-input",
                     ),
@@ -108,7 +108,7 @@ class ExplainVarExplainCorrFigures(DashFigure):
                     type="circle",
                     children=[
                         html.Div(
-                            dcc.Graph(id=f"{self.page_id_prefix}-var-plot",className=f"{self.loc_class}-left-plot")
+                            dcc.Graph(id=f"{self.page_id}-var-plot",className=f"{self.loc_class}-left-plot")
                         )
                     ],
                 ),
@@ -116,7 +116,7 @@ class ExplainVarExplainCorrFigures(DashFigure):
                     type="circle",
                     children=[
                         html.Div(
-                            dcc.Graph(id=f"{self.page_id_prefix}-corr-plot", className=f"{self.loc_class}-right-plot")
+                            dcc.Graph(id=f"{self.page_id}-corr-plot", className=f"{self.loc_class}-right-plot")
                         )
                     ],
                 ),
@@ -138,14 +138,14 @@ class PCAPage(DashPage):
 
     def create_layout(self) -> list:
         self.components["left_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="top", side="left",
+            page_id=self.id, row="top", side="left",
             title="PCA Projection Settings",
             params_children=self.components["pca_figure"].get_sidebar_params(),
             apply_btn_id=None, btn_text="Plot"
         )
 
         self.components["bot_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, row="bot", side="left",
+            page_id=self.id, row="bot", side="left",
             title="PCA Plots",
             params_children=self.components["bottom_figure"].get_sidebar_params(),
             apply_btn_id=None, btn_text="Plot"

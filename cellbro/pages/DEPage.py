@@ -5,9 +5,11 @@ from dash.exceptions import PreventUpdate
 
 import scout
 
-from ..components import components
 from ..util.DashAction import DashAction
 from ..components.DashPage import DashPage
+from ..components.CID import CID
+from ..components.Sidebar import Sidebar
+from ..components import components
 
 from ..plots import DE
 
@@ -17,14 +19,14 @@ class PlotPvalHistogram(DashAction):
 
     def setup_callbacks(self, app):
         outputs = [
-            Output(component_id=f"{self.page_id_prefix}-de-secondary-plot", component_property="figure"),
+            Output(component_id=f"{self.page_id}-de-secondary-plot", component_property="figure"),
         ]
         inputs = {
             "groupby": Input(
-                component_id=f"{self.page_id_prefix}-main-groupby", component_property="value"
+                component_id=f"{self.page_id}-main-groupby", component_property="value"
             ),
             "reference": Input(
-                component_id=f"{self.page_id_prefix}-main-reference", component_property="value"
+                component_id=f"{self.page_id}-main-reference", component_property="value"
             ),
         }
 
@@ -43,17 +45,15 @@ class ApplyDE(DashAction):
     def setup_callbacks(self, app):
         output = Output("de-store", "data")
 
-        inputs = dict(submit=Input(component_id=f"{self.page_id_prefix}-submit", component_property="n_clicks"))
+        inputs = dict(submit=Input(f"{self.page_id}-main-sidebar-apply_btn", "n_clicks"))
 
         state = dict(
-            groupby=State(component_id=f"{self.page_id_prefix}-groupby", component_property="value"),
-            reference=State(component_id=f"{self.page_id_prefix}-reference", component_property="value")
+            groupby=State(f"{self.page_id}-groupby", "value"),
+            reference=State(f"{self.page_id}-reference", "value")
         )
 
         for param in DE.de_tools.de_params.values():
-            state[param.key] = State(
-                component_id=f"de-{param.key}", component_property="value"
-            )
+            state[param.key] = State(f"de-{param.key}", "value")
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, groupby, reference, **kwargs):
@@ -63,9 +63,9 @@ class ApplyDE(DashAction):
             return self.apply(groupby, reference, params=kwargs)
 
         # Update References
-        output = Output(f"{self.page_id_prefix}-reference", "options")
+        output = Output(f"{self.page_id}-reference", "options")
         inputs = dict(
-            groupby=Input(f"{self.page_id_prefix}-groupby", "value"),
+            groupby=Input(f"{self.page_id}-groupby", "value"),
         )
 
         @app.dash_app.callback(output=output, inputs=inputs)
@@ -89,7 +89,7 @@ class ApplyDE(DashAction):
                 children=[
                     html.Label("Group By", className="param-label",),
                     html.Div([
-                        dcc.Dropdown(options=cats, value=cats[0], id=f"{self.page_id_prefix}-groupby", clearable=False)
+                        dcc.Dropdown(options=cats, value=cats[0], id=f"{self.page_id}-groupby", clearable=False)
                     ], className="param-select"),
                 ],
                 className="param-row-stacked",
@@ -102,7 +102,7 @@ class ApplyDE(DashAction):
                     html.Label("Reference", className="param-label"),
                     html.Div([
                         dcc.Dropdown(
-                            options=["rest"], value="rest", id=f"{self.page_id_prefix}-reference", clearable=False
+                            options=["rest"], value="rest", id=f"{self.page_id}-reference", clearable=False
                         )
                     ], className="param-select"),
                 ],
@@ -117,7 +117,7 @@ class ApplyDE(DashAction):
                         html.Label(param.name, className="param-label",),
                         html.Div([
                             dcc.Dropdown(
-                                id=f"{self.page_id_prefix}-{key}", value=param.default, options=param.allowed_values,
+                                id=f"{self.page_id}-{key}", value=param.default, options=param.allowed_values,
                                 clearable=False,
                             )
                         ], className="param-select"),
@@ -135,35 +135,34 @@ class DEPage(DashPage):
         super().__init__("pages.de", "DE", "de", order)
         self.dataset = dataset
         self.actions.update(
-            de_apply=ApplyDE(self.dataset, self.id, loc_class="static"),
-            plot_pval_histogram=PlotPvalHistogram(self.dataset, self.id, "secondary"),
+            de_apply=ApplyDE(CID(self.page_id, "static", "de_apply"), self.dataset),
+            plot_pval_histogram=PlotPvalHistogram(CID(self.page_id, "secondary", "de_apply"), self.dataset),
         )
         self.components.update(
-            main_figure=DE.DEVolcano(dataset=self.dataset, page_id_prefix=self.id, loc_class="main"),
+            main_figure=DE.DEVolcano(dataset=self.dataset, page_id=self.page_id, loc_class="main"),
         )
 
     def create_layout(self):
-        self.components["top_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id, apply_btn_id=f"{self.id}-submit",
-            title="Differential Expression Settings",
+        self.components["top_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="main",
+            title="Differential Expression Settings", create_btn=True,
             params_children=self.actions["de_apply"].get_sidebar_params(),
-            row="top", side="left",
         )
 
-        plot_type_params = components.FigureHeaderTab(self.id, tab_label="Type", children=[
+        plot_type_params = components.FigureHeaderTab(self.page_id, "secondary", tab_label="Type", children=[
             # Volcano Group By Select
             html.Div([
                 html.Label("Plot Type"),
                 dcc.Dropdown(
                     options={"pval_histogram": "P-Value Histogram"},
                     value="pval_histogram",
-                    id=f"{self.id}-secondary-type",
+                    id=f"{self.page_id}-secondary-type",
                     clearable=False,
                 ),
             ], className="param-row-stacked")
         ])
 
-        figure_params = components.FigureHeader(self.id, tabs=[plot_type_params])
+        figure_params = components.FigureHeader(self.page_id, "secondary", tabs=[plot_type_params])
 
         secondary = html.Div(
             children=[
@@ -175,24 +174,24 @@ class DEPage(DashPage):
                             children=[
                                 html.Div(
                                     dcc.Graph(
-                                        id=f"{self.id}-de-secondary-plot",
+                                        id=f"{self.page_id}-de-secondary-plot",
                                         className="secondary-plot",
                                     )
                                 )
                             ],
                         )
                     ],
-                    id=f"{self.id}-de-secondary-body",
+                    id=f"{self.page_id}-de-secondary-body",
                     className="secondary-body",
                 ),
             ],
             className="secondary",
         )
 
-        self.components["bot_sidebar"] = components.Sidebar(
-            page_id_prefix=self.id,  row="bot", side="left",
-            title="Empty",
-            params_children=[], apply_btn_id=None
+        self.components["bot_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="bottom",
+            title="Empty", create_btn=False,
+            params_children=[],
         )
 
         layout = [

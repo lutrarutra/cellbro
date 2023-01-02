@@ -1,7 +1,7 @@
 from dash import Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
-from ...components.DashFigure import DashFigure
+from ...components.DashPlot import DashPlot
 from ...util.DashAction import DashAction
 from .qc_tools import default_layout
 
@@ -16,9 +16,9 @@ class Plot(DashAction):
         return fig
 
     def setup_callbacks(self, app):
-        output = Output(f"{self.page_id_prefix}-{self.loc_class}-plot", "figure")
+        output = Output(self.parent_cid.to_str(), "figure")
         inputs = dict(
-            submit=Input(f"{self.page_id_prefix}-apply-btn", "n_clicks"),
+            submit=Input(f"{self.page_id}-{self.loc_class}-sidebar-apply_btn", "n_clicks"),
         )
 
         @app.dash_app.callback(output=output, inputs=inputs)
@@ -29,11 +29,11 @@ class Plot(DashAction):
             raise PreventUpdate
 
 
-class MTPlot(DashFigure):
-    def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix, loc_class)
+class MTPlot(DashPlot):
+    def __init__(self, dataset, page_id, loc_class):
+        super().__init__(dataset, page_id, loc_class)
         self.actions.update(
-            plot=Plot(dataset, page_id_prefix, loc_class)
+            plot=Plot(self.cid, dataset)
         )
 
     def create_layout(self):
@@ -41,7 +41,7 @@ class MTPlot(DashFigure):
             html.Div([
                 dcc.Loading(type="circle", children=[
                     html.Div(
-                        dcc.Graph(id=f"{self.page_id_prefix}-{self.loc_class}-plot", className=f"{self.loc_class}-plot")
+                        dcc.Graph(id=f"{self.page_id}-{self.loc_class}-plot", className=f"{self.loc_class}-plot")
                     )
                 ])
             ], className=f"{self.loc_class}-body")

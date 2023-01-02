@@ -1,13 +1,15 @@
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import scanpy as sc
-from dash import Input, Output, State, dcc, html, ctx
+from dash import dcc, html, ctx, Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
 
-from ...components.DashFigure import DashFigure
+from ...components.DashPlot import DashPlot
 from ...components import components
 from ...util.DashAction import DashAction
 from ...components.DropDown import DropDown
+from ...components.DashComponent import DashComponent
+from ...components.CID import CID, LocClass
 
 from .UMAP import UMAP, SCVI_UMAP
 from .TSNE import TSNE
@@ -16,26 +18,12 @@ from . import prj_tools
 
 import scout
 
-# class UpdateColorOptions(DashAction):
-#     def setup_callbacks(self, app):
-#         output = [
-#             Output(f"{self.page_id_prefix}-projection-color", "options"),
-#             Output(f"{self.page_id_prefix}-projection-color", "value"),
-#         ]
-
-#         inputs = dict(
-#             store=Input("genelist-store", "data")
-#         )
-#         @app.dash_app.callback(output, inputs)
-#         def _(store):
-#             if store is None:
-#                 raise PreventUpdate
-
-#             color_options = self.dataset.get_obs_features(include_gene_lists=True)
-#             return color_options, next(iter(color_options), None)
-
-
 class ApplyProjection(DashAction):
+    def __init__(
+        self, parent_cid: CID, dataset
+    ):
+        super().__init__(parent_cid, dataset)
+
     def apply(self, projection_type, params):
         if projection_type == "UMAP":
             projection = UMAP(self.dataset, UMAP.parse_params(params))
@@ -47,76 +35,46 @@ class ApplyProjection(DashAction):
         return projection.apply()
 
     def setup_callbacks(self, app):
-        output = Output(dict(
-            id=f"input-store",
-            component_id=f"{self.page_id_prefix}-projection-plot-type"
-        ), "data")
+        output = [
+            Output("update_store-projection_type", "data"),
+            Output(dict(page_id=self.page_id, loc_class=self.loc_class.name, type="select-projection_type"), "value"),
+        ]
 
-        inputs = dict(projection_submit=Input(f"{self.page_id_prefix}-projection-submit", "n_clicks"))
+        inputs = dict(
+            projection_submit=Input(f"{self.page_id}-{self.loc_class}-sidebar-apply_btn", "n_clicks"),
+            projection_type=State(f"{self.page_id}-projection-type-select", "value"),
+        )
 
-        state = dict()
-        state["projection_type"] = State(f"{self.page_id_prefix}-projection-type-select", "value")
         for key in UMAP._params.keys():
-            state[f"umap_{key}"] = State(f"{self.page_id_prefix}-projection-umap-{key}", "value")
+            inputs[f"umap_{key}"] = State(f"{self.page_id}-projection-umap-{key}", "value")
 
         for key in SCVI_UMAP._params.keys():
-            state[f"scvi_umap_{key}"] = State(f"{self.page_id_prefix}-projection-scvi_umap-{key}", "value")
+            inputs[f"scvi_umap_{key}"] = State(f"{self.page_id}-projection-scvi_umap-{key}", "value")
 
         for key in TSNE._params.keys():
-            state[f"tsne_{key}"] = State(f"{self.page_id_prefix}-projection-tsne-{key}", "value")
+            inputs[f"tsne_{key}"] = State(f"{self.page_id}-projection-tsne-{key}", "value")
 
         for key in Trimap._params.keys():
-            state[f"trimap_{key}"] = State(f"{self.page_id_prefix}-projection-trimap-{key}", "value")
+            inputs[f"trimap_{key}"] = State(f"{self.page_id}-projection-trimap-{key}", "value")
 
-        @app.dash_app.callback(output=output, inputs=inputs, state=state)
+        @app.dash_app.callback(output=output, inputs=inputs)
         def _(projection_submit, projection_type, **kwargs):
             if projection_submit is None:
                 raise PreventUpdate
 
             value = self.apply(projection_type, params=kwargs)
             options = list(self.dataset.adata.obsm.keys())
-            return dict(value=value, options=options)
-
-class PlotProjection(DashAction):
-    def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap):
-        if "Gene List:" in color:
-            gene_list = color.split("Gene List: ")[1]
-            color = self.dataset.adata.uns["gene_lists"][gene_list]
-
-        fig = scout.ply.projection(
-            self.dataset.adata, obsm_layer=obsm_layer, hue=color,
-            layout=prj_tools.default_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
-        )
-        return fig
-
-    def setup_callbacks(self, app):
-        outputs = Output(component_id=f"{self.page_id_prefix}-projection-plot", component_property="figure")
-
-        inputs = dict(
-            color=Input(f"{self.page_id_prefix}-projection-color", "value"),
-            obsm_layer=Input(f"{self.page_id_prefix}-projection-plot-type", "value"),
-            continuous_cmap=Input(f"{self.page_id_prefix}-projection-continuous_cmap", "value"),
-            discrete_cmap=Input(f"{self.page_id_prefix}-projection-discrete_cmap", "value"),
-        )
-        @app.dash_app.callback(output=outputs, inputs=inputs)
-        def _(color, obsm_layer, continuous_cmap, discrete_cmap):
-            if obsm_layer not in self.dataset.adata.obsm.keys():
-                raise PreventUpdate
-            fig = self.plot(
-                color=color, obsm_layer=obsm_layer, continuous_cmap=continuous_cmap,
-                discrete_cmap=discrete_cmap
-            )
-            return fig
+            return dict(options=options), value
 
 class SelectProjectionType(DashAction):
     def setup_callbacks(self, app):
         output = [
-            Output(component_id=f"{self.page_id_prefix}-projection-umap", component_property="style"),
-            Output(component_id=f"{self.page_id_prefix}-projection-tsne", component_property="style"),
-            Output(component_id=f"{self.page_id_prefix}-projection-trimap", component_property="style"),
+            Output(f"{self.page_id}-projection-umap", "style"),
+            Output(f"{self.page_id}-projection-tsne", "style"),
+            Output(f"{self.page_id}-projection-trimap", "style"),
         ]
         inputs = [
-            Input(component_id=f"{self.page_id_prefix}-projection-type-select", component_property="value"),
+            Input(f"{self.page_id}-projection-type-select", "value"),
         ]
 
         @app.dash_app.callback(output=output, inputs=inputs)
@@ -130,97 +88,126 @@ class SelectProjectionType(DashAction):
             if projection_type == "Trimap":
                 return {"display": "none"}, {"display": "none"}, {"display": "block"}
 
+class PlotProjection(DashAction):
+    def __init__(
+        self, parent_cid: CID, dataset,
+        select_color_cid: CID,
+        obsm_layer_cid: CID,
+        continuous_cmap_cid: CID,
+        discrete_cmap_cid: CID,
+    ):
+        super().__init__(parent_cid, dataset)
+        self.select_color_cid = select_color_cid
+        self.obsm_layer_cid = obsm_layer_cid
+        self.continuous_cmap_cid = continuous_cmap_cid
+        self.discrete_cmap_cid = discrete_cmap_cid
 
-class Projection(DashFigure):
-    def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix, loc_class)
-        self.actions.update(
-            plot_projection=PlotProjection(self.dataset, self.page_id_prefix, "main"),
-            apply_projection=ApplyProjection(self.dataset, self.page_id_prefix, "main"),
-            # update_color_options=UpdateColorOptions(self.dataset, self.page_id_prefix, self.loc_class),
-            select_projection_type=SelectProjectionType(self.dataset, self.page_id_prefix, self.loc_class),
+    def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap):
+        if "Gene List:" in color:
+            genelist = color.split("Gene List: ")[1]
+            color = self.dataset.adata.uns["genelists"][genelist]
+
+        fig = scout.ply.projection(
+            self.dataset.adata, obsm_layer=obsm_layer, hue=color,
+            layout=prj_tools.default_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
         )
+        return fig
+
+    def setup_callbacks(self, app):
+        @app.dash_app.callback(
+            output=Output(self.parent_cid.to_dict(), "figure"),
+            inputs=[
+                Input(self.select_color_cid.to_dict(), "value"),
+                Input(self.obsm_layer_cid.to_dict(), "value"),
+                Input(self.continuous_cmap_cid.to_dict(), "value"),
+                Input(self.discrete_cmap_cid.to_dict(), "value")
+            ]
+        )
+        def _(color, obsm_layer, continuous_cmap, discrete_cmap):
+            if obsm_layer not in self.dataset.adata.obsm.keys():
+                raise PreventUpdate
+
+            fig = self.plot(
+                color=color, obsm_layer=obsm_layer, continuous_cmap=continuous_cmap,
+                discrete_cmap=discrete_cmap
+            )
+            return fig
+
+class Projection(DashPlot):
+    def __init__(self, dataset, page_id, loc_class):
+        super().__init__(dataset, page_id, loc_class)
 
         available_projections = list(self.dataset.adata.obsm.keys())
-        color_options = self.dataset.get_obs_features(include_gene_lists=True)
+        color_options = self.dataset.get_obs_features(include_genelists=True)
 
-        self.select_projection_type = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-projection-plot-type",
-            options=available_projections, default=available_projections[0]
+        self.children.update(
+            select_projection_type=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-projection_type"),
+                options=available_projections, default=available_projections[0],
+                options_callback= lambda: list(self.dataset.adata.obsm.keys())
+            ),
+            select_color=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-color"),
+                options=color_options, default=color_options[0],
+                options_callback=lambda: self.dataset.get_obs_features(include_genelists=True)
+            ),
+            select_continuous_cmap=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-continuous_cmap"),
+                options=components.continuous_colormaps, default="viridis",
+            ),
+            select_discrete_cmap=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-discrete_cmap"),
+                options=components.discrete_colormaps, default="scanpy default",
+            )
         )
-        self.select_color = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-projection-color",
-            options=color_options, default=color_options[0],
+
+        self.actions.update(
+            plot_projection=PlotProjection(
+                parent_cid=self.cid,
+                dataset=self.dataset,
+                select_color_cid=self.children["select_color"].cid,
+                obsm_layer_cid=self.children["select_projection_type"].cid,
+                continuous_cmap_cid=self.children["select_continuous_cmap"].cid,
+                discrete_cmap_cid=self.children["select_discrete_cmap"].cid,
+            ),
+            apply_projection=ApplyProjection(
+                parent_cid=self.cid, dataset=self.dataset,
+            ),
+            select_projection_type=SelectProjectionType(
+                parent_cid=self.cid, dataset=self.dataset,
+            )
         )
-
-        self.select_continuous_cmap = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-projection-continuous_cmap",
-            options=components.continuous_colormaps, default="viridis",
-        )
-
-        self.select_discrete_cmap = DropDown(
-            self.page_id_prefix, id=f"{self.page_id_prefix}-projection-discrete_cmap",
-            options=components.discrete_colormaps, default="scanpy default",
-        )
-
-        self.actions.update(self.select_projection_type.actions)
-        self.actions.update(self.select_color.actions)
-        self.actions.update(self.select_continuous_cmap.actions)
-        self.actions.update(self.select_discrete_cmap.actions)
-        # print(self.actions.keys())
-
 
     def create_layout(self) -> list:
-        projection_type_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Type", children=[
+        projection_type_tab = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Type", children=[
             # Projection type celect
             html.Div([
                 html.Label("Projection Type"),
-                self.select_projection_type.create_layout(),
-                self.select_projection_type.get_stores(),
-                # dcc.Dropdown(
-                #     available_projections, value=available_projections[0],
-                #     id=f"{self.page_id_prefix}-projection-plot-type", clearable=False,
-                #     persistence=True, persistence_type="local",
-                # ),
+                self.children["select_projection_type"].create_layout(),
+                self.children["select_projection_type"].get_stores(),
             ], className="param-row-stacked"),
             # Projection Hue celect
             html.Div([
                 html.Label("Color"),
-                self.select_color.create_layout(),
-                self.select_color.get_stores(),
-                # dcc.Dropdown(
-                #     options=color_options,
-                #     value=color_options[0],
-                #     id=f"{self.page_id_prefix}-projection-color",
-                #     clearable=False,
-                # )
+                self.children["select_color"].create_layout(),
+                self.children["select_color"].get_stores(),
             ], className="param-row-stacked")
         ])
 
-        colormap_tab = components.FigureHeaderTab(self.page_id_prefix, tab_label="Colormap", children=[
+        colormap_tab = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Colormap", children=[
             html.Div([
                 html.Label("Continuous Color Map"),
-                self.select_continuous_cmap.create_layout(),
-                self.select_continuous_cmap.get_stores(),
-                # components.create_colormap_selector(
-                #     id=f"{self.page_id_prefix}-projection-continuous_cmap",
-                #     options=components.continuous_colormaps,
-                #     default="viridis",
-                # )
+                self.children["select_continuous_cmap"].create_layout(),
+                self.children["select_continuous_cmap"].get_stores(),
             ], className="param-row-stacked"),
             html.Div([
                 html.Label("Discrete Color Map"),
-                self.select_discrete_cmap.create_layout(),
-                self.select_discrete_cmap.get_stores(),
-                # components.create_colormap_selector(
-                #     id=f"{self.page_id_prefix}-projection-discrete_cmap",
-                #     options=components.discrete_colormaps,
-                #     default="scanpy default",
-                # )
+                self.children["select_discrete_cmap"].create_layout(),
+                self.children["select_discrete_cmap"].get_stores(),
             ], className="param-row-stacked")
         ])
 
-        fig_params = components.FigureHeader(self.page_id_prefix, tabs=[projection_type_tab, colormap_tab])
+        fig_params = components.FigureHeader(self.page_id, self.loc_class, tabs=[projection_type_tab, colormap_tab])
 
         figure_layout = html.Div(
             children=[
@@ -229,9 +216,7 @@ class Projection(DashFigure):
                 html.Div([
                     dcc.Loading(type="circle", children=[
                         html.Div(
-                            dcc.Graph(
-                                id=f"{self.page_id_prefix}-projection-plot", className=f"{self.loc_class}-plot"
-                            )
+                            dcc.Graph(id=self.cid.to_dict(), className=f"{self.loc_class}-plot")
                         )],
                     )
                 ], className=f"{self.loc_class}-body"),
@@ -251,7 +236,7 @@ class Projection(DashFigure):
                             className="param-label",
                         ),
                         dcc.Dropdown(
-                            id=f"{self.page_id_prefix}-projection-type-select",
+                            id=f"{self.page_id}-projection-type-select",
                             options=["UMAP", "t-SNE", "Trimap"],
                             value="UMAP", clearable=False,
                         )
@@ -260,27 +245,27 @@ class Projection(DashFigure):
                 )
             ]),
             html.Div(
-                children=UMAP.get_layout(self.page_id_prefix),
+                children=UMAP.get_layout(self.page_id),
                 style={"display": "none"},
-                id=f"{self.page_id_prefix}-projection-{UMAP.get_key()}",
+                id=f"{self.page_id}-projection-{UMAP.get_key()}",
                 className="param-class"
             ),
             html.Div(
-                children=TSNE.get_layout(self.page_id_prefix),
+                children=TSNE.get_layout(self.page_id),
                 style={"display": "none"},
-                id=f"{self.page_id_prefix}-projection-{TSNE.get_key()}",
+                id=f"{self.page_id}-projection-{TSNE.get_key()}",
                 className="param-class"
             ),
             html.Div(
-                children=Trimap.get_layout(self.page_id_prefix),
+                children=Trimap.get_layout(self.page_id),
                 style={"display": "none"},
-                id=f"{self.page_id_prefix}-projection-{Trimap.get_key()}",
+                id=f"{self.page_id}-projection-{Trimap.get_key()}",
                 className="param-class"
             ),
             html.Div(
-                children=SCVI_UMAP.get_layout(self.page_id_prefix),
+                children=SCVI_UMAP.get_layout(self.page_id),
                 style={"display": "none"},
-                id=f"{self.page_id_prefix}-projection-{SCVI_UMAP.get_key()}",
+                id=f"{self.page_id}-projection-{SCVI_UMAP.get_key()}",
                 className="param-class"
             ),
         ]

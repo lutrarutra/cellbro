@@ -1,11 +1,11 @@
 from dash import Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
-from ...components.DashFigure import DashFigure
+from ...components.DashPlot import DashPlot
 from ...components import components
 from ...util.DashAction import DashAction
-from ...components.GeneListComponents import SelectGene, create_gene_card, UpdateGeneList
 from .qc_tools import default_layout
+from ...components.GeneCard import GeneCard
 
 import scout
 
@@ -17,9 +17,9 @@ class Plot(DashAction):
         return fig
 
     def setup_callbacks(self, app):
-        output = Output(f"{self.page_id_prefix}-{self.loc_class}-plot", "figure")
+        output = Output(self.parent_cid.to_str(), "figure")
         inputs = dict(
-            submit=Input(f"{self.page_id_prefix}-apply-btn", "n_clicks"),
+            submit=Input(f"{self.page_id}-main-sidebar-apply_btn", "n_clicks"),
         )
         @app.dash_app.callback(output=output, inputs=inputs)
         def _(submit):
@@ -29,24 +29,26 @@ class Plot(DashAction):
             raise PreventUpdate
 
 
-class DispersionPlot(DashFigure):
-    def __init__(self, dataset, page_id_prefix, loc_class):
-        super().__init__(dataset, page_id_prefix, loc_class)
+class DispersionPlot(DashPlot):
+    def __init__(self, dataset, page_id, loc_class):
+        super().__init__(dataset, page_id, loc_class)
         self.actions.update(
-            select_gene=SelectGene(dataset, self.page_id_prefix, self.loc_class),
-            update_gene_list=UpdateGeneList(self.dataset, self.page_id_prefix, self.loc_class),
-            plot=Plot(dataset, page_id_prefix, loc_class)
+            # select_gene=SelectGene(self.cid, dataset),
+            # update_genelist=UpdateGeneList(self.cid, self.dataset),
+            plot=Plot(self.cid, dataset)
+        )
+        self.children.update(
+            gene_card=GeneCard(self.cid.page_id, self.cid.loc_class, self.dataset)
         )
 
     def create_layout(self):
-
         select_gene_tab = components.FigureHeaderTab(
-            self.page_id_prefix, tab_label="Gene", id=f"{self.page_id_prefix}-{self.loc_class}-genecard",
-            children=create_gene_card(self.page_id_prefix, self.loc_class, None, self.dataset)
+            self.page_id, self.loc_class, tab_label="Gene", id=f"{self.page_id}-{self.loc_class}-genecard",
+            children=self.children["gene_card"].create_layout()
         )
 
         figure_header = components.FigureHeader(
-            self.page_id_prefix, [select_gene_tab]
+            self.page_id, self.loc_class, [select_gene_tab]
         )
 
         figure = html.Div([
@@ -54,7 +56,7 @@ class DispersionPlot(DashFigure):
             html.Div([
                 dcc.Loading(type="circle", children=[
                     html.Div(
-                        dcc.Graph(id=f"{self.page_id_prefix}-{self.loc_class}-plot", className=f"{self.loc_class}-plot")
+                        dcc.Graph(id=f"{self.page_id}-{self.loc_class}-plot", className=f"{self.loc_class}-plot")
                     )
                 ])
             ], className=f"{self.loc_class}-body")

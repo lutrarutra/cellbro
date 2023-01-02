@@ -1,101 +1,107 @@
-from dash import Output, Input, State, ctx, html, dcc
+import dash
+from dash import Output, Input, State, ctx, html, dcc, ALL
 from dash.exceptions import PreventUpdate
 
 from .DashComponent import DashComponent
 from ..util.DashAction import DashAction
-import time
-
-
-class HandleActions(DashAction):
-    def __init__(self, id, options, default_value, clearable, multi):
-        super().__init__(dataset=None, page_id_prefix=None, loc_class="static")
-        self.id = id
-        self.options = options
-        self.default_value = default_value
-        self.clearable = clearable
-        self.multi = multi
-        self.selected_store_id = dict(id="selected-store", component_id=self.id)
-        self.input_store_id = dict(id="input-store", component_id=self.id)
-
-    def _update(self, value):
-        if value not in self.options:
-            if not (value is None and self.clearable):
-                if self.default_value not in self.options:
-                    if len(self.options) > 0:
-                        return self.options[0]
-                    else:
-                        return None
-                else:
-                    return self.default_value
-
-        return value
-
-    def setup_callbacks(self, app):
-        @app.dash_app.callback(
-            output=[
-                Output(self.selected_store_id, "data"),
-                Output(self.id, "options"),
-                Output(self.id, "value"),
-            ],
-            inputs=[
-                Input(self.input_store_id, "data"),
-                Input(self.id, "options"),
-                Input(self.id, "value"),
-            ],
-            state=State(self.selected_store_id, "data"),
-        )
-        def _(input, options, value, selected):
-            if selected is None:
-                selected = dict(value=value)
-
-            if ctx.triggered_id == self.id:
-                selected = dict(value=value)
-
-            elif ctx.triggered_id == self.input_store_id:
-                if input is not None:
-                    if "options" in input.keys():
-                        self.options = input["options"]
-                    if "value" in input.keys():
-                        selected = dict(value=input["value"])
-            
-            if isinstance(selected["value"], list):
-                temp = []
-                for val in selected["value"]:
-                    val = self._update(val)
-                    if val is not None or self.clearable:
-                        temp.append(val)
-                selected["value"] = temp
-            else:
-                selected["value"] = self._update(selected["value"])
-
-
-            return selected, self.options, selected["value"]
-
+from .DashStore import DashStore
+from .CID import CID
 
 class DropDown(DashComponent):
-    def __init__(self, page_id_prefix, id, options, default, clearable=False, multi=False, placeholder=None, style=None):
-        super().__init__(page_id_prefix)
-        self.id = id
+    def __init__(self, cid: CID, options, default, clearable=False, multi=False, placeholder=None, style=None, options_callback=None):
+        super().__init__(cid.page_id, cid.loc_class, cid.type)
         self.options = options
         self.default = default
         self.clearable = clearable
         self.multi = multi
         self.placeholder = placeholder
+        self._update_store_id = "update_store-" + "".join(self.cid.type.split("-")[1:])
+        self.options_callback = options_callback
+        self.static = self.options_callback == None
         self.style = style
-        self.actions.update(
-            {f"{self.id}-handle_actions":HandleActions(self.id, self.options, self.default, self.clearable, self.multi)}
+        self.children.update(
+            default_store=DashStore(self.cid.page_id, self.cid.loc_class, type=f"default_store-{self.cid.type}"),
         )
 
-    def get_stores(self):
-        default_store = dcc.Store(id=dict(id="selected-store", component_id=self.id), storage_type="local")
-        input_store = dcc.Store(id=dict(id="input-store", component_id=self.id), storage_type="local")
+    @property
+    def update_store_id(self):
+        assert not self.static, "Cannot update a static dropdown"
+        return self._update_store_id
 
-        return html.Div([default_store, input_store])
+    def setup_callbacks(self, app):
+        output = Output(self.cid.to_dict(), "value")
+        
+        inputs = dict(
+            _=Input(self.children["default_store"].cid.to_dict(), "modified_timestamp"),
+            default_store=State(self.children["default_store"].cid.to_dict(), "data"),
+            value=State(self.cid.to_dict(), "value"),
+        )
+
+        @app.dash_app.callback(output=output, inputs=inputs)
+        def get_default_value(default_store, value, _):
+            if default_store is None:
+                return self.default
+
+            if "value" in default_store.keys() and default_store["value"] == value:
+                raise PreventUpdate
+
+            if default_store is not None and "value" in default_store.keys():
+                value = default_store["value"]
+                if self.static:
+                    options = self.options
+                else:
+                    options = self.options_callback()
+
+                if not self.multi:
+                    if value not in options:
+                        if self.default not in options:
+                            value = options[0]
+                        else:
+                            value = self.default
+                else:
+                    value = [v for v in value if v in options]
+
+                return value
+            
+            raise PreventUpdate
+
+
+        @app.dash_app.callback(
+            output=Output(self.children["default_store"].cid.to_dict(), "data"),
+            inputs=dict(
+                value=Input(self.cid.to_dict(), "value"),
+                default_store=State(self.children["default_store"].cid.to_dict(), "data"),
+            )
+        )
+        def update_default_store(value, default_store):
+            if default_store is not None and "value" in default_store.keys() and default_store["value"] == value:
+                raise PreventUpdate
+
+            return dict(value=value)
+        
+        if self.static:
+            return
+
+        @app.dash_app.callback(
+            output=Output(self.cid.to_dict(), "options"),
+            inputs=[
+                Input("url", "pathname"),
+                Input(self.update_store_id, "data")
+            ],
+        )
+        def update_options(pathname, _):
+            options = self.options_callback()
+            return options
+
+    def get_stores(self):
+        return html.Div([
+            self.children["default_store"].create_layout()
+        ])
 
     def create_layout(self):
         return dcc.Dropdown(
             options=self.options, value=self.default,
-            id=self.id, clearable=self.clearable,
+            id=self.cid.to_dict(), clearable=self.clearable,
             multi=self.multi, placeholder=self.placeholder,
             style=self.style
         )
