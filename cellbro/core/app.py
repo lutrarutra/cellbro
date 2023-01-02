@@ -50,8 +50,8 @@ class App:
         de_page = DEPage(self.dataset, order=3)
         de_page.create()
 
-        # gsea_page = GSEAPage(self.dataset, order=4)
-        # gsea_page.create()
+        gsea_page = GSEAPage(self.dataset, order=4)
+        gsea_page.create()
 
         # pca_page = PCAPage(self.dataset, order=5)
         # pca_page.create()
@@ -113,7 +113,7 @@ class App:
         qc_page.setup_callbacks(self)
         cells_page.setup_callbacks(self)
         de_page.setup_callbacks(self)
-        # gsea_page.setup_callbacks(self)
+        gsea_page.setup_callbacks(self)
         # pca_page.setup_callbacks(self)
         # scvi_page.setup_callbacks(self)
 

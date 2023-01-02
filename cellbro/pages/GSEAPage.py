@@ -12,36 +12,37 @@ from ..plots import projection as prj
 from ..plots.GSEA.GSEAVolcano import GSEAVolcano
 from ..components.CID import CID
 from ..components.Sidebar import Sidebar
+from ..components import components
 
 import scout
 
-class ListAvailableLRefs(DashAction):
-    def setup_callbacks(self, app):
-        output = [
-            Output(component_id=f"{self.page_id}-gsea-groupby", component_property="options"),
-            Output(component_id=f"{self.page_id}-gsea-groupby", component_property="value"),
-            Output(component_id=f"{self.page_id}-gsea-reference", component_property="options"),
-            Output(component_id=f"{self.page_id}-gsea-reference", component_property="value"),
-        ]
-        inputs = {
-            "groupby": Input(component_id=f"{self.page_id}-gsea-groupby", component_property="value"),
-        }
+# class ListAvailableLRefs(DashAction):
+#     def setup_callbacks(self, app):
+#         output = [
+#             Output(component_id=f"{self.page_id}-gsea-groupby", component_property="options"),
+#             Output(component_id=f"{self.page_id}-gsea-groupby", component_property="value"),
+#             Output(component_id=f"{self.page_id}-gsea-reference", component_property="options"),
+#             Output(component_id=f"{self.page_id}-gsea-reference", component_property="value"),
+#         ]
+#         inputs = {
+#             "groupby": Input(component_id=f"{self.page_id}-gsea-groupby", component_property="value"),
+#         }
 
-        @app.dash_app.callback(output=output, inputs=inputs)
-        def _(groupby):
-            rank_genes_groups = self.dataset.get_rank_genes_groups()
-            if len(rank_genes_groups) == 0:
-                raise PreventUpdate
+#         @app.dash_app.callback(output=output, inputs=inputs)
+#         def _(groupby):
+#             rank_genes_groups = self.dataset.get_rank_genes_groups()
+#             if len(rank_genes_groups) == 0:
+#                 raise PreventUpdate
 
-            if groupby is None:
-                refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{rank_genes_groups[0]}"].keys()))
-            else:
-                refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{groupby}"].keys()))
+#             if groupby is None:
+#                 refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{rank_genes_groups[0]}"].keys()))
+#             else:
+#                 refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{groupby}"].keys()))
 
-            return [
-                rank_genes_groups, rank_genes_groups[0],
-                refs, refs[0]
-            ]
+#             return [
+#                 rank_genes_groups, rank_genes_groups[0],
+#                 refs, refs[0]
+#             ]
 
 
 class PlotHeatmap(DashAction):
@@ -49,8 +50,6 @@ class PlotHeatmap(DashAction):
 
     def setup_callbacks(self, app):
         output = [
-            # Output(f"{self.page_id}-{self.loc_class}-param-genes", "value"),
-            # Output(f"{self.page_id}-{self.loc_class}-param-cluster_cells_by", "value"),
             Output(f"{self.page_id}-heatmap-plot", "figure"),
             Output(f"{self.page_id}-heatmap-plot", "style"),
         ]
@@ -61,34 +60,29 @@ class PlotHeatmap(DashAction):
             click_data=Input(f"{self.page_id}-main-plot", "clickData"),
             gsea_groupby = Input(f"{self.page_id}-main-groupby", "value"),
             gsea_reference = Input(f"{self.page_id}-main-reference", "value"),
-        )
-
-        state = dict(
             selected_genes=State(f"{self.page_id}-{self.loc_class}-param-genes", "value"),
             cluster_cells_by=State(f"{self.page_id}-{self.loc_class}-param-cluster_cells_by", "value"),
             categoricals=State(f"{self.page_id}-{self.loc_class}-param-categoricals", "value")
         )
-        for key in heatmap_params.keys():
-            state[key] = State(f"{self.page_id}-{self.loc_class}-param-{key}", "value")
 
-        @app.dash_app.callback(output=output, inputs=inputs, state=state)
-        def _(submit, click_data, **kwargs):
+        for key in heatmap_params.keys():
+            inputs[key] = State(f"{self.page_id}-{self.loc_class}-param-{key}", "value")
+
+        @app.dash_app.callback(output=output, inputs=inputs)
+        def _(submit, click_data, gsea_groupby, gsea_reference, selected_genes, cluster_cells_by, categoricals, **kwargs):
             if click_data is None:
                 raise PreventUpdate
-            
-            selected_genes = kwargs["selected_genes"]
-            cluster_cells_by = kwargs["cluster_cells_by"]
 
             if ctx.triggered_id == f"{self.page_id}-main-plot":
-                cluster_cells_by = kwargs["gsea_groupby"]
-                reference = kwargs["gsea_reference"]
+                cluster_cells_by = gsea_groupby
+                reference = gsea_reference
 
                 term = click_data["points"][0]["hovertext"]
                 res = self.dataset.adata.uns[f"gsea"][cluster_cells_by][reference]
                 selected_genes = res[res["Term"] == term]["lead_genes"].values[0]
                 
-                kwargs["selected_genes"] = selected_genes
-                kwargs["cluster_cells_by"] = cluster_cells_by
+                selected_genes = selected_genes
+                cluster_cells_by = cluster_cells_by
 
             fig, style = Heatmap.Heatmap.plot(self.dataset, kwargs)
 
@@ -100,6 +94,23 @@ class PlotHeatmap(DashAction):
             )
 
 class PlotProjection(DashAction):
+    def __init__(
+        self, parent_cid: CID, dataset,
+        obsm_layer_cid: CID,
+        continuous_cmap_cid: CID,
+        discrete_cmap_cid: CID,
+        gsea_volcano_cid: CID,
+        select_groupby_cid: CID,
+        select_reference_cid: CID,
+    ):
+        super().__init__(parent_cid, dataset)
+        self.obsm_layer_cid = obsm_layer_cid
+        self.continuous_cmap_cid = continuous_cmap_cid
+        self.discrete_cmap_cid = discrete_cmap_cid
+        self.gsea_volcano_cid = gsea_volcano_cid
+        self.select_groupby_cid = select_groupby_cid
+        self.select_reference_cid = select_reference_cid
+
     def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap, **kwargs):
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
@@ -120,61 +131,31 @@ class PlotProjection(DashAction):
         return projection.apply()
 
     def setup_callbacks(self, app):
-        outputs = [
-            Output(f"{self.page_id}-projection-plot", "figure"),
-            Output(f"{self.page_id}-{self.loc_class}-select-projection_type", "options"),
-            Output(f"{self.page_id}-{self.loc_class}-select-projection_type", "value"),
-        ]
+        outputs = Output(self.parent_cid.to_dict(), "figure"),
 
         inputs = dict(
-            submit=Input(f"{self.page_id}-main-sidebar-apply_btn", "n_clicks"),
-            color=Input(f"{self.page_id}-{self.loc_class}-select-color", "value"),
-            obsm_layer=Input(f"{self.page_id}-{self.loc_class}-select-projection_type", "value"),
-            continuous_cmap=Input(f"{self.page_id}-{self.loc_class}-select-continuous_cmap", "value"),
-            discrete_cmap=Input(f"{self.page_id}-{self.loc_class}-select-discrete_cmap", "value"),
-            click_data=Input(f"{self.page_id}-main-plot", "clickData"),
+            obsm_layer=Input(self.obsm_layer_cid.to_dict(), "value"),
+            continuous_cmap=Input(self.continuous_cmap_cid.to_dict(), "value"),
+            discrete_cmap=Input(self.discrete_cmap_cid.to_dict(), "value"),
+            click_data=Input(self.gsea_volcano_cid.to_dict(), "clickData"),
+            groupby=State(self.select_groupby_cid.to_dict(), "value"),
+            reference=State(self.select_reference_cid.to_dict(), "value"),
         )
+        print("YAHOO")
+        @app.dash_app.callback(output=outputs, inputs=inputs)
+        def _(obsm_layer, continuous_cmap, discrete_cmap, click_data, groupby, reference):
+            print(ctx.triggered_id)
+            if click_data is None:
+                raise PreventUpdate
 
-        state = dict(
-            projection_type=State(f"{self.page_id}-{self.loc_class}-type-select", "value"),
-            gsea_groupby=State(f"{self.page_id}-{self.loc_class}-groupby", "value"),
-            gsea_reference=State(f"{self.page_id}-{self.loc_class}-reference", "value"),
-        )
-        for key in prj.UMAP._params.keys():
-            state[f"umap_{key}"] = State(f"{self.page_id}-projection-umap-{key}", "value")
-
-        for key in prj.SCVI_UMAP._params.keys():
-            state[f"scvi_umap_{key}"] = State(f"{self.page_id}-projection-scvi_umap-{key}", "value")
-
-        for key in prj.TSNE._params.keys():
-            state[f"tsne_{key}"] = State(f"{self.page_id}-projection-tsne-{key}", "value")
-
-        for key in prj.Trimap._params.keys():
-            state[f"trimap_{key}"] = State(f"{self.page_id}-projection-trimap-{key}", "value")
-
-        @app.dash_app.callback(output=outputs, inputs=inputs, state=state)
-        def _(submit, color, obsm_layer, projection_type, continuous_cmap, discrete_cmap, click_data, **kwargs):
-            if ctx.triggered_id == f"{self.page_id}-projection-submit":
-                if projection_submit is not None:
-                    obsm_layer = self.apply(projection_type, params=kwargs)
-
-            if click_data is not None:
-                groupby = kwargs["gsea_groupby"]
-                reference = kwargs["gsea_reference"]
-                term = click_data["points"][0]["hovertext"]
-                res = self.dataset.adata.uns[f"gsea"][groupby][reference]
-                selected_genes = res[res["Term"] == term]["lead_genes"].values[0]
-                fig = self.plot(
-                    color=selected_genes, obsm_layer=obsm_layer, hue_aggregate=None,
-                    continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
-                )
-            else:
-                fig = self.plot(
-                    color=color, obsm_layer=obsm_layer,
-                    continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
-                )
-
-            return (fig, list(self.dataset.adata.obsm.keys()), obsm_layer)
+            term = click_data["points"][0]["hovertext"]
+            res = self.dataset.adata.uns[f"gsea"][groupby][reference]
+            selected_genes = res[res["Term"] == term]["lead_genes"].values[0]
+            fig = self.plot(
+                color=selected_genes, obsm_layer=obsm_layer, hue_aggregate=None,
+                continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
+            )
+            return fig
 
 class GSEAPage(DashPage):
     def __init__(self, dataset, order):
@@ -186,13 +167,22 @@ class GSEAPage(DashPage):
         self.components.update(
             main=GSEAVolcano(dataset, self.page_id, loc_class="main"),
             projection=prj.Projection(dataset, self.page_id, loc_class="secondary"),
-            heatmap=Heatmap(dataset, self.page_id, loc_class="bottom")
+            # heatmap=Heatmap(dataset, self.page_id, loc_class="bottom")
         )
 
-        self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(CID(self.page_id, "bottom", "plot_heatmap"), self.dataset)
+        # self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(CID(self.page_id, "bottom", "plot_heatmap"), self.dataset)
         # # TODO: Fix this
         # self.components["heatmap"].actions.pop("edit_genelist")
-        self.components["projection"].actions["plot_projection"] = PlotProjection(CID(self.page_id, "secondary", "plot_projection"), dataset)
+
+        self.components["projection"].actions["plot_projection"] = PlotProjection(
+            self.components["projection"].cid, dataset,
+            obsm_layer_cid=self.components["projection"].children["select_projection_type"].cid,
+            continuous_cmap_cid=self.components["projection"].children["select_continuous_cmap"].cid,
+            discrete_cmap_cid=self.components["projection"].children["select_discrete_cmap"].cid,
+            gsea_volcano_cid=self.components["main"].cid,
+            select_groupby_cid=self.components["main"].children["select_groupby"].cid,
+            select_reference_cid=self.components["main"].children["select_reference"].cid,
+        )
 
     def create_layout(self) -> list:
         self.components["left_sidebar"] = Sidebar(
@@ -208,13 +198,13 @@ class GSEAPage(DashPage):
         )
         secondary_figure = self.components["projection"].create_layout()
         
-        self.components["bot_sidebar"] = Sidebar(
-            page_id=self.page_id, loc_class="bottom",
-            title="Heatmap Settings", create_btn=True, btn_text="Plot",
-            params_children=self.components["heatmap"].get_sidebar_params(),
-        )
+        # self.components["bot_sidebar"] = Sidebar(
+        #     page_id=self.page_id, loc_class="bottom",
+        #     title="Heatmap Settings", create_btn=True, btn_text="Plot",
+        #     params_children=self.components["heatmap"].get_sidebar_params(),
+        # )
         
-        bot_figure = self.components["heatmap"].create_layout()
+        #bot_figure = self.components["heatmap"].create_layout()
 
         layout = [
             html.Div(
@@ -228,7 +218,7 @@ class GSEAPage(DashPage):
                 className="bottom",
                 children=[
                     # bottom_sidebar, bottom_figure
-                    self.components["bot_sidebar"].create_layout(), bot_figure
+                    #self.components["bot_sidebar"].create_layout(), bot_figure
                 ],
             ),
         ]

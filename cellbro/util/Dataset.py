@@ -24,6 +24,9 @@ class Dataset:
         if "genelists" not in self.adata.uns.keys():
             self.adata.uns["genelists"] = {}
 
+        if "gsea" not in self.adata.uns.keys():
+            self.adata.uns["gsea"] = {}
+
         self.adata.uns["scvi_setup_params"] = {}
         self.adata.uns["scvi_model_params"] = {}
         self.adata.uns["scvi_train_params"] = {}

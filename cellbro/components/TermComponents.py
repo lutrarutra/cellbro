@@ -130,82 +130,13 @@ class AddGenesFromTermPopUp(DashComponent):
             ])
         ])
 
-class SelectTerm(DashAction):
-    def __init__(self, cid: CID, dataset):
-        super().__init__(cid, dataset)
 
-    def apply(self, click_data, groupby, reference):
-        term = click_data["points"][0]["hovertext"]
-        df = self.dataset.adata.uns["gsea"][groupby][reference]
-        gene_set_name = df.index.name
-        genes = df[df["Term"] == term]["lead_genes"].values.tolist()[0]
-        element = create_term_card(term, gene_set_name, genes)
+# def create_term_card(term_name, gene_set_name, genes):
+#     if term_name is None:
+#         return html.Div([
+#             html.H4("Select Term by Clicking on a Point"),
+#         ], style={
+#             "display": "flex", "justify-content": "center",
+#             "align-items": "center", "height": "100%", "width": "100%"
+#         })
 
-        return element, dict(term_name=term, gene_set_name=gene_set_name, genes=genes)
-
-    def setup_callbacks(self, app):
-        outputs = [
-            Output(f"{self.page_id}-{self.loc_class}-termcard", "children"),
-            Output("term-store", "data")
-        ]
-        inputs = dict(
-            click_data=Input(f"{self.page_id}-{self.loc_class}-plot", "clickData"),
-        )
-        state = dict(
-            groupby=State(component_id=f"{self.page_id}-{self.loc_class}-groupby", component_property="value"),
-            reference=State(component_id=f"{self.page_id}-{self.loc_class}-reference", component_property="value"),
-        )
-
-        @app.dash_app.callback(output=outputs, inputs=inputs, state=state)
-        def _(click_data, groupby, reference):
-            if click_data is None:
-                raise PreventUpdate
-            return self.apply(click_data, groupby, reference)
-
-
-def create_term_card(term_name, gene_set_name, genes):
-    if term_name is None:
-        return html.Div([
-            html.H4("Select Term by Clicking on a Point"),
-        ], style={
-            "display": "flex", "justify-content": "center",
-            "align-items": "center", "height": "100%", "width": "100%"
-        })
-
-    element = html.Div([
-        html.Div([
-            html.Label(f"Term ({gene_set_name}):"),
-            html.H3(term_name, id=dict(type="selected-term", index=0)),
-        ], className="hover-header", style=dict(width="200px")),
-        html.Div([
-            html.Div([
-                # html.A(
-                #     href=f"https://www.genecards.org/cgi-bin/carddisp.pl?gene={gene}", role="button", target="_blank",
-                #     children=[html.Img(src="assets/logos/genecards_logo.png", style={"height": "20px"})]
-                # ),
-                html.A(
-                    href=f"https://scholar.google.com/scholar?q={term_name}", role="button", target="_blank",
-                    children=[html.Img(src="assets/logos/google_scholar_logo.png", style={"height": "20px"})]
-                ),
-            ], className="hover-links"),
-            html.Div([
-                html.Label("Genes"),
-                dcc.Dropdown(
-                    options=genes,
-                    value=genes,
-                    id=dict(type="term-genelist-dropdown", index=0),
-                    clearable=False,
-                    placeholder="Select Gene List(s)",
-                    multi=True,
-                ),
-            ], className="param-row-stacked long-dropdown", style={"width": "calc(100% - 120px)"}),
-            html.Div([
-                html.Label("Add to Gene List"),
-                html.Div([
-                    dbc.Button("Add", id=dict(type="add-term-to-genelist", index=0), color="primary", style=dict(width="100%"))
-                ]),
-            ], className="param-row-stacked", style={"width": "120px"}),
-        ], className="hover-body"),
-    ], className="hover-container", style={"display": "flex"})
-
-    return element

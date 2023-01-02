@@ -1,5 +1,5 @@
 from enum import Enum
-
+from typing import Union
 from dataclasses import dataclass
 
 class LocClass(Enum):
@@ -21,6 +21,13 @@ class CID:
     _page_id: str
     _loc_class: LocClass
     _type: str
+
+    def __init__(self, page_id: str, loc_class: Union[LocClass, str], _type: str):
+        self._page_id = page_id
+        if type(loc_class) == str:
+            loc_class = LocClass[loc_class]
+        self._loc_class = loc_class
+        self._type = _type
 
     def to_dict(self) -> dict:
         return dict(
