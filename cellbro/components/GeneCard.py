@@ -9,7 +9,7 @@ from ..util.DashAction import DashAction
 from .CID import CID
 
 _genecards_query = "https://www.genecards.org/cgi-bin/carddisp.pl?gene="
-_google_scholar_query = "https://www.google.com/search?q="
+_google_scholar_query = "https://scholar.google.com/scholar?q="
 
 class SelectGene(DashAction):
     RType = namedtuple(
@@ -52,7 +52,7 @@ class SelectGene(DashAction):
             Output(f"{self.page_id}-{self.loc_class}-card", "style")
         ]
         inputs = dict(
-            click_data=Input(f"{self.page_id}-{self.loc_class}-plot", "clickData"),
+            click_data=Input(dict(page_id=self.page_id, loc_class=self.loc_class.name, type="plot"), "clickData"),
             genelist_store=Input(f"genelist-store", "data"),
             selected_list=Input(self.genelist_dropdown_cid, "value"),
         )
@@ -74,8 +74,7 @@ class GeneCard(DashComponent):
         super().__init__(page_id, loc_class, "gene_card")
         self.dataset = dataset
         self.actions.update(
-            select_gene=SelectGene(self.cid, self.dataset),
-            # update_genelist=UpdateGeneList(self.cid, self.dataset),
+            select_gene=SelectGene(self.cid, self.dataset)
         )
 
     def create_layout(self):

@@ -8,14 +8,17 @@ from .DashStore import DashStore
 from .CID import CID
 
 class DropDown(DashComponent):
-    def __init__(self, cid: CID, options, default, clearable=False, multi=False, placeholder=None, style=None, options_callback=None):
+    def __init__(
+        self, cid: CID, options, default, clearable=False, multi=False, placeholder=None,
+        style=None, options_callback=None, update_store_id=None
+    ):
         super().__init__(cid.page_id, cid.loc_class, cid.type)
         self.options = options
         self.default = default
         self.clearable = clearable
         self.multi = multi
         self.placeholder = placeholder
-        self._update_store_id = "update_store-" + "".join(self.cid.type.split("-")[1:])
+        self._update_store_id = ("update_store-" + "".join(self.cid.type.split("-")[1:])) if update_store_id is None else update_store_id
         self.options_callback = options_callback
         self.static = self.options_callback == None
         self.style = style
@@ -55,6 +58,11 @@ class DropDown(DashComponent):
                 if not self.multi:
                     if value not in options:
                         if self.default not in options:
+                            if len(options) == 0:
+                                if self.clearable:
+                                    value = None
+                                else:
+                                    raise PreventUpdate
                             value = options[0]
                         else:
                             value = self.default

@@ -73,7 +73,6 @@ class PlotHeatmap(DashAction):
 
         @app.dash_app.callback(output=output, inputs=inputs, state=state)
         def _(submit, click_data, **kwargs):
-            print(ctx.triggered_id)
             if click_data is None:
                 raise PreventUpdate
             

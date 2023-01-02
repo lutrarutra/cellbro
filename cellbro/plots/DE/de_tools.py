@@ -6,7 +6,7 @@ import scout
 
 from ...util.Param import Param, ParamsDict
 
-figure_layout = go.Layout(
+default_layout = go.Layout(
     paper_bgcolor="white",
     plot_bgcolor="white",
     xaxis=dict(showgrid=False, zeroline=False, visible=True, showticklabels=True),
@@ -65,14 +65,6 @@ de_params = ParamsDict(
 #     refs_selected = next(iter(dataset.adata.uns[key].keys()))
 
 #     return dict(update=True)
-
-
-def plot_pval_histogram(dataset, params):
-    key = f"rank_genes_{params['groupby']}"
-    fig = scout.ply.pval_histogram(
-        dataset.adata.uns[key][params["reference"]], layout=figure_layout
-    )
-    return fig
 
 
 def get_reference_options(dataset, groupby, target="Rest"):

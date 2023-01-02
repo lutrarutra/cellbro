@@ -91,7 +91,6 @@ class PlotHeatmap(DashAction):
     def __init__(
         self, parent_cid: CID, dataset,
         select_genes_cid,
-        select_genelists_cid,
         select_clusterby_cid,
         select_categoricals_cid,
         select_layer_cid,
@@ -99,7 +98,6 @@ class PlotHeatmap(DashAction):
     ):
         super().__init__(parent_cid, dataset)
         self.select_genes_cid = select_genes_cid
-        self.select_genelists_cid = select_genelists_cid
         self.select_clusterby_cid = select_clusterby_cid
         self.select_categoricals_cid = select_categoricals_cid
         self.select_layer_cid = select_layer_cid
@@ -128,20 +126,22 @@ class PlotHeatmap(DashAction):
         # Inputs to Projection
         inputs = dict(
             submit=Input(f"{self.page_id}-{self.loc_class}-sidebar-apply_btn", "n_clicks"),
-            selected_genes=State(self.select_genes_cid.to_dict(), "value"),
-            cluster_cells_by=State(self.select_clusterby_cid.to_dict(), "value"),
-            categoricals=State(self.select_categoricals_cid.to_dict(), "value"),
-            layer=State(self.select_layer_cid.to_dict(), "value"),
-            colormap=State(self.select_colormap_cid.to_dict(), "value"),
+            selected_genes=Input(self.select_genes_cid.to_dict(), "value"),
+            cluster_cells_by=Input(self.select_clusterby_cid.to_dict(), "value"),
+            categoricals=Input(self.select_categoricals_cid.to_dict(), "value"),
+            layer=Input(self.select_layer_cid.to_dict(), "value"),
+            colormap=Input(self.select_colormap_cid.to_dict(), "value"),
         )
             
 
         @app.dash_app.callback(output=output, inputs=inputs)
         def _(submit, selected_genes, cluster_cells_by, categoricals, layer, colormap):
             if submit is None or ctx.triggered_id == f"{self.page_id}-{self.loc_class}-sidebar-apply_btn":
-                if selected_genes is None or len(selected_genes) == 0:
+                if (
+                    selected_genes is None or len(selected_genes) == 0
+                    ):
                     return self.RType(
-                        figure=dash.no_update, style=dash.no_update, button=0
+                        figure=dash.no_update, style=dash.no_update, button=None
                     )
 
                 fig, style = self.plot(selected_genes, cluster_cells_by, categoricals, layer, colormap)
@@ -161,13 +161,6 @@ class Heatmap(DashPlot):
         categoricals = self.dataset.get_categoric()
 
         self.children.update(
-            select_genes=DropDown(
-                cid=CID(self.page_id, self.loc_class, "select-genes"),
-                options=genes, default=None, clearable=True,
-                placeholder="Select Genes", multi=True,
-                style={"width": "100%"},
-                options_callback=lambda: sorted(self.dataset.adata.var_names.tolist())
-            ),
             select_genelists=DropDown(
                 cid=CID(self.page_id, self.loc_class, "select-genelists"),
                 clearable=True, default=None, options=genelists,
@@ -195,14 +188,20 @@ class Heatmap(DashPlot):
             select_colormap=DropDown(
                 cid=CID(self.page_id, self.loc_class, "select-colormap"),
                 options=heatmap_params["colormap"].allowed_values, default=heatmap_params["colormap"].default,
-            )
+            ),
+            select_genes=DropDown(
+                cid=CID(self.page_id, self.loc_class, "select-genes"),
+                options=genes, default=None, clearable=True,
+                placeholder="Select Genes", multi=True,
+                style={"width": "100%"},
+                options_callback=lambda: sorted(self.dataset.adata.var_names.tolist())
+            ),
         )
 
         self.actions.update(
             plot_heatmap=PlotHeatmap(
                 self.cid, dataset,
                 select_genes_cid=self.children["select_genes"].cid,
-                select_genelists_cid=self.children["select_genelists"].cid,
                 select_clusterby_cid=self.children["select_clusterby"].cid,
                 select_categoricals_cid=self.children["select_categoricals"].cid,
                 select_layer_cid=self.children["select_layer"].cid,

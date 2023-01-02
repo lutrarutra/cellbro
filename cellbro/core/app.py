@@ -41,14 +41,14 @@ class App:
         home_page = HomePage(self.dataset, order=0)
         home_page.create()
 
-        # qc_page = QCPage(self.dataset, order=1)
-        # qc_page.create()
+        qc_page = QCPage(self.dataset, order=1)
+        qc_page.create()
 
         cells_page = CellsPage(self.dataset, order=2)
         cells_page.create()
 
-        # de_page = DEPage(self.dataset, order=3)
-        # de_page.create()
+        de_page = DEPage(self.dataset, order=3)
+        de_page.create()
 
         # gsea_page = GSEAPage(self.dataset, order=4)
         # gsea_page.create()
@@ -110,15 +110,15 @@ class App:
         ])
 
         home_page.setup_callbacks(self)
-        # qc_page.setup_callbacks(self)
+        qc_page.setup_callbacks(self)
         cells_page.setup_callbacks(self)
-        # de_page.setup_callbacks(self)
+        de_page.setup_callbacks(self)
         # gsea_page.setup_callbacks(self)
         # pca_page.setup_callbacks(self)
         # scvi_page.setup_callbacks(self)
 
-        # genelist_popup.setup_callbacks(self)
-        # term_popup.setup_callbacks(self)
+        genelist_popup.setup_callbacks(self)
+        term_popup.setup_callbacks(self)
 
 
         # TABS
