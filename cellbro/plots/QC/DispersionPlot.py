@@ -44,7 +44,7 @@ class DispersionPlot(DashPlot):
     def create_layout(self):
         select_gene_tab = components.FigureHeaderTab(
             self.page_id, self.loc_class, tab_label="Gene", id=f"{self.page_id}-{self.loc_class}-genecard",
-            children=self.children["gene_card"].create_layout()
+            content=self.children["gene_card"].create_layout()
         )
 
         figure_header = components.FigureHeader(

@@ -111,7 +111,7 @@ class DEHistogram(DashPlot):
         )
 
     def create_layout(self):
-        plot_type_params = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Type", children=[
+        plot_type_params = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Type", content=[
             # Volcano Group By Select
             html.Div([
                 html.Label("Plot Type"),

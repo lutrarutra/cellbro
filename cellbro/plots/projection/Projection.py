@@ -160,6 +160,34 @@ class Projection(DashPlot):
                 options=components.discrete_colormaps, default="scanpy default",
             )
         )
+        self.children.update(
+            type_header_tab=components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Type", content=[
+                # Projection type celect
+                html.Div([
+                    html.Label("Projection Type"),
+                    self.children["select_projection_type"].create_layout(),
+                    self.children["select_projection_type"].get_stores(),
+                ], className="param-row-stacked"),
+                # Projection Hue celect
+                html.Div([
+                    html.Label("Color"),
+                    self.children["select_color"].create_layout(),
+                    self.children["select_color"].get_stores(),
+                ], className="param-row-stacked")
+            ]),
+            color_header_tab=components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Colormap", content=[
+                html.Div([
+                    html.Label("Continuous Color Map"),
+                    self.children["select_continuous_cmap"].create_layout(),
+                    self.children["select_continuous_cmap"].get_stores(),
+                ], className="param-row-stacked"),
+                html.Div([
+                    html.Label("Discrete Color Map"),
+                    self.children["select_discrete_cmap"].create_layout(),
+                    self.children["select_discrete_cmap"].get_stores(),
+                ], className="param-row-stacked")
+            ])
+        )
 
         self.actions.update(
             plot_projection=PlotProjection(
@@ -179,35 +207,10 @@ class Projection(DashPlot):
         )
 
     def create_layout(self) -> list:
-        projection_type_tab = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Type", children=[
-            # Projection type celect
-            html.Div([
-                html.Label("Projection Type"),
-                self.children["select_projection_type"].create_layout(),
-                self.children["select_projection_type"].get_stores(),
-            ], className="param-row-stacked"),
-            # Projection Hue celect
-            html.Div([
-                html.Label("Color"),
-                self.children["select_color"].create_layout(),
-                self.children["select_color"].get_stores(),
-            ], className="param-row-stacked")
+        fig_params = components.FigureHeader(self.page_id, self.loc_class, tabs=[
+            self.children["type_header_tab"],
+            self.children["color_header_tab"]
         ])
-
-        colormap_tab = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Colormap", children=[
-            html.Div([
-                html.Label("Continuous Color Map"),
-                self.children["select_continuous_cmap"].create_layout(),
-                self.children["select_continuous_cmap"].get_stores(),
-            ], className="param-row-stacked"),
-            html.Div([
-                html.Label("Discrete Color Map"),
-                self.children["select_discrete_cmap"].create_layout(),
-                self.children["select_discrete_cmap"].get_stores(),
-            ], className="param-row-stacked")
-        ])
-
-        fig_params = components.FigureHeader(self.page_id, self.loc_class, tabs=[projection_type_tab, colormap_tab])
 
         figure_layout = html.Div(
             children=[

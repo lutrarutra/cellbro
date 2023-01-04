@@ -166,7 +166,7 @@ class SCVIPage(DashPage):
 
         projection_types = self.dataset.get_scvi_projections()
 
-        type_params = components.FigureHeaderTab(self.id, tab_label="Type", children=[
+        type_params = components.FigureHeaderTab(self.id, tab_label="Type", content=[
             html.Div(
                 children=[
                     html.Label("Projection Type"),

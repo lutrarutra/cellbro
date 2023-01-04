@@ -74,7 +74,7 @@ class Violin(DashPlot):
 
 
     def create_layout(self) -> list:
-        type_params = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Type", children=[
+        type_params = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Type", content=[
             # Features
             html.Div([
                 html.Label("Feature"),

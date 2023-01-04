@@ -95,7 +95,7 @@ class DEVolcano(DashPlot):
 
     def create_layout(self):
         select_ref_tab = components.FigureHeaderTab(
-            self.page_id, self.loc_class, tab_label="Reference", children=[
+            self.page_id, self.loc_class, tab_label="Reference", content=[
                 html.Div([
                     html.Label("Group By"),
                     self.children["select_groupby"].create_layout(),
@@ -113,7 +113,7 @@ class DEVolcano(DashPlot):
         select_gene_tab = components.FigureHeaderTab(
             self.page_id, self.loc_class, tab_label="Gene",
             id=f"{self.page_id}-{self.loc_class}-genecard",
-            children=self.children["gene_card"].create_layout()
+            content=self.children["gene_card"].create_layout()
         )
 
         fig_header = components.FigureHeader(self.page_id, self.loc_class, tabs=[select_ref_tab, select_gene_tab])

@@ -170,7 +170,7 @@ class GSEAVolcano(DashPlot):
 
 
     def create_layout(self):
-        select_tab = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Select", children=[
+        select_tab = components.FigureHeaderTab(self.page_id, self.loc_class, tab_label="Select", content=[
             html.Div([
                 html.Label("Group By"),
                 self.children["select_groupby"].create_layout(),
@@ -186,7 +186,7 @@ class GSEAVolcano(DashPlot):
 
         term_tab = components.FigureHeaderTab(
             self.page_id, self.loc_class, tab_label="Term", id=f"{self.page_id}-{self.loc_class}-termcard",
-            children=self.children["term_card"].create_layout()
+            content=self.children["term_card"].create_layout()
         )
 
         header = components.FigureHeader(self.page_id, self.loc_class, tabs=[select_tab, term_tab])

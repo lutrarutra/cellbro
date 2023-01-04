@@ -13,37 +13,9 @@ from ..plots.GSEA.GSEAVolcano import GSEAVolcano
 from ..components.CID import CID
 from ..components.Sidebar import Sidebar
 from ..components import components
+from ..components.DropDown import DropDown
 
 import scout
-
-# class ListAvailableLRefs(DashAction):
-#     def setup_callbacks(self, app):
-#         output = [
-#             Output(component_id=f"{self.page_id}-gsea-groupby", component_property="options"),
-#             Output(component_id=f"{self.page_id}-gsea-groupby", component_property="value"),
-#             Output(component_id=f"{self.page_id}-gsea-reference", component_property="options"),
-#             Output(component_id=f"{self.page_id}-gsea-reference", component_property="value"),
-#         ]
-#         inputs = {
-#             "groupby": Input(component_id=f"{self.page_id}-gsea-groupby", component_property="value"),
-#         }
-
-#         @app.dash_app.callback(output=output, inputs=inputs)
-#         def _(groupby):
-#             rank_genes_groups = self.dataset.get_rank_genes_groups()
-#             if len(rank_genes_groups) == 0:
-#                 raise PreventUpdate
-
-#             if groupby is None:
-#                 refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{rank_genes_groups[0]}"].keys()))
-#             else:
-#                 refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{groupby}"].keys()))
-
-#             return [
-#                 rank_genes_groups, rank_genes_groups[0],
-#                 refs, refs[0]
-#             ]
-
 
 class PlotHeatmap(DashAction):
     RType = namedtuple("RType", ["figure", "style", "selected_genes", "cluster_by", "categoricals"])
@@ -110,8 +82,6 @@ class PlotHeatmap(DashAction):
             if click_data is None:
                 raise PreventUpdate
 
-            print(selected_genes)
-
             if ctx.triggered_id == self.gsea_volcano_cid.to_dict():
                 cluster_cells_by = gsea_groupby
                 reference = gsea_reference
@@ -149,6 +119,7 @@ class PlotProjection(DashAction):
         gsea_volcano_cid: CID,
         select_groupby_cid: CID,
         select_reference_cid: CID,
+        select_aggregation_cid: CID,
     ):
         super().__init__(parent_cid, dataset)
         self.obsm_layer_cid = obsm_layer_cid
@@ -157,13 +128,14 @@ class PlotProjection(DashAction):
         self.gsea_volcano_cid = gsea_volcano_cid
         self.select_groupby_cid = select_groupby_cid
         self.select_reference_cid = select_reference_cid
+        self.select_aggregation_cid = select_aggregation_cid
 
-    def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap, **kwargs):
+    def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap, hue_aggregate):
         fig = scout.ply.projection(
             self.dataset.adata, obsm_layer=obsm_layer, hue=color,
             layout=prj.prj_tools.default_layout, 
             continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap,
-            **kwargs
+            hue_aggregate=hue_aggregate,
         )
         return fig
 
@@ -185,19 +157,23 @@ class PlotProjection(DashAction):
             continuous_cmap=Input(self.continuous_cmap_cid.to_dict(), "value"),
             discrete_cmap=Input(self.discrete_cmap_cid.to_dict(), "value"),
             click_data=Input(self.gsea_volcano_cid.to_dict(), "clickData"),
+            aggregation=Input(self.select_aggregation_cid.to_dict(), "value"),
             groupby=State(self.select_groupby_cid.to_dict(), "value"),
             reference=State(self.select_reference_cid.to_dict(), "value"),
         )
         @app.dash_app.callback(output=outputs, inputs=inputs)
-        def _(obsm_layer, continuous_cmap, discrete_cmap, click_data, groupby, reference):
+        def _(obsm_layer, continuous_cmap, discrete_cmap, click_data, groupby, reference, aggregation):
             if click_data is None:
                 raise PreventUpdate
 
             term = click_data["points"][0]["hovertext"]
             res = self.dataset.adata.uns[f"gsea"][groupby][reference]
             selected_genes = res[res["Term"] == term]["lead_genes"].values[0]
+
+            if aggregation == "sum": aggregation = None
+
             fig = self.plot(
-                color=selected_genes, obsm_layer=obsm_layer, hue_aggregate=None,
+                color=selected_genes, obsm_layer=obsm_layer, hue_aggregate=aggregation,
                 continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
             )
             return fig
@@ -212,7 +188,11 @@ class GSEAPage(DashPage):
         self.components.update(
             main=GSEAVolcano(dataset, self.page_id, loc_class="main"),
             projection=prj.Projection(dataset, self.page_id, loc_class="secondary"),
-            heatmap=Heatmap(dataset, self.page_id, loc_class="bottom")
+            heatmap=Heatmap(dataset, self.page_id, loc_class="bottom"),
+            select_projection_agg=DropDown(
+                cid=CID(self.page_id, "secondary", "select-projection_agg"),
+                options={"abs":"Absolute", "sum":"Relative"}, default="abs",
+            ),
         )
 
         self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(
@@ -235,6 +215,23 @@ class GSEAPage(DashPage):
             gsea_volcano_cid=self.components["main"].cid,
             select_groupby_cid=self.components["main"].children["select_groupby"].cid,
             select_reference_cid=self.components["main"].children["select_reference"].cid,
+            select_aggregation_cid=self.components["select_projection_agg"].cid,
+        )
+        self.components["projection"].children["type_header_tab"] = components.FigureHeaderTab(
+            self.page_id, self.components["projection"].loc_class, tab_label="Type", content=[
+                # Projection type celect
+                html.Div([
+                    html.Label("Projection Type"),
+                    self.components["projection"].children["select_projection_type"].create_layout(),
+                    self.components["projection"].children["select_projection_type"].get_stores(),
+                ], className="param-row-stacked"),
+                # Projection Hue celect
+                html.Div([
+                    html.Label("Aggregation"),
+                    self.components["select_projection_agg"].create_layout(),
+                    self.components["select_projection_agg"].get_stores(),
+                ], className="param-row-stacked")
+            ]
         )
 
     def create_layout(self) -> list:

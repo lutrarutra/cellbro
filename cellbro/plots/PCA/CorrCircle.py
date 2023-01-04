@@ -45,7 +45,7 @@ class CorrCircle(DashPlot):
 
     def create_layout(self) -> list:
         select_gene_tab = components.FigureHeaderTab(self.page_id, tab_label="Gene",
-            id=f"{self.page_id}-{self.loc_class}-genecard", children=[
+            id=f"{self.page_id}-{self.loc_class}-genecard", content=[
             create_gene_card(self.page_id, self.loc_class, None, self.dataset)
         ])
 

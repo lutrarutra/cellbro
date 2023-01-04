@@ -26,8 +26,8 @@ class DashPage(ABC):
         ...
 
     def setup_callbacks(self, app):
-        for key, sidebar in self.components.items():
-            sidebar.setup_callbacks(app)
+        for key, component in self.components.items():
+            component.setup_callbacks(app)
             
         for key, action in self.actions.items():
             action.setup_callbacks(app)
