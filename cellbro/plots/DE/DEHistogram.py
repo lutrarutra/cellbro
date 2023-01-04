@@ -26,9 +26,9 @@ class Plot(DashAction):
         self.select_reference_cid = select_reference_cid
 
     def plot(self, groupby, reference):
-        key = f"rank_genes_{groupby}"
+        # key = f"rank_genes_{groupby}"
         fig = scout.ply.pval_histogram(
-            self.dataset.adata.uns[key][reference], layout=de_tools.default_layout
+            self.dataset.adata.uns["de"][groupby][reference], layout=de_tools.default_layout
         )
         return fig
 

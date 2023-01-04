@@ -26,16 +26,16 @@ class PlotVolcano(DashAction):
         self.select_reference_cid = select_reference_cid
 
     def plot(self, groupby, reference):
-        key = f"rank_genes_{groupby}"
+        # key = f"rank_genes_{groupby}"
 
-        if not key in self.dataset.adata.uns.keys():
-            return dash.no_update
+        if not groupby in self.dataset.adata.uns["de"].keys():
+            raise PreventUpdate
 
         if reference is None:
-            reference = list(self.dataset.adata.uns[key].keys())[0]
+            reference = list(self.dataset.adata.uns["de"][groupby].keys())[0]
 
         fig = scout.ply.marker_volcano(
-            self.dataset.adata.uns[key][reference], layout=de_tools.default_layout
+            self.dataset.adata.uns["de"][groupby][reference], layout=de_tools.default_layout
         )
 
         return fig

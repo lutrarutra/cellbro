@@ -68,7 +68,7 @@ de_params = ParamsDict(
 
 
 def get_reference_options(dataset, groupby, target="Rest"):
-    groupby = dataset.adata.uns.get(f"rank_genes_{groupby}", None)
+    groupby = dataset.adata.uns["de"][groupby]
 
     def _compare(a, b):
         if a < b:

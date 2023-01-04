@@ -33,7 +33,8 @@ class ApplyGSEA(DashAction):
         self.select_geneset_cid = select_geneset_cid
 
     def apply(self, groupby, reference, gene_set):
-        gene_score_df = self.dataset.adata.uns[f"rank_genes_{groupby}"][reference]
+        # gene_score_df = self.dataset.adata.uns[f"rank_genes_{groupby}"][reference]
+        gene_score_df = self.dataset.adata.uns["de"][groupby][reference]
         res = scout.tl.GSEA(gene_score_df, score_of_interest="gene_score", gene_set=gene_set)
         self.dataset.add_gsea_result(res, groupby, reference)
 
@@ -103,7 +104,7 @@ class GSEAVolcano(DashPlot):
         def get_gsea_reference_options():
             gsea_groupby_options = self.dataset.get_rank_genes_groups()
             if len(gsea_groupby_options) > 0:
-                gsea_refs = sorted(list(self.dataset.adata.uns[f"rank_genes_{gsea_groupby_options[0]}"].keys()))
+                gsea_refs = sorted(list(self.dataset.adata.uns["de"][gsea_groupby_options[0]].keys()))
             else:
                 gsea_refs = []
             
