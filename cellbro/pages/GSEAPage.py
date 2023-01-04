@@ -46,34 +46,73 @@ import scout
 
 
 class PlotHeatmap(DashAction):
-    RType = namedtuple("RType", ["figure", "style"])
+    RType = namedtuple("RType", ["figure", "style", "selected_genes", "cluster_by", "categoricals"])
+    def __init__(
+        self, parent_cid: CID, dataset,
+        select_colormap_cid: CID,
+        gsea_volcano_cid: CID,
+        select_groupby_cid: CID,
+        select_reference_cid: CID,
+        select_layer_cid: CID,
+        select_cluster_by_cid: CID,
+        select_categoricals_cid: CID,
+        select_genes_cid: CID,
+    ):
+        super().__init__(parent_cid, dataset)
+        self.select_colormap_cid = select_colormap_cid
+        self.gsea_volcano_cid = gsea_volcano_cid
+        self.select_groupby_cid = select_groupby_cid
+        self.select_reference_cid = select_reference_cid
+        self.select_layer_cid = select_layer_cid
+        self.select_cluster_by_cid = select_cluster_by_cid
+        self.select_categoricals_cid = select_categoricals_cid
+        self.select_genes_cid = select_genes_cid
+
+    def plot(self, selected_genes, cluster_cells_by, categoricals, layer, colormap):
+        fig = scout.ply.heatmap(
+            adata=self.dataset.adata, var_names=selected_genes, categoricals=categoricals,
+            layer=layer, cluster_cells_by=cluster_cells_by, layout=dict(),
+            cmap=colormap,
+        )
+
+        style = {
+            # "width": f"{int(z.shape[0]/2)+100}px",
+            "height": fig.layout["height"],
+        }
+        return fig, style
 
     def setup_callbacks(self, app):
         output = [
-            Output(f"{self.page_id}-heatmap-plot", "figure"),
-            Output(f"{self.page_id}-heatmap-plot", "style"),
+            Output(self.parent_cid.to_dict(), "figure"),
+            Output(self.parent_cid.to_dict(), "style"),
+            Output(self.select_genes_cid.to_dict(), "value"),
+            Output(self.select_cluster_by_cid.to_dict(), "value"),
+            Output(self.select_categoricals_cid.to_dict(), "value"),
         ]
 
-        # Inputs to Projection
         inputs = dict(
             submit=Input(f"{self.page_id}-{self.loc_class}-sidebar-apply_btn", "n_clicks"),
-            click_data=Input(f"{self.page_id}-main-plot", "clickData"),
-            gsea_groupby = Input(f"{self.page_id}-main-groupby", "value"),
-            gsea_reference = Input(f"{self.page_id}-main-reference", "value"),
-            selected_genes=State(f"{self.page_id}-{self.loc_class}-param-genes", "value"),
-            cluster_cells_by=State(f"{self.page_id}-{self.loc_class}-param-cluster_cells_by", "value"),
-            categoricals=State(f"{self.page_id}-{self.loc_class}-param-categoricals", "value")
+            click_data=Input(self.gsea_volcano_cid.to_dict(), "clickData"),
+            gsea_groupby=Input(self.select_groupby_cid.to_dict(), "value"),
+            gsea_reference=Input(self.select_reference_cid.to_dict(), "value"),
+            selected_genes=State(self.select_genes_cid.to_dict(), "value"),
+            cluster_cells_by=State(self.select_cluster_by_cid.to_dict(), "value"),
+            categoricals=State(self.select_categoricals_cid.to_dict(), "value"),
+            colormap=State(self.select_colormap_cid.to_dict(), "value"),
+            layer=State(self.select_layer_cid.to_dict(), "value"),
         )
 
-        for key in heatmap_params.keys():
-            inputs[key] = State(f"{self.page_id}-{self.loc_class}-param-{key}", "value")
-
         @app.dash_app.callback(output=output, inputs=inputs)
-        def _(submit, click_data, gsea_groupby, gsea_reference, selected_genes, cluster_cells_by, categoricals, **kwargs):
+        def _(
+            submit, click_data, gsea_groupby, gsea_reference, selected_genes,
+            cluster_cells_by, categoricals, colormap, layer
+            ):
             if click_data is None:
                 raise PreventUpdate
 
-            if ctx.triggered_id == f"{self.page_id}-main-plot":
+            print(selected_genes)
+
+            if ctx.triggered_id == self.gsea_volcano_cid.to_dict():
                 cluster_cells_by = gsea_groupby
                 reference = gsea_reference
 
@@ -84,14 +123,22 @@ class PlotHeatmap(DashAction):
                 selected_genes = selected_genes
                 cluster_cells_by = cluster_cells_by
 
-            fig, style = Heatmap.Heatmap.plot(self.dataset, kwargs)
+                if isinstance(categoricals, str):
+                    categoricals = [categoricals]
+
+                if cluster_cells_by not in categoricals:
+                    categoricals.append(cluster_cells_by)
+
+            fig, style = self.plot(selected_genes, cluster_cells_by, categoricals, layer, colormap)
 
             return self.RType(
-                # selected_genes=selected_genes,
-                # cluster_cells_by=cluster_cells_by,
                 figure=fig,
-                style=style
+                style=style,
+                selected_genes=selected_genes if selected_genes is not None else dash.no_update,
+                cluster_by=cluster_cells_by if cluster_cells_by is not None else dash.no_update,
+                categoricals=categoricals if categoricals is not None else dash.no_update,
             )
+
 
 class PlotProjection(DashAction):
     def __init__(
@@ -141,10 +188,8 @@ class PlotProjection(DashAction):
             groupby=State(self.select_groupby_cid.to_dict(), "value"),
             reference=State(self.select_reference_cid.to_dict(), "value"),
         )
-        print("YAHOO")
         @app.dash_app.callback(output=outputs, inputs=inputs)
         def _(obsm_layer, continuous_cmap, discrete_cmap, click_data, groupby, reference):
-            print(ctx.triggered_id)
             if click_data is None:
                 raise PreventUpdate
 
@@ -167,12 +212,20 @@ class GSEAPage(DashPage):
         self.components.update(
             main=GSEAVolcano(dataset, self.page_id, loc_class="main"),
             projection=prj.Projection(dataset, self.page_id, loc_class="secondary"),
-            # heatmap=Heatmap(dataset, self.page_id, loc_class="bottom")
+            heatmap=Heatmap(dataset, self.page_id, loc_class="bottom")
         )
 
-        # self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(CID(self.page_id, "bottom", "plot_heatmap"), self.dataset)
-        # # TODO: Fix this
-        # self.components["heatmap"].actions.pop("edit_genelist")
+        self.components["heatmap"].actions["plot_heatmap"] = PlotHeatmap(
+            self.components["heatmap"].cid, self.dataset,
+            gsea_volcano_cid=self.components["main"].cid,
+            select_groupby_cid=self.components["main"].children["select_groupby"].cid,
+            select_reference_cid=self.components["main"].children["select_reference"].cid,
+            select_colormap_cid=self.components["heatmap"].children["select_colormap"].cid,
+            select_cluster_by_cid=self.components["heatmap"].children["select_clusterby"].cid,
+            select_layer_cid=self.components["heatmap"].children["select_layer"].cid,
+            select_categoricals_cid=self.components["heatmap"].children["select_categoricals"].cid,
+            select_genes_cid=self.components["heatmap"].children["select_genes"].cid,
+        )
 
         self.components["projection"].actions["plot_projection"] = PlotProjection(
             self.components["projection"].cid, dataset,
@@ -198,13 +251,13 @@ class GSEAPage(DashPage):
         )
         secondary_figure = self.components["projection"].create_layout()
         
-        # self.components["bot_sidebar"] = Sidebar(
-        #     page_id=self.page_id, loc_class="bottom",
-        #     title="Heatmap Settings", create_btn=True, btn_text="Plot",
-        #     params_children=self.components["heatmap"].get_sidebar_params(),
-        # )
+        self.components["bot_sidebar"] = Sidebar(
+            page_id=self.page_id, loc_class="bottom",
+            title="Heatmap Settings", create_btn=True, btn_text="Plot",
+            params_children=self.components["heatmap"].get_sidebar_params(),
+        )
         
-        #bot_figure = self.components["heatmap"].create_layout()
+        bot_figure = self.components["heatmap"].create_layout()
 
         layout = [
             html.Div(
@@ -217,8 +270,7 @@ class GSEAPage(DashPage):
                 id="bottom",
                 className="bottom",
                 children=[
-                    # bottom_sidebar, bottom_figure
-                    #self.components["bot_sidebar"].create_layout(), bot_figure
+                    self.components["bot_sidebar"].create_layout(), bot_figure
                 ],
             ),
         ]
