@@ -17,7 +17,7 @@ class Plot(DashAction):
         return fig
 
     def setup_callbacks(self, app):
-        output = Output(self.parent_cid.to_str(), "figure")
+        output = Output(self.parent_cid.to_dict(), "figure")
         inputs = dict(
             submit=Input(f"{self.page_id}-main-sidebar-apply_btn", "n_clicks"),
         )
@@ -33,8 +33,6 @@ class DispersionPlot(DashPlot):
     def __init__(self, dataset, page_id, loc_class):
         super().__init__(dataset, page_id, loc_class)
         self.actions.update(
-            # select_gene=SelectGene(self.cid, dataset),
-            # update_genelist=UpdateGeneList(self.cid, self.dataset),
             plot=Plot(self.cid, dataset)
         )
         self.children.update(
@@ -56,7 +54,7 @@ class DispersionPlot(DashPlot):
             html.Div([
                 dcc.Loading(type="circle", children=[
                     html.Div(
-                        dcc.Graph(id=f"{self.page_id}-{self.loc_class}-plot", className=f"{self.loc_class}-plot")
+                        dcc.Graph(id=self.cid.to_dict(), className=f"{self.loc_class}-plot")
                     )
                 ])
             ], className=f"{self.loc_class}-body")

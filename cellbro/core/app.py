@@ -53,8 +53,8 @@ class App:
         gsea_page = GSEAPage(self.dataset, order=4)
         gsea_page.create()
 
-        # pca_page = PCAPage(self.dataset, order=5)
-        # pca_page.create()
+        pca_page = PCAPage(self.dataset, order=5)
+        pca_page.create()
 
         # scvi_page = SCVIPage(self.dataset, order=6)
         # scvi_page.create()
@@ -114,7 +114,7 @@ class App:
         cells_page.setup_callbacks(self)
         de_page.setup_callbacks(self)
         gsea_page.setup_callbacks(self)
-        # pca_page.setup_callbacks(self)
+        pca_page.setup_callbacks(self)
         # scvi_page.setup_callbacks(self)
 
         genelist_popup.setup_callbacks(self)

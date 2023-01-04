@@ -1,26 +1,28 @@
+from typing import Literal
+
 import dash
 from dash import Output, Input, State, ctx, html, dcc, ALL
 from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
 
 from .DashComponent import DashComponent
-from ..util.DashAction import DashAction
 from .DashStore import DashStore
 from .CID import CID
 
-class DropDown(DashComponent):
+
+class InputField(DashComponent):
     def __init__(
-        self, cid: CID, options, default, clearable=False, multi=False, placeholder=None,
-        style=None, options_callback=None, update_store_id=None
+        self, cid: CID, default, type: Literal["number", "text"], min=None, max=None,
+        clearable=False, placeholder=None, style=None
     ):
         super().__init__(cid.page_id, cid.loc_class, cid.type)
-        self.options = options
         self.default = default
         self.clearable = clearable
-        self.multi = multi
+        self.min = min
+        self.max = max
+        self._type = type
         self.placeholder = placeholder
-        self._update_store_id = ("update_store-" + "".join(self.cid.type.split("-")[1:])) if update_store_id is None else update_store_id
-        self.options_callback = options_callback
-        self.static = self.options_callback == None
+
         self.style = style
         self.children.update(
             default_store=DashStore(self.cid.page_id, self.cid.loc_class, type=f"default_store-{self.cid.type}"),
@@ -33,7 +35,7 @@ class DropDown(DashComponent):
 
     def setup_callbacks(self, app):
         output = Output(self.cid.to_dict(), "value")
-        
+
         inputs = dict(
             _=Input(self.children["default_store"].cid.to_dict(), "modified_timestamp"),
             default_store=State(self.children["default_store"].cid.to_dict(), "data"),
@@ -50,29 +52,9 @@ class DropDown(DashComponent):
 
             if "value" in default_store.keys():
                 value = default_store["value"]
-                if self.static:
-                    options = self.options
-                else:
-                    options = self.options_callback()
-
-                if not self.multi:
-                    if value not in options:
-                        if self.default not in options:
-                            if len(options) == 0:
-                                if self.clearable:
-                                    value = None
-                                else:
-                                    raise PreventUpdate
-                            value = options[0]
-                        else:
-                            value = self.default
-                else:
-                    value = [v for v in value if v in options]
-
                 return value
-            
-            raise PreventUpdate
 
+            raise PreventUpdate
 
         @app.dash_app.callback(
             output=Output(self.children["default_store"].cid.to_dict(), "data"),
@@ -86,20 +68,6 @@ class DropDown(DashComponent):
                 raise PreventUpdate
 
             return dict(value=value)
-        
-        if self.static:
-            return
-
-        @app.dash_app.callback(
-            output=Output(self.cid.to_dict(), "options"),
-            inputs=[
-                Input("url", "pathname"),
-                Input(self.update_store_id, "data")
-            ],
-        )
-        def update_options(pathname, _):
-            options = self.options_callback()
-            return options
 
     def get_stores(self):
         return html.Div([
@@ -107,9 +75,14 @@ class DropDown(DashComponent):
         ])
 
     def create_layout(self):
-        return dcc.Dropdown(
-            options=self.options, value=self.default,
-            id=self.cid.to_dict(), clearable=self.clearable,
-            multi=self.multi, placeholder=self.placeholder,
-            style=self.style
+        return dbc.Input(
+            id=self.cid.to_dict(),
+            value=self.default,
+            min=self.min,
+            max=self.max,
+            step=1,
+            className="param-input",
+            placeholder=self.placeholder,
+            style=self.style,
+            type=self._type,
         )
