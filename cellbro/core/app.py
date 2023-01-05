@@ -24,9 +24,13 @@ from ..components.TermComponents import AddGenesFromTermPopUp
 # from cellbro.core.pages.home import create_page as create_home_page
 
 class App:
-    def __init__(self):
+    def __init__(self, path):
+        self.dataset = Dataset(path)
+
+        self.server = flask.Flask(__name__)
         self.dash_app = DashProxy(
             __name__,
+            server=self.server,
             serve_locally=True,
             use_pages=True,
             pages_folder="../pages",
@@ -35,9 +39,6 @@ class App:
             transforms=[MultiplexerTransform()],
         )
         
-        self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
-        self.dataset = Dataset("./data/full.h5ad")
-
         home_page = HomePage(self.dataset, order=0)
         home_page.create()
 
@@ -65,7 +66,7 @@ class App:
         # Fixes weird Plotly 'value error'-bug with first plot
         _ = go.Figure(layout=dict(template='plotly'))
 
-
+        print("Setting up layout...")
         self.dash_app.layout = html.Div([
             dcc.Location(id="url"),
             html.Div([
@@ -109,6 +110,7 @@ class App:
             ], id="page"),
         ])
 
+        print("Setting up callbacks...")
         home_page.setup_callbacks(self)
         qc_page.setup_callbacks(self)
         cells_page.setup_callbacks(self)
@@ -119,7 +121,7 @@ class App:
 
         genelist_popup.setup_callbacks(self)
         term_popup.setup_callbacks(self)
-
+        
 
         # TABS
         @self.dash_app.callback(
@@ -132,6 +134,10 @@ class App:
                 for page in dash.page_registry.values()
             ]
 
+        print("App Ready!")
 
-    def run(self):
-        self.dash_app.run_server(debug=True, host="127.0.0.1")
+
+    def run(self, debug=False):
+        # self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
+        self.dash_app.run(debug=debug, host="127.0.0.1", dev_tools_hot_reload=False)
+        return

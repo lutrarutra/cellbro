@@ -47,8 +47,11 @@ class ApplyGSEA(DashAction):
             gsea_geneset=State(self.select_geneset_cid.to_dict(), "value"),
         )
 
-        @app.dash_app.callback(output=output, inputs=inputs)
+        @app.dash_app.callback(output=output, inputs=inputs, prevent_initial_call=True)
         def _(submit, gsea_groupby, gsea_reference, gsea_geneset):
+            if submit is None:
+                raise PreventUpdate
+                
             if gsea_groupby is None or gsea_reference is None or gsea_geneset is None:
                 raise PreventUpdate
 
@@ -88,16 +91,14 @@ class GSEAVolcano(DashPlot):
 
         groupby_options = sorted(list(self.dataset.adata.uns["gsea"].keys()))
 
-        def get_reference_options():
-            groupby_options = sorted(list(self.dataset.adata.uns["gsea"].keys()))
-            if len(groupby_options) > 0:
-                ref_options = sorted(list(self.dataset.adata.uns["gsea"][groupby_options[0]].keys()))
-            else:
-                ref_options = []
-
+        def get_reference_options(groupby):
+            ref_options = sorted(list(self.dataset.adata.uns["gsea"][groupby].keys()))
             return ref_options
 
-        ref_options = get_reference_options()
+        if len(groupby_options) > 0:
+            ref_options = get_reference_options(groupby_options[0])
+        else:
+            ref_options = []
 
         gsea_groupby_options = self.dataset.get_rank_genes_groups()
 
@@ -123,12 +124,6 @@ class GSEAVolcano(DashPlot):
                 options_callback=lambda: sorted(list(self.dataset.adata.uns["gsea"].keys())),
                 update_store_id="gsea-store"
             ),
-            select_reference=DropDown(
-                cid=CID(page_id, loc_class, "select-reference"),
-                options=ref_options, default=next(iter(ref_options), None),
-                options_callback=lambda: get_reference_options(),
-                update_store_id="gsea-store"
-            ),
             select_gsea_groupby=DropDown(
                 cid=CID(page_id, loc_class, "select-gsea_groupby"),
                 options=gsea_groupby_options, default=next(iter(gsea_groupby_options), None),
@@ -145,6 +140,12 @@ class GSEAVolcano(DashPlot):
                 cid=CID(page_id, loc_class, "select-library"),
                 options=gene_sets, default=default_gene_set,
             )
+        )
+        self.children["select_reference"] = DropDown(
+            cid=CID(page_id, loc_class, "select-reference"),
+            options=ref_options, default=next(iter(ref_options), None),
+            options_callback=lambda x: get_reference_options(x),
+            master_cid=self.children["select_groupby"].cid,
         )
 
         self.children.update(

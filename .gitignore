@@ -4,4 +4,6 @@ node_modules/
 *.egg-info/
 data/
 test/
+build/
+dist/
 imgui.ini

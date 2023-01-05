@@ -59,16 +59,15 @@ class DEVolcano(DashPlot):
         super().__init__(dataset, page_id, loc_class)
 
         groupby_options = self.dataset.get_rank_genes_groups()
-        def get_reference_options():
-            groupby_options = self.dataset.get_rank_genes_groups()
-            if len(groupby_options) > 0:
-                ref_options = de_tools.get_reference_options(self.dataset, groupby_options[0])
-            else:
-                ref_options = []
-
+        def get_reference_options(groupby):
+            # groupby_options = self.dataset.get_rank_genes_groups()
+            ref_options = de_tools.get_reference_options(self.dataset, groupby)
             return ref_options
 
-        ref_options = get_reference_options()
+        if len(groupby_options) > 0:
+            ref_options = get_reference_options(groupby_options[0])
+        else:
+            ref_options = []
 
         self.children.update(
             gene_card=GeneCard(self.cid.page_id, self.cid.loc_class, self.dataset),
@@ -77,12 +76,14 @@ class DEVolcano(DashPlot):
                 options=groupby_options, default=next(iter(groupby_options), None),
                 options_callback=lambda: self.dataset.get_rank_genes_groups(),
                 update_store_id="de-store"
-            ),
+            )
+        )
+        self.children.update(
             select_reference=DropDown(
                 cid=CID(self.page_id, self.loc_class, "select-reference"),
                 options=ref_options, default=next(iter(ref_options), None),
-                options_callback=lambda: get_reference_options(),
-                update_store_id="de-store"
+                options_callback=lambda x: get_reference_options(x),
+                master_cid=self.children["select_groupby"].cid,
             )
         )
         self.actions.update(

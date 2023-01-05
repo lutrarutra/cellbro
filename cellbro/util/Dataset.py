@@ -24,12 +24,18 @@ class Dataset:
         if "genelists" not in self.adata.uns.keys():
             self.adata.uns["genelists"] = {}
 
-        if "gsea" not in self.adata.uns.keys():
-            self.adata.uns["gsea"] = {}
-
         if "de" not in self.adata.uns.keys():
             self.adata.uns["de"] = {}
 
+        if "gsea" not in self.adata.uns.keys():
+            self.adata.uns["gsea"] = {}
+
+        for groupby in self.adata.uns["gsea"].keys():
+            for ref in self.adata.uns["gsea"][groupby].keys():
+                temp = self.adata.uns["gsea"][groupby][ref]
+                idx = temp["lead_genes"].apply(type) == str
+                temp.loc[idx, "lead_genes"] = temp.loc[idx, "lead_genes"].str.split(";")
+        
         self.adata.uns["scvi_setup_params"] = {}
         self.adata.uns["scvi_model_params"] = {}
         self.adata.uns["scvi_train_params"] = {}
