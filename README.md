@@ -1,7 +1,7 @@
 # cellbrowser
 
 ## Quality Control
-![alt text](https://github.com/lutrarutra/scout/blob/main/figures/qc.png?raw=true)
+![alt text](https://github.com/lutrarutra/cellbro/blob/main/figures/qc.png?raw=true)
 
 ## Cell Browser with Projections, Violins, and Heatmap
 ![alt text](https://github.com/lutrarutra/cellbro/blob/main/figures/cells.png?raw=true)
