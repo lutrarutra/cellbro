@@ -44,6 +44,7 @@ qc_params = ParamsDict(
 
 
 def apply_dispersion_qc(dataset):
+    sc.pp.highly_variable_genes(dataset.adata, min_mean=0.0125, max_mean=3, min_disp=0.5)
     if not "cv2" in dataset.adata.var.columns or not "mu" in dataset.adata.var.columns:
         ncounts = dataset.adata.layers["ncounts"]
         if isinstance(ncounts, scipy.sparse.csr_matrix):

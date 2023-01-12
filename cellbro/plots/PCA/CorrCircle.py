@@ -1,6 +1,6 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, dcc, html
+from dash import Input, Output, State, dcc, html, ctx
 from dash.exceptions import PreventUpdate
 
 from ...components import components
@@ -11,7 +11,6 @@ from ...components.GeneCard import GeneCard
 from ...components.CID import CID
 
 import scout
-
 
 class PlotCorrCircle(DashAction):
     def __init__(
@@ -27,7 +26,6 @@ class PlotCorrCircle(DashAction):
         fig = scout.ply.pca_corr_circle(
             self.dataset.adata, components=[pc_x, pc_y], layout=pca_tools.default_layout
         )
-
         return fig
 
     def setup_callbacks(self, app):
@@ -37,10 +35,10 @@ class PlotCorrCircle(DashAction):
         inputs = dict(
             pc_x=Input(self.select_pcx_cid.to_dict(), "value"),
             pc_y=Input(self.select_pcy_cid.to_dict(), "value"),
+            _=Input("url", "pathname")
         )
-
         @app.dash_app.callback(output=output, inputs=inputs)
-        def _(pc_x, pc_y):
+        def _(pc_x, pc_y, _):
             return self.plot(pc_x-1, pc_y-1)
 
 
@@ -54,7 +52,7 @@ class CorrCircle(DashPlot):
             plot_correlation_circle=PlotCorrCircle(
                 self.cid, self.dataset,
                 select_pcx_cid, select_pcy_cid
-            ),
+            )
         )
 
     def create_layout(self) -> list:
