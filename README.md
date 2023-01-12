@@ -5,6 +5,8 @@
 
 ## Cell Browser with Projections, Violins, and Heatmap
 ![alt text](https://github.com/lutrarutra/cellbro/blob/main/figures/cells.png?raw=true)
+![alt text](https://github.com/lutrarutra/cellbro/blob/main/figures/projection.png?raw=true)
+![alt text](https://github.com/lutrarutra/cellbro/blob/main/figures/heatmap.png?raw=true)
 
 ## Differential Expression (DE)
 ![alt text](https://github.com/lutrarutra/cellbro/blob/main/figures/de.png?raw=true)
