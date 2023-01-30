@@ -28,6 +28,7 @@ class SelectTerm(DashAction):
         self, cid: CID, dataset,
         select_groupby_cid: CID,
         select_reference_cid: CID,
+        select_library_cid: CID,
         selected_geneset_cid: CID = None,
         selected_term_cid: CID = None,
         term_genes_cid: CID = None,
@@ -37,6 +38,7 @@ class SelectTerm(DashAction):
         self.plot_cid = CID(self.parent_cid.page_id, self.parent_cid.loc_class, "plot")
         self.select_groupby_cid = select_groupby_cid
         self.select_reference_cid = select_reference_cid
+        self.select_library_cid = select_library_cid
 
         if selected_geneset_cid is not None:
             self.selected_geneset_cid = selected_geneset_cid
@@ -58,9 +60,14 @@ class SelectTerm(DashAction):
         else:
             self.term_link_cid = CID(self.parent_cid.page_id, self.parent_cid.loc_class, "term-link")
 
-    def apply(self, click_data, groupby, reference):
+    def apply(self, click_data, groupby, reference, library):
         term = click_data["points"][0]["hovertext"]
-        df = self.dataset.adata.uns["gsea"][groupby][reference]
+        print(groupby)
+        print(reference)
+        print(library)
+        print(self.dataset.adata.uns["gsea"].keys())
+        print(self.dataset.adata.uns["gsea"][groupby].keys())
+        df = self.dataset.adata.uns["gsea"][groupby][reference][library]
         geneset_name = df.index.name
         term_genes = df[df["Term"] == term]["lead_genes"].values.tolist()[0]
 
@@ -86,23 +93,25 @@ class SelectTerm(DashAction):
             click_data=Input(self.plot_cid.to_dict(), "clickData"),
             groupby=State(self.select_groupby_cid.to_dict(), "value"),
             reference=State(self.select_reference_cid.to_dict(), "value"),
+            library=State(self.select_library_cid.to_dict(), "value"),
         )
 
         @app.dash_app.callback(output=outputs, inputs=inputs)
-        def _(click_data, groupby, reference):
+        def _(click_data, groupby, reference, library):
             if click_data is None:
                 raise PreventUpdate
 
-            return self.apply(click_data, groupby, reference)
+            return self.apply(click_data, groupby, reference, library)
 
 class TermCard(DashComponent):
-    def __init__(self, page_id, loc_class, dataset, select_groupby_cid, select_reference_cid):
+    def __init__(self, page_id, loc_class, dataset, select_groupby_cid, select_reference_cid, select_library_cid):
         super().__init__(page_id, loc_class, "term_card")
         self.dataset = dataset
         self.actions.update(
             select_term=SelectTerm(
                 self.cid, self.dataset,
-                select_groupby_cid, select_reference_cid,
+                select_groupby_cid, select_reference_cid, 
+                select_library_cid
             )
         )
 

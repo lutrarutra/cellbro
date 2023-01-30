@@ -25,6 +25,7 @@ class PlotHeatmap(DashAction):
         gsea_volcano_cid: CID,
         select_groupby_cid: CID,
         select_reference_cid: CID,
+        select_library_cid: CID,
         select_layer_cid: CID,
         select_cluster_by_cid: CID,
         select_categoricals_cid: CID,
@@ -39,6 +40,7 @@ class PlotHeatmap(DashAction):
         self.select_cluster_by_cid = select_cluster_by_cid
         self.select_categoricals_cid = select_categoricals_cid
         self.select_genes_cid = select_genes_cid
+        self.select_library_cid = select_library_cid
 
     def plot(self, selected_genes, cluster_cells_by, categoricals, layer, colormap):
         fig = scout.ply.heatmap(
@@ -67,6 +69,7 @@ class PlotHeatmap(DashAction):
             click_data=Input(self.gsea_volcano_cid.to_dict(), "clickData"),
             gsea_groupby=Input(self.select_groupby_cid.to_dict(), "value"),
             gsea_reference=Input(self.select_reference_cid.to_dict(), "value"),
+            gsea_library=Input(self.select_library_cid.to_dict(), "value"),
             selected_genes=State(self.select_genes_cid.to_dict(), "value"),
             cluster_cells_by=State(self.select_cluster_by_cid.to_dict(), "value"),
             categoricals=State(self.select_categoricals_cid.to_dict(), "value"),
@@ -76,7 +79,7 @@ class PlotHeatmap(DashAction):
 
         @app.dash_app.callback(output=output, inputs=inputs)
         def _(
-            submit, click_data, gsea_groupby, gsea_reference, selected_genes,
+            submit, click_data, gsea_groupby, gsea_reference, gsea_library, selected_genes,
             cluster_cells_by, categoricals, colormap, layer
             ):
             if click_data is None:
@@ -87,7 +90,7 @@ class PlotHeatmap(DashAction):
                 reference = gsea_reference
 
                 term = click_data["points"][0]["hovertext"]
-                res = self.dataset.adata.uns[f"gsea"][cluster_cells_by][reference]
+                res = self.dataset.adata.uns[f"gsea"][cluster_cells_by][reference][gsea_library]
                 selected_genes = res[res["Term"] == term]["lead_genes"].values[0]
                 
                 selected_genes = selected_genes
@@ -119,6 +122,7 @@ class PlotProjection(DashAction):
         gsea_volcano_cid: CID,
         select_groupby_cid: CID,
         select_reference_cid: CID,
+        select_library_cid: CID,
         select_aggregation_cid: CID,
     ):
         super().__init__(parent_cid, dataset)
@@ -129,6 +133,7 @@ class PlotProjection(DashAction):
         self.select_groupby_cid = select_groupby_cid
         self.select_reference_cid = select_reference_cid
         self.select_aggregation_cid = select_aggregation_cid
+        self.select_library_cid = select_library_cid
 
     def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap, hue_aggregate):
         fig = scout.ply.projection(
@@ -160,14 +165,15 @@ class PlotProjection(DashAction):
             aggregation=Input(self.select_aggregation_cid.to_dict(), "value"),
             groupby=State(self.select_groupby_cid.to_dict(), "value"),
             reference=State(self.select_reference_cid.to_dict(), "value"),
+            library=State(self.select_library_cid.to_dict(), "value"),
         )
         @app.dash_app.callback(output=outputs, inputs=inputs)
-        def _(obsm_layer, continuous_cmap, discrete_cmap, click_data, groupby, reference, aggregation):
+        def _(obsm_layer, continuous_cmap, discrete_cmap, click_data, groupby, reference, library, aggregation):
             if click_data is None:
                 raise PreventUpdate
 
             term = click_data["points"][0]["hovertext"]
-            res = self.dataset.adata.uns[f"gsea"][groupby][reference]
+            res = self.dataset.adata.uns[f"gsea"][groupby][reference][library]
             selected_genes = res[res["Term"] == term]["lead_genes"].values[0]
 
             if aggregation == "sum": aggregation = None
@@ -200,6 +206,7 @@ class GSEAPage(DashPage):
             gsea_volcano_cid=self.components["main"].cid,
             select_groupby_cid=self.components["main"].children["select_groupby"].cid,
             select_reference_cid=self.components["main"].children["select_reference"].cid,
+            select_library_cid=self.components["main"].children["select_library"].cid,
             select_colormap_cid=self.components["heatmap"].children["select_colormap"].cid,
             select_cluster_by_cid=self.components["heatmap"].children["select_clusterby"].cid,
             select_layer_cid=self.components["heatmap"].children["select_layer"].cid,
@@ -215,6 +222,7 @@ class GSEAPage(DashPage):
             gsea_volcano_cid=self.components["main"].cid,
             select_groupby_cid=self.components["main"].children["select_groupby"].cid,
             select_reference_cid=self.components["main"].children["select_reference"].cid,
+            select_library_cid=self.components["main"].children["select_library"].cid,
             select_aggregation_cid=self.components["select_projection_agg"].cid,
         )
         self.components["projection"].children["type_header_tab"] = components.FigureHeaderTab(

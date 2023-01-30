@@ -44,20 +44,36 @@ class DropDown(DashComponent):
         )
         if self.master_cid is not None:
             output.append(Output(self.cid.to_dict(), "options"))
-            inputs.update(dict(master=Input(self.master_cid.to_dict(), "value")))
+
+            if isinstance(self.master_cid, CID):
+                inputs.update(dict(master=Input(self.master_cid.to_dict(), "value")))
+            elif isinstance(self.master_cid, list):
+                for i, m_cid in enumerate(self.master_cid):
+                    inputs.update({f"master_{i}":Input(m_cid.to_dict(), "value")})
+            else:
+                assert False, f"Invalid master_cid {self.master_cid}"
 
         @app.dash_app.callback(output=output, inputs=inputs)
-        def get_default_value(default_store, value, _, master=None):
+        def get_default_value(default_store, value, _, **master):
             if default_store is None:
                 return self.default
 
-            if self.master_cid is not None and ctx.triggered_id == self.master_cid.to_dict():
-                options = self.options_callback(master)
-                if "value" in default_store.keys():
-                    value = default_store["value"]
-                if value not in options:
-                    value = next(iter(options), None)
-                return value, options
+            def _get_options():
+                if isinstance(self.master_cid, CID) and ctx.triggered_id == self.master_cid.to_dict():
+                    return self.options_callback(master["master"])
+                elif isinstance(self.master_cid, list) and ctx.triggered_id in [m_cid.to_dict() for m_cid in self.master_cid]:
+                    return self.options_callback(*master.values())
+                else:
+                    return None
+
+            if self.master_cid is not None:
+                options = _get_options()
+                if options != None:
+                    if "value" in default_store.keys():
+                        value = default_store["value"]
+                    if value not in options:
+                        value = next(iter(options), None)
+                    return value, options
 
             if "value" in default_store.keys() and default_store["value"] == value:
                 raise PreventUpdate

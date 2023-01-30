@@ -32,9 +32,10 @@ class Dataset:
 
         for groupby in self.adata.uns["gsea"].keys():
             for ref in self.adata.uns["gsea"][groupby].keys():
-                temp = self.adata.uns["gsea"][groupby][ref]
-                idx = temp["lead_genes"].apply(type) == str
-                temp.loc[idx, "lead_genes"] = temp.loc[idx, "lead_genes"].str.split(";")
+                for geneset in self.adata.uns["gsea"][groupby][ref].keys():
+                    temp = self.adata.uns["gsea"][groupby][ref][geneset]
+                    idx = temp["lead_genes"].apply(type) == str
+                    temp.loc[idx, "lead_genes"] = temp.loc[idx, "lead_genes"].str.split(";")
         
         self.adata.uns["scvi_setup_params"] = {}
         self.adata.uns["scvi_model_params"] = {}
