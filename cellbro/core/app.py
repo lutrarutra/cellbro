@@ -137,7 +137,7 @@ class App:
         print("App Ready!")
 
 
-    def run(self, debug=False):
+    def run(self, debug=False, host="127.0.0.1", port=8050):
         # self.dash_app.enable_dev_tools(debug=True, dev_tools_hot_reload=False)
-        self.dash_app.run(debug=debug, host="127.0.0.1", dev_tools_hot_reload=False)
+        self.dash_app.run(debug=debug, host=host, port=port, dev_tools_hot_reload=False)
         return

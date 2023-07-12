@@ -21,9 +21,11 @@
 
 ### How to Run?
 1. Download source:
-    - `git clone --recurse-submodules https://github.com/lutrarutra/cellbro`
-    - `cd cellbro`
+    - `git clone https://github.com/lutrarutra/cellbro`
+    - `git clone https://github.com/lutrarutra/scout`
 2. Install required libraries:
-    - `pip install -r requirements.txt`
-3. Run
+    - `pip install -r cellbro/requirements.txt`
+    - `pip install -e ./scout`
+    - pip install -e ./cellbro`
+3. Run (h5ad file expects specific format: `preprocess_example.py`)
     - `python cellbro/run.py <path_to_file.h5ad>
