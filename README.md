@@ -26,6 +26,6 @@
 2. Install required libraries:
     - `pip install -r cellbro/requirements.txt`
     - `pip install -e ./scout`
-    - pip install -e ./cellbro`
+    - `pip install -e ./cellbro`
 3. Run (h5ad file expects specific format: `preprocess_example.py`)
     - `python cellbro/run.py <path_to_file.h5ad>
