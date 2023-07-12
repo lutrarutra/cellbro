@@ -137,10 +137,10 @@ class PlotProjection(DashAction):
 
     def plot(self, color, obsm_layer, continuous_cmap, discrete_cmap, hue_aggregate):
         fig = scout.ply.projection(
-            self.dataset.adata, obsm_layer=obsm_layer, hue=color,
+            self.dataset.adata, obsm_layer=obsm_layer, color=color,
             layout=prj.prj_tools.default_layout, 
             continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap,
-            hue_aggregate=hue_aggregate,
+            color_aggregate=hue_aggregate,
         )
         return fig
 

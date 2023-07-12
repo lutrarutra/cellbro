@@ -31,7 +31,7 @@ class PlotPCA(DashAction):
 
     def plot(self, color, pc_x, pc_y, continuous_cmap, discrete_cmap):
         fig = scout.ply.projection(
-            self.dataset.adata, obsm_layer="X_pca", hue=color, components=[pc_x, pc_y],
+            self.dataset.adata, obsm_layer="X_pca", color=color, components=[pc_x, pc_y],
             layout=PCA.pca_tools.default_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
         )
         return fig

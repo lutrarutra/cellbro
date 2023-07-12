@@ -108,7 +108,7 @@ class PlotProjection(DashAction):
             color = self.dataset.adata.uns["genelists"][genelist]
 
         fig = scout.ply.projection(
-            self.dataset.adata, obsm_layer=obsm_layer, hue=color,
+            self.dataset.adata, obsm_layer=obsm_layer, color=color,
             layout=prj_tools.default_layout, continuous_cmap=continuous_cmap, discrete_cmap=discrete_cmap
         )
         return fig

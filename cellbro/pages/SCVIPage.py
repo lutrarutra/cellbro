@@ -32,7 +32,7 @@ class FitAction(DashAction):
 
     def plot(self, color, obsm_layer):        
         fig = scout.ply.projection(
-            self.dataset.adata, obsm_layer=obsm_layer, hue=color,
+            self.dataset.adata, obsm_layer=obsm_layer, color=color,
             layout=Projection.projection_layout
         )
 
