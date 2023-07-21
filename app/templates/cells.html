@@ -1,0 +1,57 @@
+{% extends "template.html" %}
+{% set active_page = "cells-page" %}
+{% block content %}
+<div id="content">
+    <div id="top">
+        <div class="left fig-container">
+            <div class="fig-head">
+                <div class="input-group p-1">
+                    <label class="input-group-text" for="projection-type-select">Projection</label>
+                    <button class="form-control rounded-end-2" id="projection-type-select"
+                    onclick="open_search_popup({{ projection_types | first }}, this, plot_projection)">
+                        {{ projection_types[0][projection_types[0] | first] | first }}
+                    </button>
+                </div>
+                <div class="input-group p-1">
+                    <label class="input-group-text" for="projection-feature-select">Feature</label>
+                    <button class="form-control rounded-end-2" id="projection-feature-select"
+                    onclick="open_search_popup('{{ features }}', this, plot_projection)">
+                        {{ features_default }}
+                    </button>
+                </div>
+            </div>
+            <div class="fig-body" id="projection-plot"></div>
+        </div>
+        <div class="right fig-container">
+            <div class="fig-head"></div>
+            <div class="fig-body" id="violin-plot"></div>
+        </div>
+    </div>
+    <div id="bot">
+
+    </div>
+</div>
+<script>
+    const plot_projection = async () => {
+        $.ajax({
+            url: "{{ url_for('projection.projection') }}",
+            type: "POST",
+            data: JSON.stringify({
+                "type": $("#projection-type-select").text().trim(),
+                "color": $("#projection-feature-select").text().trim(),
+                "width": $("#projection-plot").width(),
+                "height": $("#projection-plot").height(),
+            }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(response){
+                const figure = JSON.parse(response);
+                Plotly.newPlot("projection-plot", figure.data, figure.layout);
+            }
+        });
+    }
+    $(document).ready(function(){
+        plot_projection();
+    });
+</script>
+{% endblock content %}
