@@ -6,4 +6,4 @@ data/
 test/
 build/
 dist/
-imgui.ini
+.vscode/
