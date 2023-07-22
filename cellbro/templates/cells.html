@@ -9,14 +9,14 @@
                     <label class="input-group-text" for="projection-type-select">Projection</label>
                     <button class="form-control rounded-end-2" id="projection-type-select"
                     onclick="open_search_popup({{ projection_types | first }}, this, plot_projection)">
-                        {{ projection_types[0][projection_types[0] | first] | first }}
+                        {{ selected_projection_type }}
                     </button>
                 </div>
                 <div class="input-group p-1">
                     <label class="input-group-text" for="projection-feature-select">Feature</label>
                     <button class="form-control rounded-end-2" id="projection-feature-select"
                     onclick="open_search_popup('{{ features }}', this, plot_projection)">
-                        {{ features_default }}
+                        {{ selected_feature }}
                     </button>
                 </div>
             </div>

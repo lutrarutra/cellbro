@@ -5,7 +5,7 @@ from flask import Blueprint, request
 query_bp = Blueprint("queries", __name__)
 query_api = Api(query_bp)
 
-from app import CellFeature
+from cellbro.app import CellFeature
 
 class QueryCellFeatures(Resource):
     def get(self):

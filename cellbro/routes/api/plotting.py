@@ -1,14 +1,14 @@
 import json
 from flask_restful import Resource, Api
-from flask import Blueprint, request
+from flask import Blueprint, request, session
 
-projection_bp = Blueprint("projection", __name__)
+projection_bp = Blueprint("projection", __name__, url_prefix="/api/plotting")
 projection_api = Api(projection_bp)
 
 import plotly
-from app.plotting import projection
+from cellbro.plotting import projection
 
-from app import adata
+from cellbro.app import adata, logger
 
 class Projection(Resource):
     def post(self):
@@ -19,7 +19,10 @@ class Projection(Resource):
             width=content["width"], height=content["height"] 
         )
 
-        print(content["color"])
+        session["selected_projection_type"] = content["type"]
+        session["selected_feature"] = content["color"]
+
+        logger.debug(f"Projection plot: color='{content['color']}', type='{content['type']}'")
 
         return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     

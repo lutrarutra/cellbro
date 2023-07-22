@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name="CellBro",
+    name="cellbro",
     version="0.1",
     long_description="",
     packages=['app'],

@@ -1,11 +1,30 @@
+import sys, os
 from enum import unique, Enum, auto
 
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, session
 from sassutils.wsgi import SassMiddleware
 from flask_sqlalchemy import SQLAlchemy
+from loguru import logger
+
+logger.remove()
+
+fmt = """<level>{level}</level> @ {time:YYYY-MM-DD HH:mm:ss} ({file}:{line} in {function}):
+>   <white>{message}</white>"""
+
+if os.getenv("FLASK_DEBUG") == "1":
+    logger.add(
+        sys.stdout, colorize=True,
+        format=fmt, level="DEBUG"
+    )
+else:
+    logger.add(
+        sys.stdout, colorize=True,
+        format=fmt, level="INFO"
+    )
 
 import scanpy as sc
 
+logger.debug("Loading AnnData object...")
 adata = sc.read_h5ad("data/adata.h5ad")
 
 db = SQLAlchemy()
@@ -20,7 +39,7 @@ class CellFeature(db.Model):
             1: "gene"
         }[self.feature_type]
 
-from app import routes
+from cellbro import routes
 
 def register_blueprints(app):
     app.register_blueprint(routes.api.projection_bp)
@@ -28,7 +47,9 @@ def register_blueprints(app):
 
 def create_app():
     app = Flask(__name__)
+    app.secret_key = "TEST_SECRET_KEY"
 
+    logger.debug("Initializing database...")
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     db.init_app(app)
     with app.app_context():
@@ -46,16 +67,10 @@ def create_app():
     @app.route('/')
     def index_page():
         return redirect("/cells")
-
-    @app.route('/cells')
+    
+    @app.route("/cells")
     def cells_page():
-        projection_types = [{"projection_type" : adata.obsm_keys()}]
-        features = url_for("queries.querycellfeatures")
-
-        return render_template(
-            "cells.html", projection_types=projection_types, features=features,
-            features_default=adata.obs_keys()[0]
-        )
+        return routes.pages.cells_page.render_cells_page()
     
     @app.route('/genes')
     def genes_page():
@@ -72,7 +87,7 @@ def create_app():
     register_blueprints(app)
 
     app.wsgi_app = SassMiddleware(app.wsgi_app, {
-        "app" : ("static/sass", "static/css", "/static/css")
+        "cellbro" : ("static/sass", "static/css", "/static/css")
     })
 
     return app

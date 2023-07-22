@@ -76,6 +76,7 @@ def projection(
                     colors=discrete_cmap, marker_outline_width=1
                 ))
             else:
+                color = color.values
                 if continuous_cmap == "seismic":
                     zmin, zmax = np.quantile(color, [0.0, 1.0])
                     zcenter = abs(zmin) / (zmax - zmin)
