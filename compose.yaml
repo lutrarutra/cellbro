@@ -9,8 +9,8 @@ services:
             postgres:
                 condition: service_healthy
                 restart: true
-            tailwind-compiler:
-                condition: service_healthy
+            # tailwind-compiler:
+            #     condition: service_healthy
         environment:
             TZ: ${TIMEZONE}
             POSTGRES_USER: ${POSTGRES_USER}
@@ -112,23 +112,18 @@ services:
         command: --port ${REDIS_PORT}
 
     tailwind-compiler:
-        container_name: tailwind-compiler-dev
+        container_name: tailwind-compiler
+        tty: true
         build:
-            dockerfile: ./services/tailwind-compiler/Dockerfile
+          context: .
+          dockerfile: ./services/tailwind-compiler/Dockerfile
         volumes:
             - ./services/cellbro-app/static/style:/app/style
             - ./services/cellbro-app/templates:/app/templates
-            - ./services/tailwind-compiler/tailwind.config.js:/app/tailwind.config.js
             - compiled_css:/app/static/style/compiled
-        command: "npm run watch"
         environment:
             - TZ=${TIMEZONE}
-        healthcheck:
-            test: ["CMD-SHELL", "pgrep -f tailwindcss && test -f /app/static/style/compiled/style.css"]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-            start_period: 10s
+        command: "npx @tailwindcss/cli -i /app/style/input.css  -o /app/static/style/compiled/style.css --watch"
 
 volumes:
     compiled_css:

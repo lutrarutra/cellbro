@@ -1,5 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui";
 
 @import "./theme.css";
+
+/* #main-container {
+    background-color: red;
+} */
