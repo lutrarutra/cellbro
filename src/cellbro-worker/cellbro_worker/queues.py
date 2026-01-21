@@ -1,11 +1,5 @@
-from cellbro_db import models
+from celery.result import AsyncResult
 
-# def queue_paper_summary(paper: models.Paper, priority: int = 6) -> None:
-#     from .tasks import create_paper_summary
-#     create_paper_summary.apply_async(args=[paper.id], priority=priority)  # type: ignore
-
-
-# def queue_paper_keywords_extraction(paper: models.Paper, priority: int = 5) -> None:
-#     from .tasks import extract_paper_keywords
-#     extract_paper_keywords.apply_async(args=[paper.id], priority=priority)  # type: ignore
-
+def read_h5ad(file_path: str) -> AsyncResult:
+    from .tasks import read_h5ad
+    return read_h5ad.apply_async(args=[file_path])  # type: ignore

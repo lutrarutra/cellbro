@@ -18,7 +18,7 @@ class StringInputField(InputField):
         super().__init__(
             name=label.lower().replace(" ", "_"),
             label=label,
-            template="components/inputs/string.html",
+            component="inputs.String",
             default=default,
             pydantic_type=pydantic_type or Annotated[str, StringConstraints(max_length=max_length, min_length=min_length)],
             type=type,

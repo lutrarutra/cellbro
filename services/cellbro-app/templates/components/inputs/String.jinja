@@ -1,0 +1,16 @@
+{# def field, container_class="" #}
+<fieldset class="fieldset">
+    <legend class="fieldset-legend">{{ field.label }}</legend>
+    <input type="text" class="input{% if field.errors %} input-error{% endif %}" placeholder="{{ field.placeholder or '' }}" value="{{ field.data or ''}}"/>
+    <p class="label">
+        {% if field.errors %}
+        <span class="label-text-alt text-error">
+            {% for error in field.errors %}
+                {{ error }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </span>
+        {% else %}
+        {% if field.required %}Required{% else %}Optional{% endif %}
+        {% endif %}
+    </p>
+</fieldset>

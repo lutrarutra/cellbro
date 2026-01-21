@@ -1,7 +1,7 @@
 import os
 from cellbro_db import DBHandler
 
-from .. import celery_app, queues
+from .. import celery_app
 
 def connect() -> DBHandler:
     db = DBHandler(auto_commit=True)
@@ -16,11 +16,8 @@ def connect() -> DBHandler:
 
 
 @celery_app.task(bind=True)
-def create_paper_summary(self, paper_id: int) -> None:
-    print(f"Starting create_paper_summary task for paper_id: {paper_id}")
-    from . import summary
+def read_h5ad(self, file_path: str):
+    from . import io
     db = connect()
     with db as session:
-        summary.summarize_pdf(session, paper_id)
-    db.close_connection()
-    print(f"Completed create_paper_summary task for paper_id: {paper_id}")
+        io.read_h5ad(db=session, file_path=file_path)

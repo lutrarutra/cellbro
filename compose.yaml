@@ -23,9 +23,11 @@ services:
         volumes:
             - ./src/cellbro-server:/app/cellbro-server:z
             - ./src/cellbro-db:/app/cellbro-db:z
+            - ./src/cellbro-worker:/app/cellbro-worker:z
             - ./services/cellbro-app/templates:/app/templates:ro
             - ./services/cellbro-app/static/js:/static/js:ro
             - compiled_css:/static/style/compiled
+            - ./data:/app/data:z
     cellbro-worker:
         container_name: cellbro-worker
         build:
@@ -42,14 +44,15 @@ services:
             REDIS_HOST: ${REDIS_HOST}
         volumes:
             - ./src/cellbro-worker:/app/cellbro-worker:z
-            - ./src/cellbro-db:/app/cellbro-db:z    
+            - ./src/cellbro-db:/app/cellbro-db:z
+            - ./data:/app/data:z
         depends_on:
             postgres:
                 condition: service_healthy
                 restart: true
         restart: always
         command: >
-            celery -A cellbro_worker.celery_app worker --loglevel=info
+            celery -A cellbro_worker.celery_app worker --loglevel=info --concurrency=1 --pool=solo
 
     postgres:
         container_name: cellbro-postgres

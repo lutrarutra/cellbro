@@ -1,0 +1,6 @@
+{#def form_id, target_id, url, text="Submit", swap="outerHTML", class_name=None #}
+<button type="submit" class="btn {{ class_name or '' }}"
+hx-include="#{{ form_id }}"
+hx-post="{{ url }}"
+hx-target="#{{ target_id }}"
+hx-swap="{{ swap }}">{{ text }}</button>

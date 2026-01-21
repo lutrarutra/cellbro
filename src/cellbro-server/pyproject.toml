@@ -31,7 +31,8 @@ dependencies = [
     "redis",
     "jinja2",
     "uuid6",
-    "markdown"
+    "markdown",
+    "jinjax"
 ]
 
 [tool.setuptools.packages.find]

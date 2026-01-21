@@ -2,14 +2,13 @@ from typing import Any
 
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
-from ..core.templates import render_template
+from ..core.templates import templates
 from ..core.context import ctx
 
 async def get_request_context() -> dict[str, Any]:
     request = ctx.request
     return {
-        "request": request,
-        "current_user": await ctx.current_user,
+        "request": request, "current_user": await ctx.current_user,
     }
 
 async def html_response(
@@ -21,12 +20,13 @@ async def html_response(
     if redirect:
         return RedirectResponse(url=redirect, status_code=303)
     
-    content = ""
     if template is not None:
-        content = await render_template(template, **context | await get_request_context())
+        return templates.TemplateResponse(
+            template, {"request": ctx.request} | context,
+            status_code=status,
+        )
     
     return HTMLResponse(
-        content=content,
         status_code=status,
         headers={"Content-Type": "text/html; charset=utf-8"}
     )
@@ -53,7 +53,11 @@ async def htmx_response(
     
     content = ""
     if template is not None:
-        content = await render_template(template, **context | await get_request_context())
+        return templates.TemplateResponse(
+            template, {"request": ctx.request} | context,
+            status_code=status,
+            headers=headers
+        )
     elif status == 200:
         status = 204
 

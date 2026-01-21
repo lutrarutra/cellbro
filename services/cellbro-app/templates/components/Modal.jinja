@@ -1,0 +1,31 @@
+{#def name, title="Modal Title", button_text=None, button_class="btn", footer=None #}
+<div class="modal-wrapper">
+    {% if button_text %}
+    <button class="{{ button_class }}" onclick="{{ name }}.showModal()">
+        {{ button_text }}
+    </button>
+    {% endif %}
+
+    <dialog id="{{ name }}" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">{{ title }}</h3>
+            
+            <div class="py-4">
+                {{ content }}
+            </div>
+
+            <div class="modal-action">
+                <form method="dialog">
+                    {% if footer %}
+                        {{ footer }}
+                    {% else %}
+                        <button class="btn">Close</button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+</div>

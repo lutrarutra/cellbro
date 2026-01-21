@@ -6,9 +6,9 @@ from pydantic import BaseModel, ValidationError, create_model
 from markupsafe import Markup
 
 from ..core.context import ctx
-from ..core.templates import render_template
 from ..components.inputs.InputField import InputField
 from ..components import inputs
+from ..core.responses import htmx_response
 
 class HTMXForm(ABC):
     template_path: str = ""
@@ -141,11 +141,5 @@ class HTMXForm(ABC):
         if not self.request.method == "GET":
             await self.prepare()
             
-        return HTMLResponse(await render_template(self.template_path, **(await self.get_context())))
-
-    async def render_submit_button(self, post_url: str, form_id: str, target_id: str, swap: str = "outerHTML", text: str = "Submit", class_name: str = "btn-success") -> str:
-        return Markup(await render_template(
-            "components/inputs/submit-button.html", form=self, class_name=class_name, text=text,
-            post_url=post_url, form_id=form_id, target_id=target_id, swap=swap
-        ))
+        return await htmx_response(self.template_path, **(await self.get_context()))
         

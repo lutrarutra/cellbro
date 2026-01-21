@@ -2,11 +2,11 @@ from typing import Any
 from abc import ABC
 from markupsafe import Markup
 
-from ...core.templates import render_template
+from ...core.templates import catalog
 
 class InputField(ABC):
     def __init__(
-        self, name: str, label: str, template: str, type: str,
+        self, name: str, label: str, component: str, type: str,
         id: str | None = None, default: Any = None, 
         required: bool = True,
         pydantic_type: Any = str
@@ -14,7 +14,7 @@ class InputField(ABC):
         self.name = name
         self.type = type
         self.label = label
-        self.template = template
+        self.component = component
         self.id = id or name
         self.default = default
         self.data = default
@@ -22,5 +22,5 @@ class InputField(ABC):
         self.pydantic_type = pydantic_type
         self.required = required
     
-    async def render(self, container_class="") -> str:
-        return Markup(await render_template(self.template, field=self, container_class=container_class))
+    def render(self, container_class="") -> str:
+        return Markup(catalog.render(self.component, field=self, container_class=container_class))

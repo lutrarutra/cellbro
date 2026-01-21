@@ -17,10 +17,11 @@ dependencies = [
     "SQLAlchemy >= 2.0",
     "pytz >= 2023.3",
     "tzlocal >= 5.2",
-    "httpx",
-    "google-genai",
     "redis",
-    "arxiv"
+    "anndata",
+    "scanpy",
+    "numpy >= 2.2",
+    "pandas >= 2.3",
 ]
 
 [tool.setuptools.packages.find]
