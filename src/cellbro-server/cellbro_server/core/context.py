@@ -44,6 +44,18 @@ class Context:
     def sid(self) -> str | None:
         return self.request.cookies.get("session_id")
     
+    async def error(self, message: str):
+        await self.flash(message, category="error")
+
+    async def warning(self, message: str):
+        return await self.flash(message, category="warning")
+    
+    async def info(self, message: str):
+        return await self.flash(message, category="info")
+    
+    async def success(self, message: str):
+        return await self.flash(message, category="success")
+    
     async def flash(self, message: str, category: Literal["error", "warning", "info", "success"] = "info"):
         sid = self.sid or uuid4().hex
         await flash_cache.add(sid, category=category, message=message)

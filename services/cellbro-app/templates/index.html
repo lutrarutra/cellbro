@@ -5,7 +5,6 @@
     <button @click="modalOpen = true" class="btn btn-primary">
         Open Modal
     </button>
-    
     <div class="modal" :class="{ 'modal-open': modalOpen }">
         <div class="modal-box">
             <h3 class="font-bold text-lg">Hello!</h3>
@@ -19,6 +18,5 @@
         
         <div class="modal-backdrop" @click="modalOpen = false"></div>
     </div>
-    
 </div>
 {% endblock %}
