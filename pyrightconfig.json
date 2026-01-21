@@ -1,0 +1,8 @@
+{
+  "extraPaths": [
+    "./services/cellbro-app/db",
+    "./services/cellbro-app/server",
+    "./services/celery/cellbro_parser"
+  ],
+  "reportIncompatibleMethodOverride": false
+}

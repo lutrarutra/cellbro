@@ -1,0 +1,28 @@
+<div class="modal-content" id="register-form-container">
+    <div class="modal-header">
+        <h1 class="modal-title fs-5" >Register</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <form id="register-form">
+            {{ form.email.render() }}
+            <div class="row">
+                {{ form.first_name.render(container_class="col") }}
+                {{ form.last_name.render(container_class="col") }}
+            </div>
+            {{ form.password.render() }}
+            {{ form.repeat_password.render() }}
+        </form>
+    </div>
+    <div class="modal-footer">
+        <div class="footer-controls">
+            {{
+                form.render_submit_button(
+                    post_url=url_for('htmx_auth.register'),
+                    form_id="register-form",
+                    target_id="register-form-container",
+                )
+            }}
+        </div>
+    </div>
+</div>

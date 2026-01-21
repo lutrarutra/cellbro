@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=70.1", "wheel>=0.43"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cellbro-worker"
+version = "0.1"
+description = "Microservice worker for CellBro"
+authors = [
+    { name = "lutrarutra", email = "lutrarutra@pm.me" }
+]
+requires-python = ">=3.11"
+
+dependencies = [
+    "celery >= 5.5",
+    "psycopg[binary] >= 3.2",
+    "SQLAlchemy >= 2.0",
+    "pytz >= 2023.3",
+    "tzlocal >= 5.2",
+    "httpx",
+    "google-genai",
+    "redis",
+    "arxiv"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cellbro_worker*"]
+
+[tool.flake8]
+max-line-length = 88
+exclude = [
+    ".git",
+    "__pycache__",
+]
+extend-ignore = ["E501", "W292", "W293"]
+

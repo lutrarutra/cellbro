@@ -1,0 +1,50 @@
+{% from "macros/button.jinja2" import confirm_action_button %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/static/favicon.png" sizes="any" type="image/png">
+    <title>CellBro</title>
+
+    <!-- htmx -->
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', path='style/compiled/style.css') }}" rel="stylesheet">
+</head>
+
+<body>
+    <nav id="navbar">
+        <div class="nav-left">
+        </div>
+        <div id="navbar-container">
+            <div class="nav-item">
+                <a class="nav-link {{'active' if active_page == 'home-page' else ''}}" href="/">Home</a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link {{'active' if active_page == 'users-page' else ''}}" href="{{ url_for('users') }}">Users</a>
+            </div>
+
+        </div>
+        <div class="nav-right">
+        </div>
+    </nav>
+
+    <div id="main-container">
+        <div id="main">
+            <div id="left-margin">
+            </div>
+            <div id="middle-container">
+                {% block content %}{% endblock %}
+            </div>
+            <div id="right-margin">
+            </div>
+        </div>
+    </div>
+
+    <div id="error-container"></div>
+</body>
+</html>

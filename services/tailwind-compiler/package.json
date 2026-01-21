@@ -1,0 +1,13 @@
+{
+    "name": "cellbro-tailwind-compiler",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "watch": "tailwindcss -i /app/style/input.css -o /app/static/style/compiled/style.css --watch=always --poll"
+    },
+    "dependencies": {
+        "@tailwindcss/cli": "latest",
+        "tailwindcss": "latest",
+        "daisyui": "latest"
+    }
+}

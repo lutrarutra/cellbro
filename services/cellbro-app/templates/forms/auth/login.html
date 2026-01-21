@@ -1,0 +1,5 @@
+<form hx-post="{{ url_for('htmx_login') }}">
+    {{ form.email.render() }}
+    {{ form.password.render() }}
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>

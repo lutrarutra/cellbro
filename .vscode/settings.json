@@ -1,3 +1,6 @@
 {
-    "editor.tabCompletion": "on"
+    "files.exclude": {
+        "**/.pytest_cache": true,
+        "**/__pycache__": true,
+    },
 }

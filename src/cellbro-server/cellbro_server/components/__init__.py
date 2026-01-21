@@ -1,0 +1,1 @@
+from . import inputs  # noqa: F401

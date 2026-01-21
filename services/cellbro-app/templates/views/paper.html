@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% set active_page = "papers-page" %}
+{% block content %}
+<h2>{{ paper.title }}</h2>
+
+<em>Abstract</em>
+<p>{{ paper.abstract }}</p>
+
+<em>Published</em> {{ paper.published_utc | format_datetime }}
+<em>Last Updated</em> {{ paper.last_updated_utc | format_datetime }}
+
+<em>Authors:</em>
+<ul>
+    {% for author in paper.authors %}
+    <li>{{ author.name }}</li>
+    {% endfor %}
+</ul>
+
+<em>Keywords</em>
+<ul class="d-flex flex-wrap gap-1" style="list-style: none;">
+    {% for keyword in paper.keywords %}
+    <li><span class="badge text-bg-primary">{{ keyword.name.title() }}</span></li>
+    {% endfor %}
+</ul>
+
+{{ paper.keywords_string }}
+
+<em>Summary</em>
+<p>{{ paper.summary }}</p>
+
+<em>📑 PDF</em>
+{% if paper.pdf_url %}
+<a href="{{ paper.pdf_url }}" target="_blank">Download PDF</a>
+{% else %}
+<p>No PDF available.</p>
+{% endif %}
+
+<em>🔗 Link</em>
+{% if paper.url %}
+<a href="{{ paper.url }}" target="_blank">{{ paper.url }}</a>
+{% else %}
+<p>No link available.</p>
+{% endif %}
+
+{% endblock %}

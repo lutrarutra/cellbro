@@ -1,0 +1,16 @@
+{% from "macros/button.jinja2" import xl_modal_button %}
+
+{% extends "base.html" %}
+{% set active_page = "login-page" %}
+{% block content %}
+
+<h1 class="title is-3">Login</h1>
+<div hx-get="/htmx/auth/login" hx-trigger="load" hx-swap="outerHTML">
+    Loading login form...
+</div>
+{{
+    xl_modal_button(
+        "Register", hx_get="/htmx/auth/register",
+    )
+}}
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% set active_page = "files-page" %}
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Last Modified</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if parent_dir %}
+        <tr>
+            <td><a href="{{ url_for('files.browse', path=parent_dir) }}">../</a></td>
+            <td>-</td>
+            <td>-</td>
+        </tr>
+        {% endif %}
+        {% for path in paths %}
+        <tr>
+            <td>
+                <a href="{{ url_for('files.browse', path=path.path) }}">
+                    {% if path.is_dir %}
+                    <i class="bi bi-archive"></i> {{ path.name }}/
+                    {% else %}
+                    <i class="bi bi-file-earmark"></i> {{ path.name }}
+                    {% endif %}
+                </a>
+            </td>
+            <td>{{ path.size | filesize }}</td>
+            <td>{{ path.modified | format_date }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
