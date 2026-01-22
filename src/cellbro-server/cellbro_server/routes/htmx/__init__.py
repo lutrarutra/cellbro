@@ -1,1 +1,1 @@
-from . import auth_htmx, users_htmx  # noqa: F401
+from . import auth_htmx, users_htmx, search_htmx

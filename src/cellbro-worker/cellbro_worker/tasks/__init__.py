@@ -1,7 +1,11 @@
 import os
 from cellbro_db import DBHandler
+from redis import Redis
 
 from .. import celery_app
+from ..tools.OutputCaptureHandler import StdoutCaptureHandler
+
+stdout_redis = Redis(host="redis-cache", port=int(os.environ["REDIS_PORT"]), db=5, decode_responses=True)
 
 def connect() -> DBHandler:
     db = DBHandler(auto_commit=True)
@@ -17,7 +21,10 @@ def connect() -> DBHandler:
 
 @celery_app.task(bind=True)
 def read_h5ad(self, file_path: str):
-    from . import io
     db = connect()
-    with db as session:
+    from . import io
+    
+    with db as session, StdoutCaptureHandler("general", stdout_redis):
+        print("Starting to read h5ad file...")
         io.read_h5ad(db=session, file_path=file_path)
+        print("Finished reading h5ad file.")

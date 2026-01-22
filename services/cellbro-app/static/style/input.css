@@ -2,3 +2,27 @@
 @plugin "daisyui";
 
 @import "./theme.css";
+
+.htmx-request.htmx-indicator-hide {
+    display: none !important;
+}
+
+.htmx-indicator-none {
+    display: none !important;
+}
+
+.htmx-request.htmx-indicator-none {
+    display: block !important;
+}
+
+.htmx-request.htmx-indicator-none.flex {
+    display: flex !important;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.mockup-code::before {
+    display: none !important;
+}

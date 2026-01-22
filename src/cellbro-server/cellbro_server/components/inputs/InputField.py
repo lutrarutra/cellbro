@@ -6,16 +6,18 @@ from ...core.templates import catalog
 
 class InputField(ABC):
     def __init__(
-        self, name: str, label: str, component: str, type: str,
+        self, label: str, type: str,
         id: str | None = None, default: Any = None, 
         required: bool = True,
-        pydantic_type: Any = str
+        component: str | None = None,
+        pydantic_type: Any = str,
+        name: str | None = None,
     ):
-        self.name = name
+        self.name = name or label.lower().replace(" ", "_")
         self.type = type
         self.label = label
         self.component = component
-        self.id = id or name
+        self.id = id or self.name
         self.default = default
         self.data = default
         self.errors: list[str] = []
@@ -23,4 +25,6 @@ class InputField(ABC):
         self.required = required
     
     def render(self, container_class="") -> str:
+        if not self.component:
+            raise ValueError("Component not specified for InputField")
         return Markup(catalog.render(self.component, field=self, container_class=container_class))

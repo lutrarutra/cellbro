@@ -1,6 +1,7 @@
 from typing import Self
 
 import sqlalchemy as sa
+import sqlalchemy.orm as orm
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .Base import Base
@@ -33,17 +34,19 @@ class Observation(Base):
         cls,
         name: str | None = None,
         limit: int | None = 10, offset: int | None = None,
-        sort_by: str | None = None, descending: bool = False,
+        sort_by: orm.InstrumentedAttribute | str | None = None, descending: bool = False,
         page: int | None = None,
     ) -> sa.Select[tuple[Self]]:
         query = sa.select(cls)
 
         if sort_by is not None:
-            sort_col = getattr(cls, sort_by, None)
-            if sort_col is not None:
-                if descending:
-                    sort_col = sort_col.desc()
-                query = query.order_by(sort_col)
+            if isinstance(sort_by, str):
+                attr = getattr(cls, sort_by)
+            else:
+                attr = sort_by
+            if descending:
+                attr = attr.desc()
+            query = query.order_by(attr)
 
         if name is not None:
             query = query.order_by(sa.nulls_last(sa.func.similarity(cls.name, name.lower()).desc()))

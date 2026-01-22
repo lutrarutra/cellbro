@@ -1,9 +1,10 @@
 import jinjax
 from datetime import datetime
-from fastapi.responses import Response
 from fastapi.templating import Jinja2Templates
 import markdown
 from markupsafe import Markup
+
+from .context import ctx
 from .config import settings
 
 templates = Jinja2Templates(directory="templates")
@@ -34,11 +35,10 @@ def filesize(value: int | float):
 def format_markdown(value: str) -> str:
     return Markup(markdown.markdown(value))
 
-# Add filters to the catalog's Jinja environment
-# catalog.jinja_env.filters["format_timestamp"] = format_timestamp
-# catalog.jinja_env.filters["format_datetime"] = format_datetime
-# catalog.jinja_env.filters["format_markdown"] = format_markdown
-# catalog.jinja_env.filters["filesize"] = filesize
+catalog.jinja_env.filters["format_timestamp"] = format_timestamp
+catalog.jinja_env.filters["format_datetime"] = format_datetime
+catalog.jinja_env.filters["format_markdown"] = format_markdown
+catalog.jinja_env.filters["filesize"] = filesize
 
 
 def render_component(component: str, **context) -> str:

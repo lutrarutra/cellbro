@@ -1,9 +1,8 @@
 from abc import ABC
 from typing import Any, Optional
 
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import Response
 from pydantic import BaseModel, ValidationError, create_model
-from markupsafe import Markup
 
 from ..core.context import ctx
 from ..components.inputs.InputField import InputField
@@ -21,21 +20,18 @@ class HTMXForm(ABC):
         self._fields_cache: Optional[list[InputField]] = None
         self._pydantic_model: Optional[type[BaseModel]] = None
         
-        # Initialize all InputField instances
         for field_name in dir(self.__class__):
             if field_name.startswith('_'):
                 continue
             
             field = getattr(self.__class__, field_name)
             if isinstance(field, InputField):
-                # Create a new instance for this form instance
                 field_instance = self._clone_field(field)
                 setattr(self, field_name, field_instance)
     
     def _clone_field(self, field: InputField) -> InputField:
         """Clone a field instance to avoid shared state between form instances"""
         field_class = field.__class__
-        # Create a new instance with the same attributes
         new_field = object.__new__(field_class)
         new_field.__dict__.update(field.__dict__.copy())
         new_field.data = field.default
@@ -47,14 +43,11 @@ class HTMXForm(ABC):
         if self._pydantic_model is not None:
             return self._pydantic_model
         
-        # Build field definitions for Pydantic
         field_definitions = {}
         for field in self.input_fields:
-            # Use ... to make field required, or use default if provided
             default_value = ... if field.default is None else field.default
             field_definitions[field.name] = (field.pydantic_type, default_value)
         
-        # Create dynamic Pydantic model
         self._pydantic_model = create_model(
             f"{self.__class__.__name__}Model",
             **field_definitions
@@ -69,14 +62,11 @@ class HTMXForm(ABC):
         """
         self.raw_data = dict(await self.request.form())
         
-        # Build Pydantic model
         PydanticModel = self._build_pydantic_model()
         
         try:
-            # Validate using Pydantic
             validated_data = PydanticModel(**self.raw_data)
             
-            # Populate fields with validated data
             for field in self.input_fields:
                 field.data = getattr(validated_data, field.name)
                 field.errors = []
@@ -84,7 +74,6 @@ class HTMXForm(ABC):
             return True
             
         except ValidationError as e:
-            # Populate fields with raw data
             for field in self.input_fields:
                 field.data = self.raw_data.get(field.name, field.default)
                 field.errors = []
@@ -109,7 +98,6 @@ class HTMXForm(ABC):
             return self._fields_cache
         
         fields = []
-        # Iterate over instance attributes, not dir()
         for field_name, field_value in self.__dict__.items():
             if not field_name.startswith('_') and isinstance(field_value, InputField):
                 fields.append(field_value)

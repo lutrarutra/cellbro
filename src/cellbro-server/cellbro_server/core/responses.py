@@ -17,18 +17,20 @@ async def html_response(
     status: int = 200, 
     **context
 ) -> Response:
+    headers = {"Content-Type": "text/html; charset=utf-8"}
+
     if redirect:
         return RedirectResponse(url=redirect, status_code=303)
     
     if template is not None:
         return templates.TemplateResponse(
             template, {"request": ctx.request} | context,
-            status_code=status,
+            status_code=status, headers=headers
         )
     
     return HTMLResponse(
         status_code=status,
-        headers={"Content-Type": "text/html; charset=utf-8"}
+        headers=headers
     )
 
 async def htmx_response(
@@ -51,18 +53,14 @@ async def htmx_response(
     if re_swap:
         headers["HX-Reswap"] = re_swap
     
-    content = ""
     if template is not None:
         return templates.TemplateResponse(
-            template, {"request": ctx.request} | context,
-            status_code=status,
-            headers=headers
+            template, context={"request": ctx.request} | context,
+            status_code=status, headers=headers,
         )
     elif status == 200:
         status = 204
 
     return HTMLResponse(
-        content=content,
-        status_code=status,
-        headers=headers
+        status_code=status, headers=headers
     )

@@ -52,7 +52,7 @@ services:
                 restart: true
         restart: always
         command: >
-            celery -A cellbro_worker.celery_app worker --loglevel=info --concurrency=1 --pool=solo
+            watchmedo auto-restart --directory=/app/cellbro-worker/ --pattern=*.py --recursive -- celery -A cellbro_worker.celery_app worker --loglevel=info --concurrency=1 --pool=solo
 
     postgres:
         container_name: cellbro-postgres

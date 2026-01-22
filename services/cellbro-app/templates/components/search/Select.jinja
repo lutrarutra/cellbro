@@ -1,0 +1,11 @@
+{#def field #}
+<fieldset class="fieldset">
+    <legend class="fieldset-legend">{{ field.label }}</legend>
+    <select class="select select-primary">
+        <option {% if field.required %}disabled {% endif %}{% if not field.data %}selected{% endif %}><span class="text-base-content/50">{{ field.placeholder or "-" }}</span></option>
+        {% for option in field.options %}
+        <option value="{{ option[0] }}"{% if option[0] == field.data %} selected{% endif %}>{{ option[1] }}</option>
+        {% endfor %}
+    </select>
+    <span class="label">{% if field.required %}Required{% else %}Optional{% endif %}</span>
+</fieldset>

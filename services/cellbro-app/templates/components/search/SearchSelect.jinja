@@ -1,0 +1,48 @@
+{#def field #}
+<div class="form-control w-full max-w-xs" x-data="{ open: false, selected: false }">
+    <div class="dropdown" id="search-container" :class="open ? 'dropdown-open' : ''" @click.outside="open = false">
+        <label class="input">
+            <svg id="search-icon" class="w-[1em] h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <g
+                stroke-linejoin="round"
+                stroke-linecap="round"
+                stroke-width="2.5"
+                fill="none"
+                stroke="currentColor">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.3-4.3"></path>
+                </g>
+            </svg>
+            <input
+                type="text" 
+                name="word"
+                placeholder="{{ field.placeholder }}" 
+                class="grow"
+                @focus="open = true; $el.select();"
+                @blur="setTimeout(() => { $el.value = $refs.hidden_name_input.value; }, 200);"
+                x-init="if ($refs.hidden_name_input.value) { $el.value = $refs.hidden_name_input.value; selected = true; }"
+                hx-get="{{ field.search_url }}" 
+                hx-trigger="keyup changed delay:300ms, load" 
+                hx-target="#search-results"
+                hx-indicator="#loading-spinner, #search-results"
+                x-ref="search_input"
+                autocomplete="off"/>
+            <button 
+                type="button" x-show="selected" x-cloak
+                @click="$refs.search_input.value = ''; $refs.hidden_id_input.value = ''; $refs.hidden_name_input.value = ''; selected = false; open = false;"
+                class="absolute right-3 bg-transparent border-none p-0 flex items-center justify-center text-base-content/50 hover:text-base-content cursor-pointer" >
+                <i class="bi bi-x-circle-fill"></i>
+            </button>
+            <input type="hidden" name="selected_id" x-ref="hidden_id_input"/>
+            <input type="hidden" name="selected_name" x-ref="hidden_name_input"/>
+        </label>
+        
+        <div id="results-scroll-container" class="dropdown-content z-[1] block shadow-2xl bg-base-100 rounded-box w-full mt-1 border border-base-300 max-h-80 overflow-y-auto">
+            <div id="loading-spinner" class="h-[3em] grow flex justify-center htmx-indicator-none">
+                <span class="loading loading-dots loading-md"></span>
+            </div>
+            <div id="search-results" class="htmx-indicator-hide" x-show="open">
+            </div>
+        </div>
+    </div>
+</div>

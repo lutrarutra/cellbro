@@ -1,15 +1,11 @@
-from redis.asyncio import Redis
+from .RedisManager import RedisManager
 
-
-class SessionCache:
-    client: Redis
+class SessionCache(RedisManager):
     expiration: int | None = None
 
     def __init__(self, expiration: int | None = None):
+        super().__init__()
         self.expiration = expiration
-
-    def connect(self, host: str, port: int, db: int):
-        self.client = Redis(host=host, port=port, db=db, decode_responses=True)
 
     def _redis_key(self, sid: str) -> str:
         return sid
@@ -44,7 +40,4 @@ class SessionCache:
         end
         return 0
 """ 
-        return int(await self.client.eval(lua_script, 0, user_id))
-
-    async def close(self) -> None:
-        await self.client.close()
+        return int(await self.client.eval(lua_script, 0, user_id))  # type: ignore

@@ -13,10 +13,11 @@ class StringInputField(InputField):
         autocomplete: str | None = None,
         pydantic_type: Any = None,
         required: bool = True,
+        name: str | None = None,
         type: str = "text",
     ):
         super().__init__(
-            name=label.lower().replace(" ", "_"),
+            name=name,
             label=label,
             component="inputs.String",
             default=default,
@@ -35,12 +36,14 @@ class EmailInputField(StringInputField):
         max_length: int | None = None,
         min_length: int | None = None,
         default: str | None = None,
+        name: str | None = None,
         autocomplete: str | None = "email",
         required: bool = True,
     ):
         super().__init__(
             label=label,
             default=default,
+            name=name,
             pydantic_type=Annotated[str, EmailStr, StringConstraints(max_length=max_length, min_length=min_length)],
             autocomplete=autocomplete,
             placeholder=placeholder,
@@ -53,6 +56,7 @@ class PasswordInputField(StringInputField):
     def __init__(
         self, label: str,
         placeholder: str | None = None,
+        name: str | None = None,
         max_length: int | None = None,
         min_length: int | None = None,
         default: str | None = None,
@@ -61,6 +65,7 @@ class PasswordInputField(StringInputField):
     ):
         super().__init__(
             label=label,
+            name=name,
             default=default,
             pydantic_type=Annotated[str, StringConstraints(max_length=max_length, min_length=min_length)],
             autocomplete=autocomplete,

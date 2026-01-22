@@ -22,7 +22,9 @@ app.include_router(routes.pages.auth.router)
 app.include_router(routes.pages.files.router)
 
 app.include_router(routes.api.base.router)
+app.include_router(routes.api.websockets.router)
 
 app.include_router(routes.resources.router)
 
 app.include_router(routes.htmx.auth_htmx.router)
+app.include_router(routes.htmx.search_htmx.router)

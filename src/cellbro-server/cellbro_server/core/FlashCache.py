@@ -1,14 +1,11 @@
-from redis.asyncio import Redis
+from .RedisManager import RedisManager
 
-class FlashCache:
+class FlashCache(RedisManager):
     PRIORITY = ["error", "warning", "info", "success"]
-    client: Redis
     
     def __init__(self, expiration: int = 3600):
+        super().__init__()
         self.expiration = expiration
-
-    async def connect(self, host: str, port: int, db: int):
-        self.client = Redis(host=host, port=port, db=db, decode_responses=True)
 
     def _redis_key(self, sid: str, category: str) -> str:
         return f"flash:{sid}:{category}"
@@ -16,7 +13,7 @@ class FlashCache:
     async def add(self, sid: str, category: str, message: str) -> None:
         key = self._redis_key(sid, category)
         async with self.client.pipeline(transaction=True) as pipe:
-            await pipe.rpush(key, message)
+            await pipe.rpush(key, message)  # type: ignore
             await pipe.expire(key, self.expiration)
             await pipe.execute()
 
@@ -24,11 +21,8 @@ class FlashCache:
         res = []
         for category in self.PRIORITY:
             key = self._redis_key(sid, category)
-            messages: list[str] = await self.client.lrange(key, 0, -1)
+            messages: list[str] = await self.client.lrange(key, 0, -1)  # type: ignore
             if messages:
                 await self.client.delete(key)
                 res.extend((category, msg) for msg in messages)
         return res
-            
-    async def close(self) -> None:
-        await self.client.close()

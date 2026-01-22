@@ -1,6 +1,7 @@
 from typing import Self
 
 import sqlalchemy as sa
+import sqlalchemy.orm as orm
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -50,7 +51,7 @@ class User(Base):
     @classmethod
     def Select(
         cls,
-        name: str | None = None,
+        name: orm.InstrumentedAttribute | str | None = None,
         limit: int | None = 10, offset: int | None = None,
         sort_by: str | None = None, descending: bool = False,
         page: int | None = None,
@@ -58,7 +59,10 @@ class User(Base):
         query = sa.select(cls)
 
         if sort_by is not None:
-            attr = getattr(User, sort_by)
+            if isinstance(sort_by, str):
+                attr = getattr(cls, sort_by)
+            else:
+                attr = sort_by
             if descending:
                 attr = attr.desc()
             query = query.order_by(attr)

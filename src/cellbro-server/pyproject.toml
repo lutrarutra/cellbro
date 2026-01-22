@@ -32,7 +32,8 @@ dependencies = [
     "jinja2",
     "uuid6",
     "markdown",
-    "jinjax"
+    "jinjax",
+    "websockets",
 ]
 
 [tool.setuptools.packages.find]

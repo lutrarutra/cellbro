@@ -1,0 +1,15 @@
+{% if not results %}
+<li><a class="text-error">No results found</a></li>
+{% else %}
+{% for result in results %}
+<li>
+    <a type="button" class="btn w-full btn-ghost text-left" @click="
+        open = false;
+        $refs.search_input.value = '{{ result.name|e }}';
+        $refs.hidden_id_input.value = '{{ result.id }}';
+        $refs.hidden_name_input.value = '{{ result.name|e }}';
+        selected = true;
+    ">{{ result.name }}</a>
+</li>
+{% endfor %}
+{% endif %}
