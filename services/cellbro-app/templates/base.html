@@ -21,103 +21,53 @@
 </head>
 
 <body>
-
-    <div class="drawer lg:drawer-open">
-        <input id="my-drawer-4" type="checkbox" class="drawer-toggle" />
-        <div class="drawer-content flex flex-col min-h-screen">
-            <nav class="navbar w-full bg-base-300">
-                <label for="my-drawer-4" aria-label="open sidebar" class="btn btn-square btn-ghost">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor" class="my-1.5 inline-block size-4"><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"></path><path d="M9 4v16"></path><path d="M14 10l2 2l-2 2"></path></svg>
-                </label>
-                <div class="px-4">CellBro</div>
-
-                <div class="hidden flex-none lg:block">
-                    <ul class="menu menu-horizontal">
-                        <li>
-                            <a {% if active_page == 'home-page' %}class="menu-active"{% endif %} href="/">
-                                <i class="bi bi-house"></i>
-                                <span class="dock-label">Home</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a {% if active_page == 'users-page' %}class="menu-active"{% endif %} href="{{ url_for('users') }}">
-                                <i class="bi bi-person-circle"></i>
-                                <span class="dock-label">Users</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-            <div class="w-full grow">
-                <div class="flex flex-col h-full">
-                    <div class="p-4 w-full grow">{% block content %}{% endblock %}</div>
-
-                    <div x-data="{ open: true, lastLine: 'Waiting for output...' }" class="block w-full bg-neutral text-neutral-content" hx-ext="ws" ws-connect="/api/ws/output/general">
-                        <div class="mockup-code w-full relative transition-all duration-300 rounded-none" 
-                            :class="open ? 'h-64' : 'h-12 overflow-hidden'" id="terminal-container">
-                            
-                            <button @click="open = !open" class="btn btn-xs btn-circle btn-ghost absolute right-4 top-3 z-20">
-                                <i class="bi text-white" :class="open ? 'bi-dash-lg' : 'bi-plus-lg'"></i>
-                            </button>
-
-                            <!-- Main Terminal Body -->
-                            <div x-show="open" 
-                                id="stdout" 
-                                hx-swap="beforeend" 
-                                class="h-full overflow-y-auto scroll-smooth"
-                                x-init="
-                                    new MutationObserver(() => {
-                                        // 1. Update the lastLine variable for the minimized view
-                                        // We grab the text of the last child inside stdout
-                                        if ($el.lastElementChild) {
-                                            lastLine = $el.lastElementChild.innerText.replace('$', '').trim();
-                                        }
-
-                                        // 2. Smart Scroll logic
-                                        const threshold = 100;
-                                        const isAtBottom = $el.scrollHeight - $el.clientHeight - $el.scrollTop < threshold;
-                                        if (isAtBottom) {
-                                            $el.scrollTo({ top: $el.scrollHeight, behavior: 'smooth' });
-                                        }
-                                    }).observe($el, { childList: true, subtree: true })
-                                ">
-                                <pre data-prefix="$"><code>Waiting for output...</code></pre>
-                            </div>
-
-                            <!-- Minimized View: Now displays the lastLine variable -->
-                            <div x-show="!open" class="opacity-50 h-full flex items-center">
-                                <pre class="m-0 truncate"><code x-text="lastLine"></code></pre>
-                            </div>
-                        </div>
-                    </div>
+    <div class="navbar bg-base-100 shadow-sm">
+        <div class="navbar-start">
+            <label for="side-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor" class="my-1.5 inline-block size-4"><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"></path><path d="M9 4v16"></path><path d="M14 10l2 2l-2 2"></path></svg>
+            </label>
+            <a class="text-xl pl-3">CellBro</a>
+        </div>
+        <div class="navbar-center">
+            <ul class="menu menu-horizontal px-1">
+                <li {% if active_page == 'home-page' %}class="menu-active"{% endif %} >
+                    <a href="/">
+                        <i class="bi bi-house"></i>
+                        <span class="dock-label">Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a {% if active_page == 'users-page' %}class="menu-active"{% endif %} href="{{ url_for('users') }}">
+                        <i class="bi bi-person-circle"></i>
+                        <span class="dock-label">Users</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="navbar-end">
+            <div class="pr-4">
+                <div id="worker-status-container" hx-get="{{ url_for('worker_status') }}" hx-trigger="load" hx-swap="outerHTML">
+                    <div aria-label="status" class="status status-neutral"></div>
                 </div>
             </div>
         </div>
-
-        <div class="drawer-side is-drawer-close:overflow-visible">
-            <label for="my-drawer-4" aria-label="close sidebar" class="drawer-overlay"></label>
-            <div class="flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-14 is-drawer-open:w-64">
-            <!-- Sidebar content here -->
-            <ul class="menu w-full grow">
-                <!-- List item -->
-                <li>
-                <button class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Homepage">
-                    <!-- Home icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor" class="my-1.5 inline-block size-4"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
-                    <span class="is-drawer-close:hidden">Homepage</span>
-                </button>
-                </li>
-
-                <!-- List item -->
-                <li>
-                <button class="is-drawer-close:tooltip is-drawer-close:tooltip-right" data-tip="Settings">
-                    <!-- Settings icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor" class="my-1.5 inline-block size-4"><path d="M20 7h-9"></path><path d="M14 17H5"></path><circle cx="17" cy="17" r="3"></circle><circle cx="7" cy="7" r="3"></circle></svg>
-                    <span class="is-drawer-close:hidden">Settings</span>
-                </button>
-                </li>
-            </ul>
+    </div>
+    <div class="drawer">
+        <input id="side-drawer" type="checkbox" class="drawer-toggle" />
+        <div class="drawer-content flex flex-col">
+            <div class="w-full grow">
+                <div class="p-4 w-full">{% block content %}{% endblock %}</div>
             </div>
+            <div class="fixed bottom-0 left-0 right-0 z-40">
+                {% include "footer.html" %}
+            </div>
+        </div>
+        <div class="drawer-side z-50">
+            <label for="side-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+            <ul class="menu bg-base-200 min-h-full w-80 p-4">
+                <li><a>Sidebar Item 1</a></li>
+                <li><a>Sidebar Item 2</a></li>
+            </ul>
         </div>
     </div>
 

@@ -11,15 +11,20 @@ router = APIRouter(prefix="/api/ws", tags=["websockets", "api"])
 async def stream_task_stdout(websocket: WebSocket, task_id: str):
     await websocket.accept()
     pubsub = worker_output_cache.client.pubsub()
-    await pubsub.subscribe(f"task:{task_id}")
+    output_channel = f"task:{task_id}"
+    await pubsub.subscribe(output_channel, "status")
 
     async def listen_redis():
         while True:
-            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.1)
             if message and message["type"] == "message":
-                output = templates.get_template("components/stdout.html").render(messages=[message["data"]])
-                print(output, flush=True)
-                await websocket.send_text(output)
+                if message["channel"] == "status":
+                    busy = message.get("data") == "busy"
+                    status_output = templates.get_template("components/worker-status.html").render(busy=busy)
+                    await websocket.send_text(status_output)
+                elif message["channel"] == output_channel:
+                    output = templates.get_template("components/stdout.html").render(messages=[message["data"]])
+                    await websocket.send_text(output)
 
     async def receive_from_client():
         while True:

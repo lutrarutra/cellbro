@@ -1,0 +1,35 @@
+<div x-data="{ open: false, lastLine: '' }" class="block w-full bg-neutral text-neutral-content" hx-ext="ws" ws-connect="/api/ws/output/general">
+    <div class="mockup-code w-full relative transition-all duration-300 rounded-none" 
+        :class="open ? 'h-64' : 'h-12 overflow-hidden'" id="terminal-container">
+        
+        <button @click="open = !open" class="btn btn-xs btn-circle btn-ghost absolute right-4 top-3 z-20">
+            <i class="bi text-white" :class="open ? 'bi-dash-lg' : 'bi-plus-lg'"></i>
+        </button>
+
+        <div x-show="open" 
+            id="stdout" 
+            hx-swap="beforeend" 
+            class="h-full overflow-y-auto scroll-smooth"
+            x-init="
+                new MutationObserver(() => {
+                    // 1. Update the lastLine variable for the minimized view
+                    // We grab the text of the last child inside stdout
+                    if ($el.lastElementChild) {
+                        lastLine = $el.lastElementChild.innerText.replace('$', '').trim();
+                    }
+
+                    // 2. Smart Scroll logic
+                    const threshold = 100;
+                    const isAtBottom = $el.scrollHeight - $el.clientHeight - $el.scrollTop < threshold;
+                    if (isAtBottom) {
+                        $el.scrollTo({ top: $el.scrollHeight, behavior: 'smooth' });
+                    }
+                }).observe($el, { childList: true, subtree: true })
+            ">
+        </div>
+
+        <div x-show="!open" class="opacity-50 h-full flex items-center">
+            <pre class="m-0 truncate"><code x-text="lastLine"></code></pre>
+        </div>
+    </div>
+</div>

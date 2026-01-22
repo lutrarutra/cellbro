@@ -29,9 +29,13 @@ class StdoutCaptureHandler(logging.Handler):
     
     def start(self):
         sys.stdout = self
+        self.redis_client.publish("status", "busy")
+        self.redis_client.set("status", "busy")
     
     def stop(self):
         sys.stdout = self._original_stdout
+        self.redis_client.publish("status", "idle")
+        self.redis_client.set("status", "idle")
     
     def get_captured_output(self):
         return self._stdout.getvalue()

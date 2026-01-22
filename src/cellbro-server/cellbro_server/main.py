@@ -28,3 +28,4 @@ app.include_router(routes.resources.router)
 
 app.include_router(routes.htmx.auth_htmx.router)
 app.include_router(routes.htmx.search_htmx.router)
+app.include_router(routes.htmx.data_htmx.router)

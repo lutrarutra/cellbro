@@ -14,6 +14,4 @@ from ...core.dependencies import db_session, get_user
 @router.get("/search_features")
 async def search_features(word: str, db: AsyncSession = Depends(db_session)):
     results = await db.find(models.Feature.Select(word=word, sort_by=models.Feature.name if not word else None))
-    import time
-    time.sleep(1)
     return await responses.htmx_response("components/search/results.html", results=results)
