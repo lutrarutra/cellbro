@@ -1,0 +1,7 @@
+<div id="worker-status-container" data-tip="{{ current_task }}" hx-swap-oob="true"
+{% if current_task != "idle" %}
+aria-label="warning" class="status status-warning tooltip tooltip-left"
+{% else %}
+aria-label="success" class="status status-success tooltip tooltip-left"
+{% endif %}
+></div>

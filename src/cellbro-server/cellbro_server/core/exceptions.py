@@ -31,3 +31,6 @@ class PermissionDeniedException(HTTPException):
 
 class InvalidCredentialsException(Exception):
     pass
+
+class DatasetNotLoadedException(Exception):
+    pass

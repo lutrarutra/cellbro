@@ -1,31 +1,16 @@
-from cellbro_db import SyncSession, models
+from cellbro_db import SyncSession
 
-from .. import celery_app
+from .. import celery_app, tools
+from ..tools import worker_redis
 
 
 def read_h5ad(db: SyncSession, file_path: str):
     import anndata as ad
-    import sqlalchemy as sa
     celery_app.adata = ad.read_h5ad(file_path)
     celery_app.adata.obs_names_make_unique()
     celery_app.adata.var_names_make_unique()
-    observations = []
 
-    db.execute(sa.delete(models.Observation))
-    db.execute(sa.delete(models.Feature))
+    for key in worker_redis.scan_iter("step:*"):
+        worker_redis.delete(key)
 
-    for idx in celery_app.adata.obs.index:
-        observations.append(models.Observation.Create(name=str(idx)))
-
-    db.add_all(observations)
-    print(f"Added {len(observations)} observations to the database.")
-    del observations
-
-    features = []
-    for idx in celery_app.adata.var.index:
-        feature = models.Feature.Create(identifier=str(idx), name=str(idx))
-        features.append(feature)
-
-    db.add_all(features)
-    print(f"Added {len(features)} features to the database.")
-    del features
+    tools.dataset.reset_dataset(db, celery_app.adata)

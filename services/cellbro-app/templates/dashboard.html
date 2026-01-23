@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% set active_page = "dashboard-page" %}
+{% block content %}
+
+<div class="flex gap-3 w-full mb-4">
+    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-2 min-w-xs h-80 overflow-y-auto flex flex-col" hx-get="{{ url_for('get_dataset_summary') }}" hx-trigger="load, dataset-updated from:body" hx-swap="innerHTML" hx-target="#dataset-list-container" hx-indicator="#dataset-spinner, #dataset-list-container">
+        <legend class="fieldset-legend text-lg">Dataset</legend>
+        <ul class="list bg-base-100 rounded-box shadow-md htmx-indicator-hide" id="dataset-list-container"></ul>
+        <div id="dataset-spinner" class="flex flex-1 w-full justify-center items-center htmx-indicator">
+            <span class="loading loading-ring loading-md"></span>
+        </div>
+    </fieldset>
+    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-2 min-w-xs h-80 overflow-y-auto flex flex-col" hx-get="{{ url_for('get_layer_summary') }}" hx-trigger="load, dataset-updated from:body" hx-swap="innerHTML" hx-target="#layer-list-container" hx-indicator="#layer-spinner, #layer-list-container">
+        <legend class="fieldset-legend text-lg">Layers</legend>
+        <ul class="list bg-base-100 rounded-box shadow-md htmx-indicator-hide" id="layer-list-container"></ul>
+        <div id="layer-spinner" class="flex flex-1 w-full justify-center items-center htmx-indicator">
+            <span class="loading loading-ring loading-md"></span>
+        </div>
+    </fieldset>
+    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-2 min-w-xs h-80 overflow-y-auto flex flex-col" hx-get="{{ url_for('get_var_summary') }}" hx-trigger="load, dataset-updated from:body" hx-swap="innerHTML" hx-target="#var-list-container" hx-indicator="#var-spinner, #var-list-container">
+        <legend class="fieldset-legend text-lg">Feature Variables</legend>
+        <ul class="list bg-base-100 rounded-box shadow-md htmx-indicator-hide" id="var-list-container"></ul>
+        <div id="var-spinner" class="flex flex-1 w-full justify-center items-center htmx-indicator">
+            <span class="loading loading-ring loading-md"></span>
+        </div>
+    </fieldset>
+    <fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-2 min-w-xs h-80 overflow-y-auto flex flex-col" hx-get="{{ url_for('get_obs_summary') }}" hx-trigger="load, dataset-updated from:body" hx-swap="innerHTML" hx-target="#obs-list-container" hx-indicator="#obs-spinner, #obs-list-container">
+        <legend class="fieldset-legend text-lg">Observation Variables</legend>
+        <ul class="list bg-base-100 rounded-box shadow-md htmx-indicator-hide" id="obs-list-container"></ul>
+        <div id="obs-spinner" class="flex flex-1 w-full justify-center items-center htmx-indicator">
+            <span class="loading loading-ring loading-md"></span>
+        </div>
+    </fieldset>
+</div>
+
+<a type="button" class="btn btn-ghost" hx-post="{{ url_for('read_data') }}">Read Data</a>
+{% endblock %}

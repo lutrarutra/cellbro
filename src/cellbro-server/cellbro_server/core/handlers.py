@@ -1,13 +1,19 @@
 from fastapi import Request, Response, status, HTTPException
 
-from ..core.responses import htmx_response, html_response
-from ..core.cache import flash_cache
+from .responses import htmx_response, html_response
+from .cache import flash_cache
+from .context import ctx
 
 async def not_authenticated_handler(request: Request, _: Exception) -> Response:
     if request.headers.get("HX-Request"):
         return await htmx_response(redirect="/auth/login")
     return await html_response(redirect="/auth/login")
 
+
+async def dataset_not_loaded_handler(request: Request, _: Exception) -> Response:
+    if request.headers.get("HX-Request"):
+        return await htmx_response(redirect=ctx.request.url_for("dashboard"))
+    return await html_response(redirect=ctx.request.url_for("dashboard"))
 
 async def generic_exception_handler(request: Request, exc: Exception) -> Response:
     if request.headers.get("HX-Request"):

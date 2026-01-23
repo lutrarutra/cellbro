@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     TZ: str = "UTC"
     SESSION_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7  # 7 days
     JWT_ALGORITHM: str = "HS256"
+    DATA_DIR: str = "/app/data"
 
     # Database
     POSTGRES_USER: str = "cellbro"

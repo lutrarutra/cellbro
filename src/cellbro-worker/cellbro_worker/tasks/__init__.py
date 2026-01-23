@@ -1,11 +1,8 @@
 import os
-from cellbro_db import DBHandler
-from redis import Redis
+from cellbro_db import DBHandler, types
 
-from .. import celery_app
-from ..tools.OutputCaptureHandler import StdoutCaptureHandler
+from .. import celery_app, tools
 
-stdout_redis = Redis(host="redis-cache", port=int(os.environ["REDIS_PORT"]), db=5, decode_responses=True)
 
 def connect() -> DBHandler:
     db = DBHandler(auto_commit=True)
@@ -19,12 +16,32 @@ def connect() -> DBHandler:
     return db
 
 
-@celery_app.task(bind=True)
+@tools.wrapper.worker_task("io.read_h5ad", complete_steps=types.ChecklistStep.LOAD, trigger_events="dataset-updated")
 def read_h5ad(self, file_path: str):
     db = connect()
     from . import io
-    
-    with db as session, StdoutCaptureHandler("general", stdout_redis):
-        print("Starting to read h5ad file...")
+    with db as session:
         io.read_h5ad(db=session, file_path=file_path)
-        print("Finished reading h5ad file.")
+
+
+@tools.wrapper.worker_task("qc", complete_steps=types.ChecklistStep.QC, trigger_events="dataset-updated")
+def qc(self, mt_prefix: str, ribo_prefixes: list[str], hb_pattern: str, percent_top: int):
+    db = connect()
+    import scanpy as sc
+
+    with db as session:
+        celery_app.adata.var["mt"] = celery_app.adata.var_names.str.startswith(mt_prefix)
+        celery_app.adata.var["ribo"] = celery_app.adata.var_names.str.startswith(tuple(ribo_prefixes))
+        celery_app.adata.var["hb"] = celery_app.adata.var_names.str.contains(hb_pattern, regex=True)
+
+        sc.pp.calculate_qc_metrics(
+            celery_app.adata,
+            qc_vars=["mt", "ribo", "hb"],
+            percent_top=[percent_top],
+            inplace=True,
+            log1p=True
+        )
+
+        tools.dataset.reset_dataset(session, celery_app.adata)
+
+

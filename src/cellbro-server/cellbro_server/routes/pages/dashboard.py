@@ -5,12 +5,12 @@ from ...core.dependencies import db_session, get_user
 from ...core import responses
 from ...core.context import ctx
 from ... import components
-from ...core.cache import worker_output_cache
+from ...core.cache import worker_redis
 
-router = APIRouter(tags=["home", "view"])
+router = APIRouter(tags=["dashboard", "view"])
 
 @router.get("/")
-async def root(db: AsyncSession = Depends(db_session)):
+async def dashboard(db: AsyncSession = Depends(db_session)):
     select_feature_field = components.inputs.SearchSelectField(
         label="Select Feature",
         search_url=ctx.request.url_for("search_features"),
@@ -26,4 +26,4 @@ async def root(db: AsyncSession = Depends(db_session)):
         required=True
     )
 
-    return await responses.html_response("index.html", select_feature_field=select_feature_field, select_field=select_field)
+    return await responses.html_response("dashboard.html", select_feature_field=select_feature_field, select_field=select_field)

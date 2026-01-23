@@ -22,8 +22,7 @@ class AsyncSession(SQLAlchemyAsyncSession):
     async def get_or_fail(self, statement: sa.Select[tuple[T]]) -> T:
         """Execute a select statement and return a single object or raise KeyError."""
         result = await super().execute(statement)
-        obj = result.scalar_one_or_none()
-        if obj is None:
+        if (obj := result.scalar_one_or_none()) is None:
             raise ObjectNotFound()
         return obj
 
@@ -62,8 +61,7 @@ class SyncSession(Session):
     def get_or_fail(self, statement: sa.Select[tuple[T]]) -> T:
         """Execute a select statement and return a single object or raise KeyError."""
         result = super().execute(statement)
-        obj = result.scalar_one_or_none()
-        if obj is None:
+        if (obj := result.scalar_one_or_none()) is None:
             raise ObjectNotFound()
         return obj
     

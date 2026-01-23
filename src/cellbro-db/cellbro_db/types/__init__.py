@@ -1,40 +1,42 @@
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 
 class UserType(IntEnum):
     DEACTIVATED = 0
     REGULAR = 10
     ADMIN = 100
 
-class PaperProcessingStatus(IntEnum):
-    DRAFT = 10
-    PROCESSING = 20
-    PROCESSED = 100
-    MISSING_METADATA = 200
-    INVALID_PDF_URL = 201
-    ERROR = 300
+class ChecklistStep(IntEnum):
+    LOAD = 1
+    AGGREATE = 2
+    QC = 3
+    NORMALIZE = 4
+    DIM_REDUCTION = 5
+    NEIHBOR_GRAPH_CONSTRUCTION = 6
+    CLUSTERING = 7
+    PROJECTION = 8
+    DEA = 9
+    GSEA = 10
 
 
-class SourceType(IntEnum):
-    UNKNOWN = 0
-    REPOSITORY = 1
-    JOURNAL = 2
+class VariableType(IntEnum):
+    STRING = 1
+    CATEGORICAL = 2
+    INTEGER = 3
+    FLOAT = 4
+    BOOLEAN = 5
+    LIST = 6
+    ARRAY = 7
+    MATRIX = 8
 
-class PaperType(IntEnum):
-    UNKNOWN = 0
-    PREPRINT = 1
-    ARTICLE = 2
-    DATASET = 3
+class AnnDataLayerType(StrEnum):
+    OBS = "obs"
+    VAR = "var"
+    UNS = "uns"
+    LAYER = "layer"
+    OBSM = "obsm"
+    OBSP = "obsp"
+    VARM = "varm"
+    VARP = "varp"
+    X = "X"
 
-class OADomain(IntEnum):
-    UNKNOWN = 0
-    LIFE_SCIENCES = 1
-    SOCIAL_SCIENCES = 2
-    PHYSICAL_SCIENCES = 3
-    HEALTH_SCIENCES = 4
-
-class AuthorPosition(IntEnum):
-    FIRST = 1
-    MIDDLE = 2
-    LAST = 3
-    UNSPECIFIED = 100
 

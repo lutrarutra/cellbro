@@ -1,0 +1,222 @@
+<div class="flex flex-col h-full">
+    <div class="flex-1 overflow-y-auto">
+        <ul class="timeline timeline-vertical">
+            <li>
+                {% set completed = types.ChecklistStep.LOAD in completed_steps %}
+                <button type="button" class="btn btn-ghost timeline-start timeline-box">Load Dataset(s)</button>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}text-warning{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <hr/>
+            </li>
+            <li>
+                {% set completed = types.ChecklistStep.AGGREGATE in completed_steps %}
+                <hr/>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <button type="button" class="btn btn-ghost timeline-end timeline-box">Aggregation</button>
+                <hr/>
+            </li>
+            <li>
+                {% set completed = types.ChecklistStep.QC in completed_steps %}
+                <hr/>
+                <button type="button" class="btn btn-ghost timeline-start timeline-box"
+                    hx-get="{{ url_for('qc_step') }}" hx-target="#right-side-drawer-content" hx-swap="innerHTML"
+                    @click="document.getElementById('left-side-drawer').checked = false; document.getElementById('right-side-drawer').checked = true;">QC</button>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}text-warning{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <hr/>
+            </li>
+            <li>
+                {% set completed = types.ChecklistStep.NORMALIZE in completed_steps %}
+                <hr/>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}text-warning{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <button type="button" class="btn btn-ghost timeline-end timeline-box">Normalization</button>
+                <hr/>
+            </li>
+            <li>
+                {% set completed = types.ChecklistStep.DIM_REDUCTION in completed_steps %}
+                <hr/>
+                <button type="button" class="btn btn-ghost timeline-start timeline-box">Dimension Reduction</button>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}text-warning{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </li>
+            <li>
+                {% set completed = types.ChecklistStep.NEIGHBOR_GRAPH in completed_steps %}
+                <hr/>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}text-warning{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <button type="button" class="btn btn-ghost timeline-end timeline-box">Neighbor Graph</button>
+            </li>
+            <li>
+                {% set completed = types.ChecklistStep.CLUSTERING in completed_steps %}
+                <hr/>
+                <button type="button" class="btn btn-ghost timeline-start timeline-box">Clustering</button>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}text-warning{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </li>
+            <li>
+                {% set completed = types.ChecklistStep.PROJECTION in completed_steps %}
+                <hr/>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}text-warning{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <button type="button" class="btn btn-ghost timeline-end timeline-box">Projection</button>
+            </li>
+            {% set completed = types.ChecklistStep.DEA in completed_steps %}
+            <li>
+                <hr/>
+                <button type="button" class="btn btn-ghost timeline-start timeline-box">Differential Expression Analysis</button>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}text-warning{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </li>
+            <li>
+                {% set completed = types.ChecklistStep.GSEA in completed_steps %}
+                <hr/>
+                <div class="timeline-middle">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        class="{% if completed %}text-success{% else %}text-warning{% endif %} h-5 w-5">
+                        <path
+                            fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                            clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <button type="button" class="btn btn-ghost timeline-end timeline-box">Gene Set Enrichment Analysis</button>
+            </li>
+        </ul>
+    </div>
+    <div class="flex justify-center items-center space-x-4 p-4 bg-base-200 border-t border-base-300 mt-auto">
+        <div class="flex items-center space-x-1">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="text-success h-5 w-5">
+                <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                    clip-rule="evenodd"/>
+            </svg>
+            <span class="text-sm">Completed</span>
+        </div>
+        <div class="flex items-center space-x-1">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="text-warning h-5 w-5">
+                <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                    clip-rule="evenodd"/>
+            </svg>
+            <span class="text-sm">Not Completed</span>
+        </div>
+        <div class="flex items-center space-x-1">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="h-5 w-5">
+                <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                    clip-rule="evenodd"/>
+            </svg>
+            <span class="text-sm">Optional</span>
+        </div>
+    </div>
+</div>

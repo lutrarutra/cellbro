@@ -1,8 +1,16 @@
-<div x-data="{ open: false, lastLine: '' }" class="block w-full bg-neutral text-neutral-content" hx-ext="ws" ws-connect="/api/ws/output/general">
+<div x-data="{ open: false, lastLine: '' }" class="block w-full bg-neutral text-neutral-content" hx-ext="ws" ws-connect="/api/ws/output/general" hx-swap="none">
     <div class="mockup-code w-full relative transition-all duration-300 rounded-none" 
         :class="open ? 'h-64' : 'h-12 overflow-hidden'" id="terminal-container">
         
-        <button @click="open = !open" class="btn btn-xs btn-circle btn-ghost absolute right-4 top-3 z-20">
+        <button @click="
+            open = !open;
+            if(open) { 
+                $nextTick(() => { 
+                    const el = document.getElementById('stdout');
+                    el.scrollTo({ top: el.scrollHeight }); 
+                }); 
+            }
+            " class="btn btn-xs btn-circle btn-ghost absolute right-4 top-3 z-20">
             <i class="bi text-white" :class="open ? 'bi-dash-lg' : 'bi-plus-lg'"></i>
         </button>
 

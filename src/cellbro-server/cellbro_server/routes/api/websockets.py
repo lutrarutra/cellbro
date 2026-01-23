@@ -1,30 +1,51 @@
 import asyncio
 from fastapi import WebSocket, APIRouter, WebSocketDisconnect
 
-from ...core.cache import worker_output_cache
+from ...core.cache import worker_redis
 from ...core.templates import templates
 
 
 router = APIRouter(prefix="/api/ws", tags=["websockets", "api"])
 
 @router.websocket("/output/{task_id}")
-async def stream_task_stdout(websocket: WebSocket, task_id: str):
+async def subscribe_to_worker_messages(websocket: WebSocket, task_id: str):
     await websocket.accept()
-    pubsub = worker_output_cache.client.pubsub()
+    pubsub = worker_redis.client.pubsub()
     output_channel = f"task:{task_id}"
-    await pubsub.subscribe(output_channel, "status")
+    await pubsub.subscribe(output_channel, "current_task", "step_completed", "task_completed", "task_started", "event_triggered")
 
     async def listen_redis():
         while True:
             message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.1)
             if message and message["type"] == "message":
-                if message["channel"] == "status":
-                    busy = message.get("data") == "busy"
-                    status_output = templates.get_template("components/worker-status.html").render(busy=busy)
+                if message["channel"] == "current_task":
+                    current_task = message["data"]
+                    status_output = templates.get_template("components/mini/worker-status.html").render(current_task=current_task)
                     await websocket.send_text(status_output)
                 elif message["channel"] == output_channel:
                     output = templates.get_template("components/stdout.html").render(messages=[message["data"]])
                     await websocket.send_text(output)
+                # elif message["channel"] == "step_completed":
+                #     step_completed = message["data"]
+                #     messages = [{"message": f"Step {step_completed} completed!", "category": "success"}]
+                #     print(messages, flush=True)
+                #     notification = templates.get_template("components/mini/notification.html").render(messages=messages)
+                #     await websocket.send_text(notification)
+                elif message["channel"] == "task_completed":
+                    task_completed = message["data"]
+                    messages = [{"message": f"Task {task_completed} completed!", "category": "success"}]
+                    notification = templates.get_template("components/mini/notification.html").render(messages=messages)
+                    await websocket.send_text(notification)
+                elif message["channel"] == "task_started":
+                    task_started = message["data"]
+                    messages = [{"message": f"Task {task_started} started!", "category": "info"}]
+                    notification = templates.get_template("components/mini/notification.html").render(messages=messages)
+                    await websocket.send_text(notification) 
+                elif message["channel"] == "event_triggered":
+                    event_triggered = message["data"]
+                    print(f"Event triggered: {event_triggered}", flush=True)
+                    notification = templates.get_template("components/mini/htmx-trigger.html").render(event=event_triggered)
+                    await websocket.send_text(notification)
 
     async def receive_from_client():
         while True:

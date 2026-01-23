@@ -27,8 +27,6 @@ class DBHandler:
             self._connection = self._engine.connect()
         except Exception as e:
             raise Exception(f"Could not connect to DB '{self.public_url}':\n{e}")
-        
-        print(f"Connected to DB '{self.public_url}'")
 
         self.session_factory = orm.sessionmaker(
             bind=self._engine, expire_on_commit=self.expire_on_commit,
@@ -79,7 +77,6 @@ class DBHandler:
     def close_connection(self) -> None:
         if self._connection is not None:
             self._connection = self._connection.close()
-            print("Connection closed.")
 
     
     def __del__(self):

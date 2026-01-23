@@ -26,3 +26,7 @@
 .mockup-code::before {
     display: none !important;
 }
+
+.timeline-vertical {
+    justify-content: flex-start;
+}

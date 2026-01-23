@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from starlette.datastructures import URL
 
 from ..core.templates import templates
 from ..core.context import ctx
@@ -13,7 +14,7 @@ async def get_request_context() -> dict[str, Any]:
 
 async def html_response(
     template: str | None = None, 
-    redirect: str | None = None, 
+    redirect: URL | str | None = None, 
     status: int = 200, 
     **context
 ) -> Response:
@@ -36,7 +37,7 @@ async def html_response(
 async def htmx_response(
     template: str | None = None, 
     status: int = 200, 
-    redirect: str | None = None, 
+    redirect: URL | str | None = None, 
     re_target: str | None = None, 
     re_swap: str | None = None, # Added for completeness
     **context
@@ -44,7 +45,7 @@ async def htmx_response(
     headers = {"HX-Trigger": "contentUpdated"}
     
     if redirect:
-        headers["HX-Redirect"] = redirect
+        headers["HX-Redirect"] = str(redirect)
         return HTMLResponse(status_code=204, headers=headers)
 
     if re_target:
