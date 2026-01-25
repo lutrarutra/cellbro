@@ -1,9 +1,7 @@
 <div id="websocket-toast-catcher" hx-swap-oob="true">
-<script>
-    {% for msg in messages %}
+<script>    
     window.dispatchEvent(new CustomEvent('flash', { 
-        detail: {{ msg | tojson }}
+        detail: {{ notification_data | safe }} 
     }));
-    {% endfor %}
 </script>
 </div>

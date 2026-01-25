@@ -1,17 +1,4 @@
 {% extends "base.html" %}
 {% set active_page = "users-page" %}
 {% block content %}
-<p>Users Page!</p>
-<ul>
-    <table>
-        <tr>
-            <th>Name</th>
-        </tr>
-        {% for user in users %}
-        <tr>
-            <td><a href="{{ url_for('users.user', user_id=user.id)}}">{{ user.name }}</a></td>
-        </tr>
-        {% endfor %}
-    </table>
-</ul>
 {% endblock %}

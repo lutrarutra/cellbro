@@ -1,10 +1,7 @@
 from fastapi import Response
 
-from cellbro_db.core.session import AsyncSession
 from cellbro_worker import queues
 
-from ... import logic
-from ...core import exceptions as exc
 from ...core.responses import htmx_response
 from ...core.HTMXForm import HTMXForm
 from ...core.context import ctx
@@ -31,4 +28,4 @@ class QCForm(HTMXForm):
             hb_pattern=self.hb_pattern.data,
             percent_top=self.percent_top.data,
         )
-        return await htmx_response(redirect=ctx.request.url_for("dashboard"))
+        return await htmx_response(redirect=ctx.request.url_for("qc_page"))

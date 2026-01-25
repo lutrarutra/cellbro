@@ -26,4 +26,4 @@ async def dashboard(db: AsyncSession = Depends(db_session)):
         required=True
     )
 
-    return await responses.html_response("dashboard.html", select_feature_field=select_feature_field, select_field=select_field)
+    return await responses.html_response("views/dashboard.html", select_feature_field=select_feature_field, select_field=select_field)

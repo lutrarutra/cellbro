@@ -1,4 +1,28 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request, Response
+
+from .context import ctx
+from .responses import htmx_response, html_response
+from .cache import flash_cache
+from .. import forms
+from ..core import responses
+
+async def generic_exception_handler(request: Request, exc: Exception) -> Response:
+    if request.headers.get("HX-Request"):
+        if (sid := request.cookies.get("session_id")):
+            await flash_cache.add(sid, category="error", message=f"An internal server error occurred: {str(exc)}")
+        return await htmx_response(status=status.HTTP_204_NO_CONTENT)
+    return Response(
+        content=f"Internal server error: {str(exc)}",
+        status_code=exc.status_code if isinstance(exc, HTTPException) else status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+
+
+class CellBroServerException(Exception):
+    @staticmethod
+    async def handler(request: Request, _: Exception) -> Response:
+        return await generic_exception_handler(request, _)
+
+
 
 class NotAuthenticatedException(HTTPException):
     def __init__(self, detail: str = "Not authenticated", headers: dict | None = None):
@@ -7,6 +31,12 @@ class NotAuthenticatedException(HTTPException):
             detail=detail,
             headers=headers
         )
+
+    @staticmethod
+    async def handler(request: Request, _: Exception) -> Response:
+        if request.headers.get("HX-Request"):
+            return await htmx_response(redirect="/auth/login")
+        return await html_response(redirect="/auth/login")
 
 class ItemNotFoundException(HTTPException):
     def __init__(self, item_id: str):
@@ -29,8 +59,24 @@ class PermissionDeniedException(HTTPException):
             detail=detail
         )
 
-class InvalidCredentialsException(Exception):
+class InvalidCredentialsException(CellBroServerException):
     pass
 
-class DatasetNotLoadedException(Exception):
+class StepRequirementNotMetException(CellBroServerException):
     pass
+
+class DatasetNotLoadedException(StepRequirementNotMetException):
+    @staticmethod
+    async def handler(request: Request, _: Exception) -> Response:
+        if request.headers.get("HX-Request"):
+            return await htmx_response(redirect=ctx.request.url_for("dashboard"))
+        return await html_response(redirect=ctx.request.url_for("dashboard"))
+
+class QCNotCompletedException(StepRequirementNotMetException):
+    @staticmethod
+    async def handler(request: Request, _: Exception) -> Response:
+        form = forms.steps.QCForm()
+        if request.headers.get("HX-Request"):
+            return await form.make_response()
+        return await responses.html_response("views/qc.html", modal_form=form)
+

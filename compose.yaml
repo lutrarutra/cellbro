@@ -52,7 +52,7 @@ services:
                 restart: true
         restart: always
         command: >
-            watchmedo auto-restart --directory=/app/cellbro-worker/ --pattern=*.py --recursive -- celery -A cellbro_worker.celery_app worker --loglevel=info --concurrency=1 --pool=solo
+            watchmedo auto-restart --directory=/app/cellbro-worker/ --pattern=*.py --recursive -- celery -A cellbro_worker.celery_app worker --loglevel=info --concurrency=5 --pool=solo
 
     postgres:
         container_name: cellbro-postgres
@@ -126,7 +126,7 @@ services:
             - compiled_css:/app/static/style/compiled
         environment:
             - TZ=${TIMEZONE}
-        command: "npx @tailwindcss/cli -i /app/style/input.css  -o /app/static/style/compiled/style.css --watch"
+        command: "npx @tailwindcss/cli -i /app/style/style.css  -o /app/static/style/compiled/style.css --watch"
 
 volumes:
     compiled_css:

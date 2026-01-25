@@ -1,4 +1,4 @@
-<div x-data="{ open: false, lastLine: '' }" class="block w-full bg-neutral text-neutral-content" hx-ext="ws" ws-connect="/api/ws/output/general" hx-swap="none">
+<div x-data="{ open: false, lastLine: '' }" class="block w-full bg-neutral text-neutral-content" hx-ext="ws" ws-connect="/api/ws/output/general" hx-swap="beforeend">
     <div class="mockup-code w-full relative transition-all duration-300 rounded-none" 
         :class="open ? 'h-64' : 'h-12 overflow-hidden'" id="terminal-container">
         

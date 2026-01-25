@@ -39,9 +39,7 @@
             <li>
                 {% set completed = types.ChecklistStep.QC in completed_steps %}
                 <hr/>
-                <button type="button" class="btn btn-ghost timeline-start timeline-box"
-                    hx-get="{{ url_for('qc_step') }}" hx-target="#right-side-drawer-content" hx-swap="innerHTML"
-                    @click="document.getElementById('left-side-drawer').checked = false; document.getElementById('right-side-drawer').checked = true;">QC</button>
+                <a type="button" class="btn btn-ghost timeline-start timeline-box" href="{{ url_for('qc_page') }}">QC</a>
                 <div class="timeline-middle">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

@@ -18,6 +18,8 @@
     
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"/>
+
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.8.2.min.js"></script>
 </head>
 
 <body class="flex flex-col h-screen">
@@ -40,6 +42,12 @@
                     <a {% if active_page == 'users-page' %}class="menu-active"{% endif %} href="{{ url_for('users') }}">
                         <i class="bi bi-person-circle"></i>
                         <span class="dock-label">Users</span>
+                    </a>
+                </li>
+                <li>
+                    <a {% if active_page == 'qc-page' %}class="menu-active"{% endif %} href="{{ url_for('qc_page') }}">
+                        <i class="bi bi-clipboard-check"></i>
+                        <span class="dock-label">QC</span>
                     </a>
                 </li>
             </ul>
@@ -65,7 +73,7 @@
                 
                 <div class="drawer-content flex flex-col h-full">
                     <div class="flex-1 overflow-auto">
-                        <div class="p-4 w-full">
+                        <div class="w-full h-full">
                             {% block content %}{% endblock %}
                         </div>
                     </div>
@@ -77,7 +85,7 @@
                     <label for="left-side-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
                     <div class="bg-base-200 h-full w-120 flex flex-col">
                         <h2 class="px-4 py-2 text-xs font-bold uppercase tracking-widest opacity-60">Timeline</h2>
-                        <div class="flex-1 min-h-0" hx-get="{{ url_for('timeline') }}" hx-trigger="intersect" hx-swap="innerHTML">
+                        <div class="flex-1 min-h-0" hx-get="{{ url_for('timeline') }}" hx-trigger="intersect, dataset-updated from:body" hx-swap="innerHTML">
                         </div>
                     </div>
                 </div>
@@ -87,7 +95,27 @@
             <label for="right-side-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
             <div id="right-side-drawer-content" class="bg-base-200 h-full w-150 p-4"></div>
         </div>
-    </div> 
+    </div>
+
+    {% if modal_form %}
+    <dialog id="modal-form-container" class="modal" open>
+        <div class="modal-box w-11/12 max-w-5xl">
+            <h3 class="text-lg font-bold">QC Required</h3>
+            <div class="py-4">
+                {{ modal_form.render() | safe }}
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn">Close</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+    {% endif %}
+
     <div x-data="toastManager" 
         class="toast toast-end toast-bottom z-[9999] items-end mb-10"
         @flash.window="add($event.detail.category, $event.detail.message)">

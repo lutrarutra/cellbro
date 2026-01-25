@@ -22,6 +22,7 @@ dependencies = [
     "scanpy",
     "numpy >= 2.2",
     "pandas >= 2.3",
+    "bokeh"
 ]
 
 [tool.setuptools.packages.find]

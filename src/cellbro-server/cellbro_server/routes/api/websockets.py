@@ -1,4 +1,5 @@
 import asyncio
+import json
 from fastapi import WebSocket, APIRouter, WebSocketDisconnect
 
 from ...core.cache import worker_redis
@@ -12,11 +13,11 @@ async def subscribe_to_worker_messages(websocket: WebSocket, task_id: str):
     await websocket.accept()
     pubsub = worker_redis.client.pubsub()
     output_channel = f"task:{task_id}"
-    await pubsub.subscribe(output_channel, "current_task", "step_completed", "task_completed", "task_started", "event_triggered")
+    await pubsub.subscribe(output_channel, "current_task", "step_completed", "task_completed", "task_started", "event_triggered", "notify")
 
     async def listen_redis():
         while True:
-            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.1)
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.1)  # type: ignore
             if message and message["type"] == "message":
                 if message["channel"] == "current_task":
                     current_task = message["data"]
@@ -31,16 +32,9 @@ async def subscribe_to_worker_messages(websocket: WebSocket, task_id: str):
                 #     print(messages, flush=True)
                 #     notification = templates.get_template("components/mini/notification.html").render(messages=messages)
                 #     await websocket.send_text(notification)
-                elif message["channel"] == "task_completed":
-                    task_completed = message["data"]
-                    messages = [{"message": f"Task {task_completed} completed!", "category": "success"}]
-                    notification = templates.get_template("components/mini/notification.html").render(messages=messages)
+                elif message["channel"] == "notify":
+                    notification = templates.get_template("components/mini/notification.html").render(notification_data = message["data"])
                     await websocket.send_text(notification)
-                elif message["channel"] == "task_started":
-                    task_started = message["data"]
-                    messages = [{"message": f"Task {task_started} started!", "category": "info"}]
-                    notification = templates.get_template("components/mini/notification.html").render(messages=messages)
-                    await websocket.send_text(notification) 
                 elif message["channel"] == "event_triggered":
                     event_triggered = message["data"]
                     print(f"Event triggered: {event_triggered}", flush=True)
@@ -62,7 +56,6 @@ async def subscribe_to_worker_messages(websocket: WebSocket, task_id: str):
         
         if listener_task in done:
             listener_task.result()
-
     except WebSocketDisconnect:
         print("Client disconnected normally")
     except Exception as e:

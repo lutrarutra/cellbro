@@ -10,6 +10,12 @@ from . import exceptions as exc
 async def dataset(request: Request):
     if not await worker_redis.is_step_completed(types.ChecklistStep.LOAD):
         raise exc.DatasetNotLoadedException()
+    
+async def qc(request: Request):
+    if not await worker_redis.is_step_completed(types.ChecklistStep.LOAD):
+        raise exc.DatasetNotLoadedException()
+    if not await worker_redis.is_step_completed(types.ChecklistStep.QC):
+        raise exc.QCNotCompletedException()
 
 async def db_session(request: Request):
     async with db_handler.get_session() as session:

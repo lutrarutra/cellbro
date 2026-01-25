@@ -5,6 +5,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, ValidationError, create_model
 
 from ..core.context import ctx
+from .templates import templates
 from ..components.inputs.InputField import InputField
 from ..components import inputs
 from ..core.responses import htmx_response
@@ -122,12 +123,15 @@ class HTMXForm(ABC):
     async def prepare(self):
         pass
     
-    async def get_context(self) -> dict:
+    def get_context(self) -> dict:
         return self._context | {"form": self, "request": self.request}
     
     async def make_response(self) -> Response:
         if not self.request.method == "GET":
             await self.prepare()
             
-        return await htmx_response(self.template_path, **(await self.get_context()))
+        return await htmx_response(self.template_path, **self.get_context())
         
+    def render(self) -> str:
+        template = templates.get_template(self.template_path)
+        return template.render(**self.get_context())

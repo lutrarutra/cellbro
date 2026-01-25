@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% set active_page = "qc-page" %}
+{% block content %}
+
+<div class="flex">
+    <div class="border border-base-300 w-full">
+        <div class="border-t border-base-300 h-80 relative" id="left-top-plot-container">
+            <div class="loading-overlay absolute inset-0 flex items-center justify-center">
+                <span class="loading loading-ring loading-md"></span>
+            </div>
+        </div>
+    </div>
+    <div class="border border-base-300 w-full">
+        <div class="header">
+            <fieldset class="fieldset bg-base-200 header h-[40px]">
+                QC
+            </fieldset>
+        </div>
+        <div class="border-t border-base-300 h-80 relative" id="right-top-plot-container">
+            <div class="loading-overlay absolute inset-0 flex items-center justify-center">
+                <span class="loading loading-ring loading-md"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    function plot(container_id, url) {
+        const container = document.getElementById(container_id);
+        const baseUrl = `${url}?plot_id=${container_id}`;
+
+        fetch(new URL(baseUrl, window.location.origin))
+            .then(response => response.json())
+            .then(item => {
+                container.innerHTML = "";
+                Bokeh.embed.embed_item(item);
+            });
+    }
+    plot('left-top-plot-container', "{{ url_for('get_plot') }}");
+    plot('right-top-plot-container', "{{ url_for('get_total_counts_histogram') }}");
+
+</script>
+{% endblock %}

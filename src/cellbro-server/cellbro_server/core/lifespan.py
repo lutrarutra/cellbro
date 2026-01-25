@@ -36,6 +36,7 @@ async def lifespan(app: FastAPI):
 
     if len(paths) == 1:
         if not await worker_redis.is_step_completed(types.ChecklistStep.LOAD):
+            print(f"Auto-loading dataset from {paths[0]}", flush=True)
             queues.read_h5ad(os.path.join(settings.DATA_DIR, paths[0]))
 
     yield
