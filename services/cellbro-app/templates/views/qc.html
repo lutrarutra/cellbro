@@ -1,7 +1,3 @@
-{% extends "base.html" %}
-{% set active_page = "qc-page" %}
-{% block content %}
-
 <div class="flex">
     <div class="border border-base-300 w-full">
         <div class="border-t border-base-300 h-80 relative" id="left-top-plot-container">
@@ -23,10 +19,9 @@
         </div>
     </div>
 </div>
-
-
+{% if requirements_failed %}
+{% else %}
 <script>
-
     function plot(container_id, url) {
         const container = document.getElementById(container_id);
         const baseUrl = `${url}?plot_id=${container_id}`;
@@ -42,4 +37,4 @@
     plot('right-top-plot-container', "{{ url_for('get_total_counts_histogram') }}");
 
 </script>
-{% endblock %}
+{% endif %}

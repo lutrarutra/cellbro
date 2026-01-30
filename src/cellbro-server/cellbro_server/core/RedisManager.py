@@ -28,3 +28,7 @@ class RedisManager:
     
     async def get_current_task(self) -> str | None:
         return await self.client.get("current_task")
+    
+    async def get_number_of_running_tasks(self) -> int:
+        count = await self.client.get("running_tasks")
+        return int(count) if count is not None else 0

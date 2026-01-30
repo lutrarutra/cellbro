@@ -8,10 +8,11 @@ from ..core.context import ctx
 from .templates import templates
 from ..components.inputs.InputField import InputField
 from ..components import inputs
-from ..core.responses import htmx_response
+from ..core.responses import html_response, htmx_response
 
 class HTMXForm(ABC):
     template_path: str = ""
+    title: str = "Form"
     
     def __init__(self):
         self.request = ctx.request
@@ -126,12 +127,18 @@ class HTMXForm(ABC):
     def get_context(self) -> dict:
         return self._context | {"form": self, "request": self.request}
     
-    async def make_response(self) -> Response:
+    async def make_response(self, re_target: str | None = None, **kwargs) -> Response:
         if not self.request.method == "GET":
             await self.prepare()
             
-        return await htmx_response(self.template_path, **self.get_context())
+        return await htmx_response(self.template_path, **self.get_context(), re_target=re_target, **kwargs)
+
+    async def standalone_modal_response(self, **kwargs) -> Response:
+        return await html_response(self.template_path, form=self, modal_title=self.title, **kwargs)
         
     def render(self) -> str:
         template = templates.get_template(self.template_path)
         return template.render(**self.get_context())
+    
+    async def loading_response(self, task_name: str, task_id: str) -> Response:
+        return await htmx_response("components/mini/loading.html", task_id=task_id, task_name=task_name, re_target="#global-loader")

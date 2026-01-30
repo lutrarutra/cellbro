@@ -1,0 +1,19 @@
+{% if done %}
+<div id="global-loader" class="hidden fixed inset-0 bg-black/50 z-[100] flex flex-col items-center justify-center text-white">
+    <span class="loading loading-ring loading-lg"></span>
+    <p class="mt-4 font-bold text-lg" id="loader-text">Processing task...</p>
+</div>
+{% else %}
+<div id="global-loader" hx-swap-oob="true"
+    class="fixed inset-0 bg-black/40 backdrop-blur-md z-[100] flex flex-col items-center justify-center text-white transition-all duration-300">
+    
+    <div class="flex flex-col items-center p-8 rounded-2xl bg-black/20 border border-white/10 shadow-2xl">
+        <span class="loading loading-ring loading-lg text-success" 
+                hx-ext="ws" ws-connect="{{ url_for('loading_listener', task_id=task_id) }}"></span>
+        <p class="mt-4 font-bold text-xl tracking-wide animate-pulse">
+            Running '{{ task_name }}'..
+        </p>
+        <p class="text-sm text-white/60 mt-2">Please do not refresh this page</p>
+    </div>
+</div>
+{% endif %}

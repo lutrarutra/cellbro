@@ -4,8 +4,7 @@ from typing import Callable, Sequence
 from cellbro_db import types
 
 
-from .. import celery_app
-from . import worker_redis
+from .. import celery_app, CellBroTask
 from .OutputCaptureHandler import StdoutCaptureHandler
 
 def worker_task(
@@ -27,8 +26,9 @@ def worker_task(
         trigger_events = [trigger_events]
 
     def decorator(func: Callable) -> Callable:
-        @celery_app.task(name=task_name, bind=True)
-        def wrapper(*args, **kwargs):
+        @celery_app.task(name=task_name, bind=True, base=CellBroTask)
+        def wrapper(self: CellBroTask, *args, **kwargs):
+            celery_app.running_task_count += 1
             r_res = set(read_resources)
             w_res = set(write_resources) if write_resources else set()
             all_requested = r_res | w_res
@@ -44,31 +44,39 @@ def worker_task(
                     celery_app.active_writers.update(w_res)
                 celery_app.active_readers.update(r_res)
 
-            worker_redis.set("current_task", task_name)
-            worker_redis.publish("current_task", task_name)
-            worker_redis.publish("task_started", task_name)
+            self.r.set("running_tasks", celery_app.running_task_count)
+            self.r.publish(self.task_id, "started")
+            self.r.publish("task_started", task_name)
+
             if notify:
-                worker_redis.publish("notify", json.dumps({"message": f"Task {task_name} started.", "category": "info"}))
+                self.r.publish("notify", json.dumps({"message": f"Task {task_name} started.", "category": "info"}))
 
             try:
-                with StdoutCaptureHandler("general", worker_redis):
-                    result = func(*args, **kwargs)
+                with StdoutCaptureHandler("general", self.r):
+                    result = func(self, *args, **kwargs)
                     print(f"Task {task_name} completed.")
                     
-                worker_redis.publish("task_completed", task_name)
+                self.r.publish("task_completed", task_name)
+                self.r.publish(self.task_id, "completed")
 
                 for complete_step in complete_steps:
-                    worker_redis.set(f"step:{complete_step}", "completed")
-                    worker_redis.publish("step_completed", complete_step)
+                    self.r.set(f"step:{complete_step}", "completed")
+                    self.r.publish("step_completed", complete_step)
 
                 for event in trigger_events:
-                    worker_redis.publish("event_triggered", event)
+                    self.r.publish("event_triggered", event)
 
                 if notify:
-                    worker_redis.publish("notify", json.dumps({"message": f"Task {task_name} completed.", "category": "success"}))
+                    self.r.publish("notify", json.dumps({"message": f"Task {task_name} completed.", "category": "success"}))
 
             except Exception as e:
                 print(f"An error occurred in task {task_name}: {e}")
+                self.r.publish("task_completed", task_name)
+                self.r.publish(self.task_id, "failed")
+
+                if notify:
+                    self.r.publish("notify", json.dumps({"message": f"Task {task_name} failed: {e}", "category": "error"}))
+
                 result = None
             finally:
                 with celery_app.state_lock:
@@ -77,8 +85,9 @@ def worker_task(
                     celery_app.active_readers.difference_update(r_res)
                     celery_app.state_lock.notify_all()
 
-            worker_redis.set("current_task", "idle")
-            worker_redis.publish("current_task", "idle")
+                celery_app.running_task_count -= 1
+                self.r.set("running_tasks", celery_app.running_task_count)
+
             return result
         return wrapper
     return decorator

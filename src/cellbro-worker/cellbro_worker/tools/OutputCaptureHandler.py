@@ -1,4 +1,5 @@
 import sys
+import json
 from io import StringIO
 import logging
 from celery.utils.log import get_task_logger
@@ -12,7 +13,7 @@ class StdoutCaptureHandler(logging.Handler):
         self._stdout = StringIO()
         self._task_id = task_id
         self.redis_client = redis_client
-        self._channel = f"task:{task_id}"
+        self._channel = "stdout"
     
     def write(self, text):
         """Handle print() calls when sys.stdout = self"""
@@ -20,12 +21,12 @@ class StdoutCaptureHandler(logging.Handler):
             return
         text = text.rstrip('\n')
         self._stdout.write(text + '\n')
-        self.redis_client.publish(self._channel, text)
+        self.redis_client.publish(self._channel, json.dumps({"task_id": self._task_id, "text": text, "category": "log"}))
         
     def emit(self, record):
         msg = self.format(record)
         self._stdout.write(msg + '\n')
-        self.redis_client.publish(self._channel, msg)
+        self.redis_client.publish(self._channel, json.dumps({"task_id": self._task_id, "text": msg, "category": "log"}))
     
     def start(self):
         sys.stdout = self

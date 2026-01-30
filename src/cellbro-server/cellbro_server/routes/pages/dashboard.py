@@ -1,29 +1,14 @@
-from fastapi import APIRouter, Depends
-from cellbro_db import AsyncSession
+from fastapi import APIRouter
 
-from ...core.dependencies import db_session, get_user
 from ...core import responses
 from ...core.context import ctx
-from ... import components
-from ...core.cache import worker_redis
 
 router = APIRouter(tags=["dashboard", "view"])
 
 @router.get("/")
-async def dashboard(db: AsyncSession = Depends(db_session)):
-    select_feature_field = components.inputs.SearchSelectField(
-        label="Select Feature",
-        search_url=ctx.request.url_for("search_features"),
-    )
+async def dashboard():
+    return await responses.html_response("base.html", page="dashboard", page_content_url=ctx.url_for("dashboard_view"))
 
-    select_field = components.inputs.SelectInput(
-        label="Select Editor",
-        options=[
-            ("vscode", "VScode"),
-            ("vscode-fork", "VScode fork"),
-            ("another-vscode-fork", "Another VScode fork"),
-        ],
-        required=True
-    )
-
-    return await responses.html_response("views/dashboard.html", select_feature_field=select_feature_field, select_field=select_field)
+@router.get("/views/dashboard")
+async def dashboard_view():
+    return await responses.htmx_response("views/dashboard.html")

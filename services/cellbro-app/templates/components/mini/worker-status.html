@@ -1,7 +1,7 @@
-<div id="worker-status-container" data-tip="{{ current_task }}" hx-swap-oob="true"
-{% if current_task == "idle" %}
-aria-label="success" class="status status-success tooltip tooltip-left"
-{% elif current_task == "processing" %}
-aria-label="warning" class="status status-warning tooltip tooltip-left"
+<div id="worker-status-container" data-tip="Active Tasks: {{ running_task_count }}" hx-swap-oob="true"
+{% if running_task_count > 0 %}
+aria-label="success" class="status status-warning tooltip tooltip-left"
+{% else %}
+aria-label="warning" class="status status-success tooltip tooltip-left"
 {% endif %}
 ></div>

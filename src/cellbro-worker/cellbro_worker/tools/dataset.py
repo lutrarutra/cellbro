@@ -4,13 +4,15 @@ import anndata as ad
 
 from cellbro_db import SyncSession, models, types
 
-
-def reset_dataset(db: SyncSession, adata: ad.AnnData):
+def clean_db(db: SyncSession):
     db.execute(sa.delete(models.Observation))
     db.execute(sa.delete(models.Feature))
     db.execute(sa.delete(models.Layer))
     db.execute(sa.delete(models.Variable))
-    db.flush()
+
+
+def reset_dataset(db: SyncSession, adata: ad.AnnData):
+    clean_db(db)
     
     objects_to_add = []
     for idx in adata.obs.index:

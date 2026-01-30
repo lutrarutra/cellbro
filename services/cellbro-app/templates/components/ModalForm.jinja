@@ -1,0 +1,15 @@
+{#def form, post_url #}
+
+<dialog id="modal-form-container" class="modal modal-open z-[50]" oncancel="event.preventDefault()" open>
+    <div class="modal-box w-11/12 max-w-5xl">
+        <form hx-post="{{ post_url }}">
+            <h3 class="text-lg font-bold">{{ form.title }}</h3>
+            <div class="py-4">
+                {{ content }}
+            </div>
+            <div class="modal-action">
+                <button type="submit" class="btn btn-success mt-4">Submit</button>
+            </div>
+        </form>
+    </div>
+</dialog>

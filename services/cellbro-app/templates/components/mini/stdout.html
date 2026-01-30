@@ -1,0 +1,4 @@
+<div id="stdout" hx-swap-oob="beforeend">
+    <pre data-prefix=">"
+    class="{% if message['category'] == 'warning' %}text-warning{% elif message['category'] == 'error' %}text-error{% else %}text-info{% endif %}"><code>{{ message['text'] }}</code></pre>
+</div>

@@ -68,15 +68,11 @@ class StepRequirementNotMetException(CellBroServerException):
 class DatasetNotLoadedException(StepRequirementNotMetException):
     @staticmethod
     async def handler(request: Request, _: Exception) -> Response:
-        if request.headers.get("HX-Request"):
-            return await htmx_response(redirect=ctx.request.url_for("dashboard"))
-        return await html_response(redirect=ctx.request.url_for("dashboard"))
+        raise NotImplementedError("DatasetNotLoadedException handler is not implemented yet.")
 
 class QCNotCompletedException(StepRequirementNotMetException):
     @staticmethod
     async def handler(request: Request, _: Exception) -> Response:
         form = forms.steps.QCForm()
-        if request.headers.get("HX-Request"):
-            return await form.make_response()
-        return await responses.html_response("views/qc.html", modal_form=form)
+        return await form.standalone_modal_response()
 

@@ -1,7 +1,3 @@
-{% extends "base.html" %}
-{% set active_page = "dashboard-page" %}
-{% block content %}
-
 <div class="flex gap-3 w-full mb-4">
     <fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-2 min-w-xs h-80 overflow-y-auto flex flex-col" hx-get="{{ url_for('get_dataset_summary') }}" hx-trigger="load, dataset-updated from:body" hx-swap="innerHTML" hx-target="#dataset-list-container" hx-indicator="#dataset-spinner, #dataset-list-container">
         <legend class="fieldset-legend text-lg">Dataset</legend>
@@ -34,4 +30,6 @@
 </div>
 
 <a type="button" class="btn btn-ghost" hx-post="{{ url_for('read_data') }}">Read Data</a>
-{% endblock %}
+<script>
+    console.log("QC page loaded");
+</script>

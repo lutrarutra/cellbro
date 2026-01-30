@@ -1,4 +1,4 @@
-<div x-data="{ open: false, lastLine: '' }" class="block w-full bg-neutral text-neutral-content" hx-ext="ws" ws-connect="/api/ws/output/general" hx-swap="beforeend">
+<div x-data="{ open: false, lastLine: '' }" class="block w-full bg-neutral text-neutral-content z-[105]" hx-ext="ws" ws-connect="{{ url_for('subscribe_to_worker_messages') }}">
     <div class="mockup-code w-full relative transition-all duration-300 rounded-none" 
         :class="open ? 'h-64' : 'h-12 overflow-hidden'" id="terminal-container">
         
@@ -36,7 +36,7 @@
             ">
         </div>
 
-        <div x-show="!open" class="opacity-50 h-full flex items-center">
+        <div x-show="!open" class="opacity-50 h-full flex items-center z-[105]">
             <pre class="m-0 truncate"><code x-text="lastLine"></code></pre>
         </div>
     </div>

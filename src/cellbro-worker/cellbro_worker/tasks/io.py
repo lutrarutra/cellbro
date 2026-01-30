@@ -1,16 +1,20 @@
-from cellbro_db import SyncSession
+from cellbro_db import types
 
-from .. import celery_app, tools
-from ..tools import worker_redis
+from .. import tools, CellBroTask
 
-
-def read_h5ad(db: SyncSession, file_path: str):
+@tools.wrapper.worker_task("io.read_h5ad", complete_steps=types.ChecklistStep.LOAD, trigger_events="dataset-updated", notify=True, read_resources=[], write_resources=["X", "var", "obs", "uns", "layers", "obsm", "varm"])
+def read_h5ad(self: CellBroTask, file_path: str):
     import anndata as ad
-    celery_app.adata = ad.read_h5ad(file_path)
-    celery_app.adata.obs_names_make_unique()
-    celery_app.adata.var_names_make_unique()
 
-    for key in worker_redis.scan_iter("step:*"):
-        worker_redis.delete(key)
+    with self.db as session:
+        self.adata = ad.read_h5ad(file_path)
+        self.adata.obs_names_make_unique()
+        self.adata.var_names_make_unique()
 
-    tools.dataset.reset_dataset(db, celery_app.adata)
+        import time
+        time.sleep(5)
+
+        for key in self.r.scan_iter("step:*"):
+            self.r.delete(key)
+
+        tools.dataset.reset_dataset(session, self.adata)

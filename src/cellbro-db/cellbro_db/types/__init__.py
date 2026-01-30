@@ -1,5 +1,10 @@
 from enum import IntEnum, StrEnum
 
+class TaskStatus(StrEnum):
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
 class UserType(IntEnum):
     DEACTIVATED = 0
     REGULAR = 10

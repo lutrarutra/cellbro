@@ -22,7 +22,7 @@
     <script src="https://cdn.bokeh.org/bokeh/release/bokeh-3.8.2.min.js"></script>
 </head>
 
-<body class="flex flex-col h-screen">
+<body class="flex flex-col h-screen z-[50]">
     <div class="navbar bg-base-100 shadow-sm fixed top-0 left-0 right-0 z-40">
         <div class="navbar-start">
             <label for="left-side-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
@@ -30,22 +30,22 @@
             </label>
             <a class="text-xl pl-3">CellBro</a>
         </div>
-        <div class="navbar-center">
+        <div class="navbar-center" x-data="{ activePage: '{{ page }}' }" @change-page.window="activePage = $event.detail">
             <ul class="menu menu-horizontal px-1">
                 <li>
-                    <a href="/" {% if active_page == 'dashboard-page' %}class="menu-active"{% endif %}>
+                    <a hx-get="{{ url_for('dashboard_view') }}" 
+                    hx-target="#content-container"
+                    @click="activePage = 'dashboard'"
+                    :class="{ 'menu-active': activePage === 'dashboard', 'pointer-events-none': activePage === 'dashboard' }">
                         <i class="bi bi-speedometer2"></i>
                         <span class="dock-label">Dashboard</span>
                     </a>
                 </li>
                 <li>
-                    <a {% if active_page == 'users-page' %}class="menu-active"{% endif %} href="{{ url_for('users') }}">
-                        <i class="bi bi-person-circle"></i>
-                        <span class="dock-label">Users</span>
-                    </a>
-                </li>
-                <li>
-                    <a {% if active_page == 'qc-page' %}class="menu-active"{% endif %} href="{{ url_for('qc_page') }}">
+                    <a hx-get="{{ url_for('qc_view') }}" 
+                    hx-target="#content-container"
+                    @click="activePage = 'qc'"
+                    :class="{ 'menu-active': activePage === 'qc', 'pointer-events-none': activePage === 'qc' }">
                         <i class="bi bi-clipboard-check"></i>
                         <span class="dock-label">QC</span>
                     </a>
@@ -54,7 +54,7 @@
         </div>
         <div class="navbar-end">
             <div class="pr-4 flex items-center space-x-4">
-                <div id="worker-status-container" hx-get="{{ url_for('worker_status') }}" hx-trigger="load" hx-swap="outerHTML" aria-label="status" class="status status-neutral">
+                <div id="worker-status-container" aria-label="status" class="status status-neutral">
                 </div>
                 <label for="right-side-drawer" aria-label="open sidebar" class="btn btn-square btn-ghost">
                     <i class="bi bi-layout-sidebar-inset-reverse"></i>
@@ -73,12 +73,11 @@
                 
                 <div class="drawer-content flex flex-col h-full">
                     <div class="flex-1 overflow-auto">
-                        <div class="w-full h-full">
-                            {% block content %}{% endblock %}
+                        <div class="w-full h-full" id="content-container" hx-get="{{ page_content_url }}" hx-trigger="load, once" hx-swap="innerHTML">
                         </div>
                     </div>
-                    <div class="bg-base-100 shadow-sm">
-                        {% include "footer.html" %}
+                    <div class="bg-base-100 shadow-sm z-[105]">
+                        {% include 'footer.html' %}
                     </div>
                 </div>
                 <div class="drawer-side z-50">
@@ -97,27 +96,10 @@
         </div>
     </div>
 
-    {% if modal_form %}
-    <dialog id="modal-form-container" class="modal" open>
-        <div class="modal-box w-11/12 max-w-5xl">
-            <h3 class="text-lg font-bold">QC Required</h3>
-            <div class="py-4">
-                {{ modal_form.render() | safe }}
-            </div>
-            <div class="modal-action">
-                <form method="dialog">
-                    <button class="btn">Close</button>
-                </form>
-            </div>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-            <button>close</button>
-        </form>
-    </dialog>
-    {% endif %}
+    <dialog id="modal-form-container" class="hidden"></dialog>
 
     <div x-data="toastManager" 
-        class="toast toast-end toast-bottom z-[9999] items-end mb-10"
+        class="toast toast-end toast-bottom z-[110] items-end mb-10"
         @flash.window="add($event.detail.category, $event.detail.message)">
         <div id="websocket-toast-catcher"></div>
         <template x-for="toast in toasts" :key="toast.id">
@@ -146,6 +128,10 @@
         </template>
     </div>
     <div id="htmx-trigger"></div>
+    <div id="global-loader" class="hidden fixed inset-0 bg-black/50 z-[100] flex flex-col items-center justify-center text-white">
+        <span class="loading loading-ring loading-lg"></span>
+        <p class="mt-4 font-bold text-lg" id="loader-text">Processing task...</p>
+    </div>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         document.addEventListener('alpine:init', () => {

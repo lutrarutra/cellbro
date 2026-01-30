@@ -15,6 +15,9 @@ _request_ctx_var: ContextVar[Request] = ContextVar("request")
 _response_ctx_var: ContextVar[Response] = ContextVar("response")
 
 class Context:
+    def url_for(self, name: str, **path_params) -> str:
+        return self.request.url_for(name, **path_params).__str__()
+    
     @property
     def request(self) -> Request:
         return _request_ctx_var.get()

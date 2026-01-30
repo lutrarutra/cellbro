@@ -1,9 +1,10 @@
-<form hx-post="{{ url_for('qc_step') }}" class="flex flex-col h-full">
-    <fieldset class="fieldset flex-1 overflow-auto gap-2">
-        {{ form.mt_prefix.render() }}
-        {{ form.ribo_prefix.render() }}
-        {{ form.hb_pattern.render() }}
-        {{ form.percent_top.render() }}
-    </fieldset>
-    <button type="submit" class="btn btn-success mt-4">Submit</button>
-</form>
+<ModalForm post_url={{ url_for('qc_step') }} class="flex flex-col h-full" form={{ form }}>
+    <div {% if loading %}class="hidden"{% endif %}>
+        <fieldset class="fieldset flex-1 overflow-auto gap-2">
+            {{ form.mt_prefix.render() }}
+            {{ form.ribo_prefix.render() }}
+            {{ form.hb_pattern.render() }}
+            {{ form.percent_top.render() }}
+        </fieldset>
+    </div>
+</ModalForm>

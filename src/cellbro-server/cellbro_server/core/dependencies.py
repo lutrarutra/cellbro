@@ -9,7 +9,7 @@ from . import exceptions as exc
 
 async def dataset(request: Request):
     if not await worker_redis.is_step_completed(types.ChecklistStep.LOAD):
-        raise exc.DatasetNotLoadedException()
+        pass
     
 async def qc(request: Request):
     if not await worker_redis.is_step_completed(types.ChecklistStep.LOAD):
