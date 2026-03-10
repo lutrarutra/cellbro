@@ -19,7 +19,7 @@ services:
             POSTGRES_HOST: ${POSTGRES_HOST}
             POSTGRES_PORT: ${POSTGRES_PORT}
             REDIS_PORT: ${REDIS_PORT}
-            REDIS_HOST: ${REDIS_HOST}
+            REDIS_HOST: "redis-cache"
         volumes:
             - ./src/cellbro-server:/app/cellbro-server:z
             - ./src/cellbro-db:/app/cellbro-db:z
@@ -41,7 +41,7 @@ services:
             POSTGRES_HOST: ${POSTGRES_HOST}
             POSTGRES_PORT: ${POSTGRES_PORT}
             REDIS_PORT: ${REDIS_PORT}
-            REDIS_HOST: ${REDIS_HOST}
+            REDIS_HOST: "redis-cache"
         volumes:
             - ./src/cellbro-worker:/app/cellbro-worker:z
             - ./src/cellbro-db:/app/cellbro-db:z
@@ -103,8 +103,6 @@ services:
         ports:
             - ${REDIS_PORT}:${REDIS_PORT}
         restart: always
-        volumes:
-            - ./cache:/data
         environment:
             TZ: ${TIMEZONE}
         healthcheck:
