@@ -1,20 +1,14 @@
-from cellbro_db import types
+from cellbro_db import types, SyncSession
 
-from .. import tools, CellBroTask
+from taskiq import TaskiqDepends
+from .. import tools, broker, db_session
 
-@tools.wrapper.worker_task("io.read_h5ad", complete_steps=types.ChecklistStep.LOAD, trigger_events="dataset-updated", notify=True, read_resources=[], write_resources=["X", "var", "obs", "uns", "layers", "obsm", "varm"])
-def read_h5ad(self: CellBroTask, file_path: str):
+@broker.task
+def read_h5ad(file_path: str, session: SyncSession = TaskiqDepends(db_session)):
     import anndata as ad
 
-    with self.db as session:
-        self.adata = ad.read_h5ad(file_path)
-        self.adata.obs_names_make_unique()
-        self.adata.var_names_make_unique()
-
-        import time
-        time.sleep(5)
-
-        for key in self.r.scan_iter("step:*"):
-            self.r.delete(key)
-
-        tools.dataset.reset_dataset(session, self.adata)
+    adata = ad.read_h5ad(file_path)
+    adata.obs_names_make_unique()
+    adata.var_names_make_unique()
+    
+    tools.dataset.reset_dataset(session, adata)

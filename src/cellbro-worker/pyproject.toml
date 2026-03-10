@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=70.1", "wheel>=0.43"]
+requires = ["setuptools>=70.1", "setuptools-scm[simple]>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -12,7 +12,8 @@ authors = [
 requires-python = ">=3.11"
 
 dependencies = [
-    "celery >= 5.5",
+    "taskiq",
+    "taskiq-redis",
     "psycopg[binary] >= 3.2",
     "SQLAlchemy >= 2.0",
     "pytz >= 2023.3",

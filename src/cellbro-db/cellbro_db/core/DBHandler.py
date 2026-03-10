@@ -40,11 +40,12 @@ class DBHandler:
             raise Exception("Session is not open.")
         return self._session
     
-    def open_session(self, autoflush: bool = False) -> None:
+    def open_session(self, autoflush: bool = False) -> SyncSession:
         if self._session is not None:
             print("Session is already open")
-            return
+            return self._session
         self._session = DBHandler.Session(autoflush=autoflush)
+        return self._session  # type: ignore
 
     def close_session(self, commit: bool | None = None, rollback: bool = False) -> bool:
         """ returns True if db was modified """

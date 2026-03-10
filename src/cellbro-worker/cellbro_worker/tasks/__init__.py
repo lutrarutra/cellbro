@@ -1,10 +1,10 @@
 import json
 
-from .. import tools, CellBroTask
+from .. import broker
 from . import io, qc
 
-@tools.wrapper.worker_task("plot.test_plot", notify=False, read_resources=["X"])
-def test_plot(self: CellBroTask, plot_id: str):
+@broker.task
+def test_plot(plot_id: str):
     from bokeh.plotting import figure
     from bokeh.themes import built_in_themes
     from bokeh.document import Document

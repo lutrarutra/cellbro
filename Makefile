@@ -18,6 +18,9 @@ endif
 
 COMPOSE_DEV := docker compose -f compose.yaml $(OVERRIDE_FLAG) -p cellbro-dev $(ENV_FILE_FLAG)
 
+dev-build:
+	$(COMPOSE_DEV) build
+
 debug:
 	@echo "Debugging..."
 	@echo "Current directory: $(CURDIR)"

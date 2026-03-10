@@ -2,9 +2,7 @@ import sys
 import json
 from io import StringIO
 import logging
-from celery.utils.log import get_task_logger
 
-logger = get_task_logger(__name__)
 
 class StdoutCaptureHandler(logging.Handler):
     def __init__(self, task_id: str, redis_client):

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=80", "setuptools-scm[simple]>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src"]
+
+[project]
+name = "cellbro-app"
+dynamic = ["version"]
+requires-python = ">=3.11, <3.14"
+dependencies = [
+    "cellbro-db",
+    "cellbro-server",
+    "cellbro-worker",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.2.0",
+    "ruff>=0.15.2",
+]
+
+[tool.uv.workspace]
+members = [
+    "src/*",
+]
+
+[tool.uv.sources]
+cellbro-worker = { workspace = true }
+cellbro-server = { workspace = true }
+cellbro-db = { workspace = true }

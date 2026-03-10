@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import sqlalchemy as sa
 
-from cellbro_worker import queues
+from cellbro_worker import tasks
 from cellbro_db import types
 
 from .config import settings
@@ -37,7 +37,7 @@ async def lifespan(app: FastAPI):
     if len(paths) == 1:
         if not await worker_redis.is_step_completed(types.ChecklistStep.LOAD):
             print(f"Auto-loading dataset from {paths[0]}", flush=True)
-            queues.read_h5ad(os.path.join(settings.DATA_DIR, paths[0]))
+            await tasks.io.read_h5ad.kiq(os.path.join(settings.DATA_DIR, paths[0]))
 
     yield
 

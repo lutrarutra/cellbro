@@ -1,6 +1,5 @@
-from multiprocessing import queues
 from fastapi import APIRouter, Depends
-from cellbro_worker import queues
+from cellbro_worker import tasks
 
 router = APIRouter(tags=["base", "api"])
 
@@ -29,7 +28,7 @@ async def retrieve_flash_messages(sid: str = Depends(get_sid)):
 
 @router.post("/read_data")
 async def read_data():
-    task_id = queues.read_h5ad("/app/data/pbmc3k.h5ad")
+    task_id = await tasks.io.read_h5ad.kiq("/app/data/pbmc3k.h5ad")
     return await html_response("components/mini/loading.html", task_id=task_id, task_name="Read Data")
 
 @router.get("/timeline")
