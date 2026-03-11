@@ -1,7 +1,4 @@
-from typing import Self
-
 import sqlalchemy as sa
-import sqlalchemy.orm as orm
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .Base import Base

@@ -22,10 +22,10 @@ class FeatureRepo:
     @classmethod
     def Select(
         cls,
-        query: sql.Select[tuple[Feature]] = sa.select(Feature),
         word: str | None = None,
         name: str | None = None,
         identifier: str | None = None,
+        query: sql.Select[tuple[Feature]] = sa.select(Feature),
     ) -> sa.Select[tuple[Feature]]:
         if name is not None:
             query = query.order_by(sa.nulls_last(sa.func.similarity(Feature.name, name.lower()).desc()))

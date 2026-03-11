@@ -24,9 +24,15 @@ class SoftwareRepo:
     @classmethod
     def Select(
         cls,
-        query: sql.Select[tuple[Software]] = sa.select(Software),
         name: str | None = None,
+        type: SoftwareType | None = None,
+        type_in: list[SoftwareType] | None = None,
+        query: sql.Select[tuple[Software]] = sa.select(Software),
     ) -> sa.Select[tuple[Software]]:
+        if type is not None:
+            query = query.where(Software.type == type)
+        if type_in is not None:
+            query = query.where(Software.type.in_(type_in))
         if name is not None:
             query = query.order_by(sa.func.similarity(Software.name, name).desc())
         return query

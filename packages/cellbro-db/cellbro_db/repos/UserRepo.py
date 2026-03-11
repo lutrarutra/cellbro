@@ -27,9 +27,16 @@ class UserRepo:
     @classmethod
     def Select(
         cls,
+        type: UserType | None = None,
+        type_in: list[UserType] | None = None,
         query: sql.Select[tuple[User]] = sa.select(User),
         name: str | None = None,
     ) -> sa.Select[tuple[User]]:
+        
+        if type is not None:
+            query = query.where(User.type == type)
+        if type_in is not None:
+            query = query.where(User.type.in_(type_in))
         
         if name is not None:
             query = query.order_by(sa.nulls_last(sa.func.similarity(User.first_name + ' ' + User.last_name, name).desc()))
