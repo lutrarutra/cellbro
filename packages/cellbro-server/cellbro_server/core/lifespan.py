@@ -1,10 +1,6 @@
-import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import sqlalchemy as sa
-
-from cellbro_worker import tasks
-from cellbro_db import types
 
 from .config import settings
 from .database import db_handler
@@ -33,13 +29,6 @@ async def lifespan(app: FastAPI):
     session_cache.connect(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
     flash_cache.connect(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=1)
     worker_redis.connect(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=2)
-
-    paths = [path for path in  os.listdir(settings.DATA_DIR) if path.endswith(".h5ad") or path.endswith(".h5")]
-
-    if len(paths) == 1:
-        if not await worker_redis.is_step_completed(types.ChecklistStep.LOAD):
-            print(f"Auto-loading dataset from {paths[0]}", flush=True)
-            await tasks.io.read_h5ad.kiq(os.path.join(settings.DATA_DIR, paths[0]))
 
     yield
 

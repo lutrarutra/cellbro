@@ -1,6 +1,5 @@
 import sqlalchemy as sa
 import sqlalchemy.sql as sql
-import sqlalchemy.sql as sql
 
 from ..types import VariableType, AnnDataLayerType
 
@@ -27,13 +26,11 @@ class VariableRepo:
     @classmethod
     def Select(
         cls,
+        query: sql.Select[tuple[Variable]] = sa.select(Variable),
         name: str | None = None,
         layer: AnnDataLayerType | None = None,
         type: VariableType | None = None,
-        sort_by: sql.expression.UnaryExpression | None = None,
     ) -> sa.Select[tuple[Variable]]:
-        query = sa.select(Variable)
-
         if layer is not None:
             query = query.where(Variable.layer == layer)
 
@@ -42,7 +39,5 @@ class VariableRepo:
 
         if name is not None:
             query = query.order_by(sa.nulls_last(sa.func.similarity(Variable.name, name.lower()).desc()))
-        elif sort_by is not None:
-            query = query.order_by(sort_by)
         
         return query

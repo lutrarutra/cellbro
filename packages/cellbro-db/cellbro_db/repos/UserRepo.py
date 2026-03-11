@@ -27,14 +27,10 @@ class UserRepo:
     @classmethod
     def Select(
         cls,
+        query: sql.Select[tuple[User]] = sa.select(User),
         name: str | None = None,
-        sort_by: sql.expression.UnaryExpression | None = None,
     ) -> sa.Select[tuple[User]]:
-        query = sa.select(User)
-
+        
         if name is not None:
             query = query.order_by(sa.nulls_last(sa.func.similarity(User.first_name + ' ' + User.last_name, name).desc()))
-        elif sort_by is not None:
-            query = query.order_by(sort_by)
-
         return query

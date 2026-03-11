@@ -22,14 +22,9 @@ class ObservationRepo:
     @classmethod
     def Select(
         cls,
+        query: sql.Select[tuple[Observation]] = sa.select(Observation),
         name: str | None = None,
-        sort_by: sql.expression.UnaryExpression | None = None,
     ) -> sa.Select[tuple[Observation]]:
-        query = sa.select(Observation)
-
         if name is not None:
             query = query.order_by(sa.nulls_last(sa.func.similarity(Observation.name, name.lower()).desc()))
-        elif sort_by is not None:
-            query = query.order_by(sort_by)
-        
         return query

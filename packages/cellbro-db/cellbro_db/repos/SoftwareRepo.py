@@ -23,15 +23,10 @@ class SoftwareRepo:
     
     @classmethod
     def Select(
-        cls, name: str | None = None,
-        sort_by: sql.expression.UnaryExpression | None = None,
+        cls,
+        query: sql.Select[tuple[Software]] = sa.select(Software),
+        name: str | None = None,
     ) -> sa.Select[tuple[Software]]:
-        
-        query = sa.select(Software)
-
         if name is not None:
             query = query.order_by(sa.func.similarity(Software.name, name).desc())
-        elif sort_by is not None:
-            query = query.order_by(sort_by)
-
         return query

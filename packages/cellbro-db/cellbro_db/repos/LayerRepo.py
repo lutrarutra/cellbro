@@ -22,15 +22,10 @@ class LayerRepo:
     @classmethod
     def Select(
         cls,
+        query: sql.Select[tuple[Layer]] = sa.select(Layer),
         name: str | None = None,
-        sort_by: sql.expression.UnaryExpression | None = None,
     ) -> sa.Select[tuple[Layer]]:
-        query = sa.select(Layer)
-
         if name is not None:
             query = query.order_by(sa.nulls_last(sa.func.similarity(Layer.name, name.lower()).desc()))
-        elif sort_by is not None:
-            query = query.order_by(sort_by)
-        
         return query
     
