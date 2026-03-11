@@ -2,7 +2,7 @@ import sqlalchemy as sa
 import pandas as pd
 import anndata as ad
 
-from cellbro_db import SyncSession, models, types
+from cellbro_db import SyncSession, models, types, repos
 
 def clean_db(db: SyncSession):
     db.execute(sa.delete(models.Observation))
@@ -16,18 +16,18 @@ def reset_dataset(db: SyncSession, adata: ad.AnnData):
     
     objects_to_add = []
     for idx in adata.obs.index:
-        objects_to_add.append(models.Observation.Create(name=str(idx)))
+        objects_to_add.append(repos.ObservationRepo.Create(name=str(idx)))
 
     for idx in adata.var.index:
-        feature = models.Feature.Create(identifier=str(idx), name=str(idx))
+        feature = repos.FeatureRepo.Create(identifier=str(idx), name=str(idx))
         objects_to_add.append(feature)
 
     objects_to_add.extend([
-        models.Layer.Create(name=layer_name, dtype=str(adata.layers[layer_name].dtype))
+        repos.LayerRepo.Create(name=layer_name, dtype=str(adata.layers[layer_name].dtype))
         for layer_name in adata.layers.keys()
     ])
     if adata.X is not None:
-        objects_to_add.append(models.Layer.Create(name="X", dtype=str(adata.X.dtype)))
+        objects_to_add.append(repos.LayerRepo.Create(name="X", dtype=str(adata.X.dtype)))
 
     for var_name in adata.var.columns:
         dtype = adata.var[var_name].dtype
@@ -45,7 +45,7 @@ def reset_dataset(db: SyncSession, adata: ad.AnnData):
         else:
             var_type = types.VariableType.STRING
 
-        objects_to_add.append(models.Variable.Create(
+        objects_to_add.append(repos.VariableRepo.Create(
             name=var_name,
             layer=types.AnnDataLayerType.VAR,
             type=var_type,
@@ -67,7 +67,7 @@ def reset_dataset(db: SyncSession, adata: ad.AnnData):
         else:
             var_type = types.VariableType.STRING
 
-        objects_to_add.append(models.Variable.Create(
+        objects_to_add.append(repos.VariableRepo.Create(
             name=var_name,
             layer=types.AnnDataLayerType.OBS,
             type=var_type,

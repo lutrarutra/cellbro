@@ -11,19 +11,22 @@ from cellbro_db import DBHandler
 
 from .tools.MessageRedis import SyncMessageRedis
 
-from . import REDIS_PORT, REDIS_URL, current_task_id, redis_client
+from . import REDIS_PORT, REDIS_URL, task_context, TaskContext
 
 class CellBroWorkerState(TaskiqState):
     db: DBHandler
 
 class TaskLifeCycleMiddleware(TaskiqMiddleware):
     def __init__(self):
-        self.message_redis: SyncMessageRedis = SyncMessageRedis()
+        self.message_redis = SyncMessageRedis()
         self.message_redis.connect(host="redis-cache", port=REDIS_PORT, db=2)
         
     async def pre_execute(self, message: TaskiqMessage) -> TaskiqMessage:
-        current_task_id.set(message.task_id)
-        redis_client.set(self.message_redis)
+        task_context.set(TaskContext(
+            task_id=message.task_id,
+            task_name=message.task_name,
+            message_client=self.message_redis
+        ))
         self.message_redis.log(message.task_id, f"Task {message.task_name} started.", category="log")
         return message
     

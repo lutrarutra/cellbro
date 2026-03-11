@@ -7,6 +7,7 @@ packages = ["packages"]
 
 [tool.pyright]
 extraPaths = ["packages/cellbro-worker", "packages/cellbro-server", "packages/cellbro-db"]
+reportIncompatibleMethodOverride = false
 
 [project]
 name = "cellbro-app"

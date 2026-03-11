@@ -1,5 +1,12 @@
 from enum import IntEnum, StrEnum
 
+
+class SoftwareType(StrEnum):
+    PYTHON_SCRIPT = "Python Script"
+    R_SCRIPT = "R Script"
+    CLI_TOOL = "Command Line Tool"
+
+
 class TaskStatus(StrEnum):
     RUNNING = "running"
     COMPLETED = "completed"

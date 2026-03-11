@@ -1,14 +1,13 @@
 # from cellbro_db import types
 
-# from .. import tools, CellBroTask
+# from .. import tools
+# from ..tools.wrappers import worker_task
+# from ..broker import task_broker
 
-
-# @tools.wrapper.worker_task("qc.run", complete_steps=types.ChecklistStep.QC, notify=True, trigger_events="dataset-updated", read_resources=["X"], write_resources=["var", "obs"])
-# def run(self: CellBroTask, mt_prefix: str, ribo_prefixes: list[str], hb_pattern: str, percent_top: int):
+# @task_broker.task
+# @worker_task(complete_steps=types.ChecklistStep.QC, notify=True, trigger_events="dataset-updated")
+# def run(mt_prefix: str, ribo_prefixes: list[str], hb_pattern: str, percent_top: int):
 #     import scanpy as sc
-
-#     import time
-#     time.sleep(5)
 
 #     with self.db as session:
 #         self.adata.var["mt"] = self.adata.var_names.str.startswith(mt_prefix)
@@ -25,7 +24,7 @@
 
 #         tools.dataset.reset_dataset(session, self.adata)
 
-# @tools.wrapper.worker_task("qc.plot.total_counts_histogram", read_resources=["X", "obs", "var"])
+# @worker_task("qc.plot.total_counts_histogram")
 # def plot_total_counts_histogram(self: CellBroTask, plot_id: str):
 #     from bokeh.plotting import figure
 #     from bokeh.themes import built_in_themes

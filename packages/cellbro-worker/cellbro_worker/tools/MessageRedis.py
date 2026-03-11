@@ -20,8 +20,8 @@ class AsyncMessageRedis:
     async def warning(self, task_id: str, text: str):
         await self.log(task_id, text, category="warning")
 
-    async def notify(self, text: str, category: Literal["log", "error", "warning"] = "log"):
-        await self.client.publish("notify", json.dumps({"text": text, "category": category}))
+    async def notify(self, message: str, category: Literal["log", "error", "warning"] = "log"):
+        await self.client.publish("notify", json.dumps({"message": message, "category": category}))
 
     async def complete_task(self, task_id: str):
         await self.client.publish(f"task:{task_id}", "completed")
@@ -72,8 +72,8 @@ class SyncMessageRedis:
     def warning(self, task_id: str, text: str):
         self.log(task_id, text, category="warning")
 
-    def notify(self, text: str, category: Literal["log", "error", "warning"] = "log"):
-        self.client.publish("notify", json.dumps({"text": text, "category": category}))
+    def notify(self, message: str, category: Literal["info", "success", "error", "warning"] = "info"):
+        self.client.publish("notify", json.dumps({"message": message, "category": category}))
         
     def complete_task(self, task_id: str):
         self.client.publish(f"task:{task_id}", "completed")

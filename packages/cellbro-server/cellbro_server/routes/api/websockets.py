@@ -19,7 +19,6 @@ async def subscribe_to_worker_messages(websocket: WebSocket):
         while True:
             message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=0.1)  # type: ignore
             if message and message["type"] in ["message", "pmessage"]:
-                print(f"Received Redis message: {message}", flush=True)
                 if message["channel"].startswith("task_status:"):
                     running_task_count = await worker_redis.get_number_of_running_tasks()
                     status_output = templates.get_template("components/mini/worker-status.html").render(running_task_count=running_task_count)
@@ -28,7 +27,6 @@ async def subscribe_to_worker_messages(websocket: WebSocket):
                     output = templates.get_template("components/mini/stdout.html").render(message=json.loads(message["data"]))
                     await websocket.send_text(output)
                 elif message["channel"] == "notify":
-                    print(f"Received notification message: {message}", flush=True)
                     notification = templates.get_template("components/mini/notification.html").render(notification_data = message["data"])
                     await websocket.send_text(notification)
                 elif message["channel"] == "event_triggered":

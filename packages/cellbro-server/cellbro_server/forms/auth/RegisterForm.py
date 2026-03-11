@@ -1,7 +1,7 @@
 from fastapi import Response
 
 from cellbro_db.core.session import AsyncSession
-from cellbro_db import types, models
+from cellbro_db import types, repos
 
 from ... import logic
 from ...core import exceptions as exc
@@ -44,7 +44,7 @@ class RegisterForm(HTMXForm):
             self.repeat_password.errors.append("Passwords do not match")
             return False
 
-        if (user :=  await db.get(models.User.Get(email=self.email.data))) is not None:
+        if (user := await db.get(repos.UserRepo.Get(email=self.email.data))) is not None:
             self.email.errors.append("Email is already registered")
             return False
         
