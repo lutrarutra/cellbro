@@ -28,6 +28,8 @@ services:
             - ./services/cellbro-app/static/js:/static/js:ro
             - compiled_css:/static/style/compiled
             - ./data:/app/data:z
+        restart: on-failure
+
     cellbro-worker:
         container_name: cellbro-worker
         build:
@@ -51,7 +53,7 @@ services:
                 condition: service_healthy
                 restart: true
         restart: on-failure
-        command: taskiq worker cellbro_worker.broker:broker --reload --workers 1
+        command: taskiq worker cellbro_worker:broker --reload --workers 1
 
     postgres:
         container_name: cellbro-postgres

@@ -62,4 +62,6 @@ def db_session(state: CellBroWorkerState) -> SyncSession:
     return state.db.open_session()
 
 
+from .tasks import io, qc
+
     

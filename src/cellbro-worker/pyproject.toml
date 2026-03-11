@@ -12,7 +12,7 @@ authors = [
 requires-python = ">=3.11"
 
 dependencies = [
-    "taskiq",
+    "taskiq[reload]",
     "taskiq-redis",
     "psycopg[binary] >= 3.2",
     "SQLAlchemy >= 2.0",

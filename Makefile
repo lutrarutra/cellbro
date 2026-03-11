@@ -21,8 +21,11 @@ COMPOSE_DEV := docker compose -f compose.yaml $(OVERRIDE_FLAG) -p cellbro-dev $(
 dev-build:
 	$(COMPOSE_DEV) build
 
+dev-stop:
+	$(COMPOSE_DEV) stop
+
 debug:
 	@echo "Debugging..."
 	@echo "Current directory: $(CURDIR)"
 	$(COMPOSE_DEV) up -d --remove-orphans
-	$(COMPOSE_DEV) logs --tail=100 cellbro-app
+	$(COMPOSE_DEV) logs -f --tail=100
