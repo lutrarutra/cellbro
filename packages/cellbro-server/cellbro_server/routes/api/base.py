@@ -28,8 +28,9 @@ async def retrieve_flash_messages(sid: str = Depends(get_sid)):
 
 @router.post("/read_data")
 async def read_data():
-    task_id = await tasks.io.read_h5ad.kiq("/app/data/pbmc3k.h5ad")
-    return await html_response("components/mini/loading.html", task_id=task_id, task_name="Read Data")
+    task = await tasks.io.read_h5ad.kiq("/app/data/pbmc3k.h5ad")
+    print(f"Enqueued read_h5ad task with ID: {task.task_id}", flush=True)
+    return await html_response("components/mini/loading.html", task_id=task.task_id, task_name="Read Data")
 
 @router.get("/timeline")
 async def timeline():

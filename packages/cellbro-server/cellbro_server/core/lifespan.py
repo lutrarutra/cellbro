@@ -13,6 +13,8 @@ from .cache import session_cache, flash_cache, worker_redis
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from cellbro_worker.broker import task_broker
+    await task_broker.startup()
     await db_handler.connect(
         user=settings.POSTGRES_USER,
         password=settings.POSTGRES_PASSWORD,
@@ -28,9 +30,9 @@ async def lifespan(app: FastAPI):
         await conn.execute(sa.text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
         await conn.run_sync(Base.metadata.create_all)
 
-    await session_cache.connect(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
-    await flash_cache.connect(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=1)
-    await worker_redis.connect(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=5)
+    session_cache.connect(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
+    flash_cache.connect(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=1)
+    worker_redis.connect(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=2)
 
     paths = [path for path in  os.listdir(settings.DATA_DIR) if path.endswith(".h5ad") or path.endswith(".h5")]
 
@@ -46,3 +48,4 @@ async def lifespan(app: FastAPI):
     await session_cache.close()
     await flash_cache.close()
     await worker_redis.close()
+    await task_broker.shutdown()

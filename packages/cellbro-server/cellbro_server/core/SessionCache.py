@@ -1,11 +1,21 @@
-from .RedisManager import RedisManager
+from redis.asyncio import Redis
 
-class SessionCache(RedisManager):
+class SessionCache:
     expiration: int | None = None
+    client: Redis = None # type: ignore
 
     def __init__(self, expiration: int | None = None):
         super().__init__()
         self.expiration = expiration
+
+    def connect(self, host: str, port: int, db: int, decode_responses: bool = True):
+        print(f"Connecting to Redis at {host}:{port}, db={db}")
+        self.client = Redis(host=host, port=port, db=db, decode_responses=decode_responses)
+
+    async def close(self):
+        if self.client:
+            await self.client.close()
+            self.client = None  # type: ignore
 
     def _redis_key(self, sid: str) -> str:
         return sid

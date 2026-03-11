@@ -2,7 +2,9 @@ services:
     cellbro-app:
         container_name: cellbro-app
         build:
-            dockerfile: ./services/cellbro-app/Dockerfile
+            context: .
+            dockerfile: ./services/Dockerfile.dev
+            target: cellbro-app
         ports:
             - "8000:8000"
         depends_on:
@@ -21,9 +23,9 @@ services:
             REDIS_PORT: ${REDIS_PORT}
             REDIS_HOST: "redis-cache"
         volumes:
-            - ./src/cellbro-server:/app/cellbro-server:z
-            - ./src/cellbro-db:/app/cellbro-db:z
-            - ./src/cellbro-worker:/app/cellbro-worker:z
+            - ./packages/cellbro-server:/app/packages/cellbro-server:z
+            - ./packages/cellbro-db:/app/packages/cellbro-db:z
+            - ./packages/cellbro-worker:/app/packages/cellbro-worker:z
             - ./services/cellbro-app/templates:/app/templates:ro
             - ./services/cellbro-app/static/js:/static/js:ro
             - compiled_css:/static/style/compiled
@@ -33,7 +35,9 @@ services:
     cellbro-worker:
         container_name: cellbro-worker
         build:
-            dockerfile: ./services/cellbro-worker/Dockerfile
+            context: .
+            dockerfile: ./services/Dockerfile.dev
+            target: cellbro-worker
         env_file: .env
         environment:
             TZ: ${TIMEZONE}
@@ -45,15 +49,15 @@ services:
             REDIS_PORT: ${REDIS_PORT}
             REDIS_HOST: "redis-cache"
         volumes:
-            - ./src/cellbro-worker:/app/cellbro-worker:z
-            - ./src/cellbro-db:/app/cellbro-db:z
+            - ./packages/cellbro-worker:/app/packages/cellbro-worker:z
+            - ./packages/cellbro-db:/app/packages/cellbro-db:z
             - ./data:/app/data:z
         depends_on:
             postgres:
                 condition: service_healthy
                 restart: true
         restart: on-failure
-        command: taskiq worker cellbro_worker:broker --reload --workers 1
+        command: watchfiles --filter python "taskiq worker cellbro_worker.broker:task_broker --workers 1" /app
 
     postgres:
         container_name: cellbro-postgres

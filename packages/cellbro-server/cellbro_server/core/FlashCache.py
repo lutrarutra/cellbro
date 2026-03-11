@@ -1,11 +1,21 @@
-from .RedisManager import RedisManager
+from redis.asyncio import Redis
 
-class FlashCache(RedisManager):
+class FlashCache():
+    client: Redis = None # type: ignore
     PRIORITY = ["error", "warning", "info", "success"]
     
     def __init__(self, expiration: int = 3600):
         super().__init__()
         self.expiration = expiration
+
+    def connect(self, host: str, port: int, db: int, decode_responses: bool = True):
+        print(f"Connecting to Redis at {host}:{port}, db={db}")
+        self.client = Redis(host=host, port=port, db=db, decode_responses=decode_responses)
+
+    async def close(self):
+        if self.client:
+            await self.client.aclose()
+            self.client = None  # type: ignore
 
     def _redis_key(self, sid: str, category: str) -> str:
         return f"flash:{sid}:{category}"

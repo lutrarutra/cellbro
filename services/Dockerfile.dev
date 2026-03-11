@@ -1,0 +1,40 @@
+# --- BASE: Common system deps and uv setup ---
+FROM python:3.13-slim AS base
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ENV PATH="/app/.venv/bin:$PATH" \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- BUILDER: Install dependencies ONLY ---
+FROM base AS builder
+ARG VERSION=0.0.0
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=$VERSION
+COPY pyproject.toml uv.lock ./
+COPY packages/cellbro-db/pyproject.toml ./packages/cellbro-db/
+COPY packages/cellbro-server/pyproject.toml ./packages/cellbro-server/
+COPY packages/cellbro-worker/pyproject.toml ./packages/cellbro-worker/
+RUN uv sync --frozen --no-install-project
+
+# --- SERVER ---
+FROM builder AS cellbro-app
+# RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
+COPY packages /app/packages
+RUN uv sync --frozen
+CMD ["uvicorn", "cellbro_server.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# --- CELERY WORKER ---
+FROM builder AS cellbro-worker
+COPY packages /app/packages
+RUN uv sync --frozen

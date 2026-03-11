@@ -3,7 +3,10 @@ requires = ["setuptools>=80", "setuptools-scm[simple]>=8"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["src"]
+packages = ["packages"]
+
+[tool.pyright]
+extraPaths = ["packages/cellbro-worker", "packages/cellbro-server", "packages/cellbro-db"]
 
 [project]
 name = "cellbro-app"
@@ -23,7 +26,7 @@ dev = [
 
 [tool.uv.workspace]
 members = [
-    "src/*",
+    "packages/*",
 ]
 
 [tool.uv.sources]

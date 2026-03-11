@@ -1,9 +1,9 @@
 import json
 
-from .. import broker
+from ..broker import task_broker
 from . import io, qc
 
-@broker.task
+@task_broker.task
 def test_plot(plot_id: str):
     from bokeh.plotting import figure
     from bokeh.themes import built_in_themes

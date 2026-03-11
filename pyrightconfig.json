@@ -1,8 +1,0 @@
-{
-  "extraPaths": [
-    "./src/cellbro-db",
-    "./src/cellbro-server",
-    "./src/cellbro-worker",
-  ],
-  "reportIncompatibleMethodOverride": false
-}
