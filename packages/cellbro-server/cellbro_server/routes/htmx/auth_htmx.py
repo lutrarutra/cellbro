@@ -1,15 +1,14 @@
 from fastapi import Depends, APIRouter
 
-router = APIRouter(prefix="/htmx/auth", tags=["auth", "htmx"])
-
 from cellbro_db import models
 from cellbro_db.core.session import AsyncSession
 
+from ... import forms, logic
 from ...core.context import ctx
 from ...core.responses import htmx_response
-from ... import forms, logic
 from ...core.dependencies import db_session, get_user
 
+router = APIRouter(prefix="/htmx/auth", tags=["auth", "htmx"])
 
 @router.get("/login")
 @router.post("/login")

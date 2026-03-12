@@ -14,7 +14,7 @@ router = APIRouter(prefix="/auth", tags=["auth", "view"])
 async def login(sid: str | None = Cookie(default=None, alias="session_id"), db: AsyncSession = Depends(db_session)):
     if sid:
         if (user_id := await session_cache.get(sid)) is not None:
-            if (user := await db.get(models.User.Get(id=user_id))) is not None:
+            if (user := await db.get_one(models.User.Get(id=user_id))) is not None:
                 print(user)
                 return await html_response(redirect="/")
     return await html_response("views/login.html")

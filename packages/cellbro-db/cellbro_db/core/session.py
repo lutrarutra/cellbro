@@ -49,7 +49,7 @@ class AsyncSession(SQLAlchemyAsyncSession):
 
         return await self.get_all(statement, limit=limit, offset=offset, order_by=order_by, options=options), count
 
-    async def get(self, statement: sa.Select[tuple[T]], options: sa.sql.base.ExecutableOption | None = None) -> T | None:
+    async def get_one(self, statement: sa.Select[tuple[T]], options: sa.sql.base.ExecutableOption | None = None) -> T | None:
         """Execute a select statement and return a single object or None."""
         if options is not None:
             statement = statement.options(options)
@@ -140,7 +140,7 @@ class SyncSession(Session):
         
         return self.get_all(statement, limit=limit, order_by=order_by, offset=offset, options=options), count
     
-    def get(self, statement: sa.Select[tuple[T]], options: sa.sql.base.ExecutableOption | None = None) -> T | None:
+    def get_one(self, statement: sa.Select[tuple[T]], options: sa.sql.base.ExecutableOption | None = None) -> T | None:
         """Execute a select statement and return a single object or None."""
         if options is not None:
             statement = statement.options(options)

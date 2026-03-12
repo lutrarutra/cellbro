@@ -16,6 +16,6 @@ async def users(db: AsyncSession = Depends(db_session)):
 
 @router.get("/{user_id}")
 async def user(user_id: int, db: AsyncSession = Depends(db_session)):
-    if (user := await db.get(models.User.Get(user_id))) is None:
+    if (user := await db.get_one(models.User.Get(user_id))) is None:
         raise exc.ItemNotFoundException(f"User with ID '{user_id}' not found.")
     return await html_response("views/user.html", user=user)

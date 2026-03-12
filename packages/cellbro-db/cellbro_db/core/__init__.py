@@ -1,1 +1,0 @@
-from . import blueprints  # noqa: F401

@@ -10,7 +10,7 @@ from ..core.config import settings
 from ..core import secrets
 
 async def login(db: AsyncSession, email: str, password: str) -> models.User:
-    if (user := await db.get(models.User.Get(email=email))) is None:
+    if (user := await db.get_one(models.User.Get(email=email))) is None:
         raise exc.InvalidCredentialsException("Invalid email or password")
     
     if not secrets.verify_password(password, user.password):
