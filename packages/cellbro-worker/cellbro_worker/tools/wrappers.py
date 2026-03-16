@@ -8,11 +8,6 @@ from .. import task_context
 from .OutputCaptureHandler import StdoutCaptureHandler
 from .WarningCaptureHandler import WarningCaptureHandler
 
-
-
-
-running_task_count = 0
-
 def worker_task(
     complete_steps: types.ChecklistStep | list[types.ChecklistStep] | None = None,
     trigger_events: str | list[str] | None = None,

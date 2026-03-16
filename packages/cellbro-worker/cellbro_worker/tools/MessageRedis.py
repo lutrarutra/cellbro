@@ -84,6 +84,9 @@ class SyncMessageRedis:
         
     def event(self, event_name: str):
         self.client.publish("event_triggered", event_name)
+
+    def return_result(self, task_id: str, result: dict):
+        self.client.publish(f"result:{task_id}", json.dumps(result))
     
     def close(self):
         if self.client:

@@ -35,6 +35,8 @@ class TaskLifeCycleMiddleware(TaskiqMiddleware):
             self.message_redis.error(message.task_id, f"Task {message.task_name} failed with error: {result.unwrap_err()}")
         else:
             self.message_redis.log(message.task_id, f"Task {message.task_name} completed successfully.", category="log")
+            print(result.return_value, flush=True)
+            self.message_redis.return_result(message.task_id, result.return_value)
         self.message_redis.complete_task(message.task_id)
     
 result_backend = RedisAsyncResultBackend(redis_url=REDIS_URL.format(port=REDIS_PORT, db=4))
